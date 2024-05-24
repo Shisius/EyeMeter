@@ -34,6 +34,7 @@ set(SOURCE_LIST ${MAIN_SOURCE})
 
 # include other
 include(${MAIN_PATH}/eseircam/tools/esecamtools.cmake)
+include(${MAIN_PATH}/ipc/ipc_comm.cmake)
 
 # add sources
 #message(STATUS "${PROJECT_NAME} sources = ${SOURCE_LIST}")
