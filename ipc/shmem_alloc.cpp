@@ -113,3 +113,13 @@ ShmemBlockReader::~ShmemBlockReader()
         perror("ShmemBlockReader::munmap");
     }
 }
+
+int ShmemBlockReader::get_block(ShmemBlock & block)
+{
+	if (block.id < d_n_units) {
+		block.size = d_unit_size;
+		block.ptr = (void*)((char*)(d_mmap_ptr) + block.id * d_unit_size);
+		return 0;
+	}
+	return -1;
+}

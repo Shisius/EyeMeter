@@ -40,7 +40,7 @@ void esecam_cb (const char* szCameraName,
 int main()
 {
 	UdsUniComm uuc(1);
-	ShmemBlockAllocator sba(1936*1216, 1, "/shframe");
+	ShmemBlockAllocator sba(1936*1216, 1, FRAME_SHBUF_NAME);
 	ShmemBlock sblk;
 	if (sba.setup() != 0) {printf("Shmem setup failed\n"); return 1;}
 	if (sba.block_alloc(sblk) != 0) {printf("Shmem block failed\n"); return 1;}
@@ -54,9 +54,7 @@ int main()
 
 	esecam_print_caps();
 
-	eseusbcam_unsigned_long_t feature;
-	printf("get feature result = %d\n", USB_GetCameraFeature(cam_name.c_str(), CONTRAST, &feature));
-	printf("feature = %d\n", feature);
+	esecam_print_features();
 
 	std::cin.get();
 	// char frame[1936*1216];

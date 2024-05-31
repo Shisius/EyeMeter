@@ -69,6 +69,8 @@ public:
 
 	int setup();
 
+	int get_block(ShmemBlock & block);
+
 protected:
 
 	int d_handle;
