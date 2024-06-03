@@ -92,12 +92,8 @@ inline int esecam_print_caps()
 				CameraSerial: %d\n \
 				CameraSWVersion: %d\n \
 				CameraFWVersion: %d\n \
-				BasicFunction: %d\n \
-				FeatureHi: %d\n \
-				FeatureLo: %d\n \
 				NumFmt: %d, CurFmt: %d, BitPerPixel: %d\n", caps->CameraSerial, caps->CameraSWVersion, caps->CameraFWVersion, 
-				*(eseusbcam_unsigned_long_t*)(&(caps->BasicFunction)), *(eseusbcam_unsigned_long_t*)(&caps->FeatureHi),
-				*(eseusbcam_unsigned_long_t*)(&caps->FeatureLo), caps->CameraFormats.numFormats, caps->CameraFormats.CurrFormat, 
+				caps->CameraFormats.numFormats, caps->CameraFormats.CurrFormat, 
 				caps->CameraFormats.formatsList[caps->CameraFormats.CurrFormat].bitCountBitMap);
 		esecam_print(caps->FeatureHi);
 		esecam_print(caps->Brightness, "Brightness");

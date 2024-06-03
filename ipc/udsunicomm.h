@@ -52,16 +52,39 @@ public:
 	int start();
 	void stop();
 
+	int try_recv(UdsUniPack & pack);
+	int wait_recv(UdsUniPack & pack);
+
 	/**
 	 * Overloaded send for sendind any legal stuff
 	 */
 	int send(unsigned char title, unsigned char role = EYEMETER_ROLE_ALL);
 
 	template<typename T>
-	int send(unsigned char title, T data, unsigned char role = EYEMETER_ROLE_ALL);
+	int send(unsigned char title, T data, unsigned char role = EYEMETER_ROLE_ALL)
+	{
+		UdsUniMsg msghdr;
+		msghdr.proto = UDSUNI_PROTO_PTTS4;
+		msghdr.title = title;
+		if (d_types_map.count(typeid(T)) > 0) {
+			msghdr.type = d_types_map.at(typeid(T));
+		} else msghdr.type = USDUNI_TYPE_UNKNOWN;
+		msghdr.size = sizeof(T);
 
-	int try_recv(UdsUniPack & pack);
-	int wait_recv(UdsUniPack & pack);
+		int result = -1;
+		char msg[sizeof(UdsUniMsg) + sizeof(T)];
+		memcpy(msg, &msghdr, sizeof(UdsUniMsg));
+		memcpy(msg+sizeof(UdsUniMsg), &data, sizeof(T));
+		if (d_othersocks.count(role) > 0) {
+			result = sendto(d_sock, msg, sizeof(UdsUniMsg)+sizeof(T), 0, (struct sockaddr *) &(d_othersocks.at(role)), sizeof(sockaddr_un));
+		} else if (role == EYEMETER_ROLE_ALL) {
+			result = 0;
+			for (auto & p : d_othersocks) {
+				result += sendto(d_sock, msg, sizeof(UdsUniMsg)+sizeof(T), 0, (struct sockaddr *) &(p.second), sizeof(sockaddr_un));
+			}
+		}
+		return result;
+	}
 
 protected:
 

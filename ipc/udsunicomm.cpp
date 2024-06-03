@@ -35,7 +35,7 @@ int UdsUniComm::start()
 	_sockaddr.sun_family = AF_UNIX;
 	strncpy(_sockaddr.sun_path, d_sockpath.c_str(), 104);
 
-	int d_sock = socket(AF_UNIX, SOCK_DGRAM, 0);
+	int d_sock = socket(PF_UNIX, SOCK_DGRAM, 0);
 	if (d_sock < 0) {
 		printf("UdsUniComm:: %s:socket failed\n", d_sockpath.c_str());
 		return d_sock;
@@ -104,31 +104,31 @@ int UdsUniComm::send(unsigned char title, unsigned char role)
 	return result;
 }
 
-template<typename T>
-int UdsUniComm::send(unsigned char title, T data, unsigned char role)
-{
-	UdsUniMsg msghdr;
-	msghdr.proto = UDSUNI_PROTO_PTTS4;
-	msghdr.title = title;
-	if (d_types_map.count(typeid(T)) > 0) {
-		msghdr.type = d_types_map.at(typeid(T));
-	} else msghdr.type = USDUNI_TYPE_UNKNOWN;
-	msghdr.size = sizeof(T);
+// template<typename T>
+// int UdsUniComm::send(unsigned char title, T data, unsigned char role)
+// {
+// 	UdsUniMsg msghdr;
+// 	msghdr.proto = UDSUNI_PROTO_PTTS4;
+// 	msghdr.title = title;
+// 	if (d_types_map.count(typeid(T)) > 0) {
+// 		msghdr.type = d_types_map.at(typeid(T));
+// 	} else msghdr.type = USDUNI_TYPE_UNKNOWN;
+// 	msghdr.size = sizeof(T);
 
-	int result = -1;
-	char msg[sizeof(UdsUniMsg) + sizeof(T)];
-	memcpy(msg, &msghdr, sizeof(UdsUniMsg));
-	memcpy(msg+sizeof(UdsUniMsg), &data, sizeof(T));
-	if (d_othersocks.count(role) > 0) {
-		result = sendto(d_sock, msg, sizeof(UdsUniMsg)+sizeof(T), 0, (struct sockaddr *) &(d_othersocks.at(role)), sizeof(sockaddr_un));
-	} else if (role == EYEMETER_ROLE_ALL) {
-		result = 0;
-		for (auto & p : d_othersocks) {
-			result += sendto(d_sock, msg, sizeof(UdsUniMsg)+sizeof(T), 0, (struct sockaddr *) &(p.second), sizeof(sockaddr_un));
-		}
-	}
-	return result;
-}
+// 	int result = -1;
+// 	char msg[sizeof(UdsUniMsg) + sizeof(T)];
+// 	memcpy(msg, &msghdr, sizeof(UdsUniMsg));
+// 	memcpy(msg+sizeof(UdsUniMsg), &data, sizeof(T));
+// 	if (d_othersocks.count(role) > 0) {
+// 		result = sendto(d_sock, msg, sizeof(UdsUniMsg)+sizeof(T), 0, (struct sockaddr *) &(d_othersocks.at(role)), sizeof(sockaddr_un));
+// 	} else if (role == EYEMETER_ROLE_ALL) {
+// 		result = 0;
+// 		for (auto & p : d_othersocks) {
+// 			result += sendto(d_sock, msg, sizeof(UdsUniMsg)+sizeof(T), 0, (struct sockaddr *) &(p.second), sizeof(sockaddr_un));
+// 		}
+// 	}
+// 	return result;
+// }
 
 void UdsUniComm::recv_process()
 {
@@ -192,7 +192,7 @@ int UdsUniPack::get_data(T & data)
 
 void UdsUniPack::put_data(void * ptr)
 {
-	if (data_ptr) free(data_ptr);
+	if (data_ptr != nullptr) free(data_ptr);
 	data_ptr = malloc(msg.size);
 	memcpy(data_ptr, ptr, msg.size);
 }

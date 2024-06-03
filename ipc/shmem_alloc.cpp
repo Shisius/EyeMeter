@@ -23,11 +23,14 @@ ShmemBlockAllocator::~ShmemBlockAllocator()
 int ShmemBlockAllocator::setup()
 {
 	// Create
-	shm_unlink(d_name.c_str());
 	int d_handle = shm_open(d_name.c_str(), O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-    if (d_handle == -1) {
+    if (d_handle < 0) {
     	perror("ShmemBlockAllocator::shm_open");
-    	return -1;
+    	shm_unlink(d_name.c_str());
+    	usleep(10000);
+    	d_handle = shm_open(d_name.c_str(), O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+    	if (d_handle < 0)
+    		return -1;
     }
 
     // and set its size to the size of struct shmbuf

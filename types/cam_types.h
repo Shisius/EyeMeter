@@ -3,7 +3,8 @@
 
 typedef enum
 {
-	CAM_PIXEL_GRAY_8 = 0
+	CAM_PIXEL_GRAY_8 = 8,
+	CAM_PIXEL_GRAY_12 = 12
 } CamPixelFormat;
 
 typedef struct _shared_frame
@@ -23,14 +24,12 @@ typedef struct _stream_settings
 	unsigned int frame_height;
 	unsigned short cam_shutter_us;
 	unsigned char frame_format;
+	unsigned char cam_format;
 } StreamSettings;
 
 typedef struct _measure_settings
 {
-	unsigned int frame_width;
-	unsigned int frame_height;
-	unsigned short cam_shutter_us;
-	unsigned char frame_format;
+	StreamSettings stream;
 	unsigned char n_led_pos;
 	unsigned char n_repeat;
 } MeasureSettings;

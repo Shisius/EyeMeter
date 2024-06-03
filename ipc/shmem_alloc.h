@@ -40,7 +40,7 @@ public:
 
 	void show(unsigned int n_bytes) {
 		for (unsigned int i = 0; i < n_bytes; i++) {
-			printf("%x ", *((char*)(d_mmap_ptr) + i));
+			printf("%x ", *((unsigned char*)(d_mmap_ptr) + i));
 		}
 		printf("\n");
 	}
