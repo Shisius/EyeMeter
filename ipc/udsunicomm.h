@@ -37,7 +37,7 @@ struct UdsUniPack
 	~UdsUniPack() {if (data_ptr) free(data_ptr);}
 
 	template<typename T>
-	int UdsUniPack::fetch_data(T & data)
+	int fetch_data(T & data)
 	{
 		if (sizeof(T) != msg.size) return -1;
 		memcpy(&data, data_ptr, msg.size);
