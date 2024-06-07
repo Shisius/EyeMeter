@@ -40,7 +40,10 @@ int UdsUniComm::start()
 		printf("UdsUniComm:: %s:socket failed\n", d_sockpath.c_str());
 		return d_sock;
 	}
-	bind(d_sock, (struct sockaddr *) &_sockaddr, sizeof(sockaddr_un));
+	if (bind(d_sock, (struct sockaddr *) &_sockaddr, sizeof(sockaddr_un)) < 0) {
+		printf("UdsUniComm:: %s:bind failed\n", d_sockpath.c_str());
+		return -1;
+	}
 
 	d_pollfd.fd = d_sock;
     d_pollfd.events = POLLIN;
