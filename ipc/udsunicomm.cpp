@@ -185,14 +185,6 @@ int UdsUniComm::wait_recv(UdsUniPack & pack)
 	return -1;
 }
 
-template<typename T>
-int UdsUniPack::get_data(T & data)
-{
-	if (sizeof(T) != msg.size) return -1;
-	memcpy(&data, data_ptr, msg.size);
-	return 0;
-}
-
 void UdsUniPack::put_data(void * ptr)
 {
 	if (data_ptr != nullptr) free(data_ptr);
