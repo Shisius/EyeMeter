@@ -73,7 +73,7 @@ public:
 		msghdr.title = title;
 		if (d_types_map.count(typeid(T)) > 0) {
 			msghdr.type = d_types_map.at(typeid(T));
-		} else msghdr.type = USDUNI_TYPE_UNKNOWN;
+		} else msghdr.type = UDSUNI_TYPE_UNKNOWN;
 		msghdr.size = sizeof(T);
 
 		int result = -1;
