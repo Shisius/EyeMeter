@@ -87,7 +87,7 @@ int EseCamMaster::start_stream()
 		return -1;
 	}
 
-	d_uds->send(USDUNI_TITLE_STREAM_RUNNING, d_stream_settings);
+	d_uds->send(UDSUNI_TITLE_STREAM_RUNNING, d_stream_settings);
 
 	return 0;
 }
@@ -104,10 +104,10 @@ void EseCamMaster::comm_process()
 		UdsUniPack pack;
 		if (d_uds->wait_recv(pack) == 0) {
 			switch (pack.msg.title) {
-				case USDUNI_TITLE_STREAM_START:
+				case UDSUNI_TITLE_STREAM_START:
 					start_stream();
 					break;
-				case USDUNI_TITLE_STREAM_STOP:
+				case UDSUNI_TITLE_STREAM_STOP:
 					USB_StopVideoStream(d_cam_name.c_str());
 					break;
 				case UDSUNI_TITLE_FRAME_FREE:

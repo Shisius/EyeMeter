@@ -37,7 +37,7 @@ struct UdsUniPack
 	~UdsUniPack() {if (data_ptr) free(data_ptr);}
 
 	template<typename T>
-    int fetch_data(T & data) const
+	int fetch_data(T & data) const
 	{
 		if (sizeof(T) != msg.size) return -1;
 		memcpy(&data, data_ptr, msg.size);
@@ -73,7 +73,7 @@ public:
 		msghdr.title = title;
 		if (d_types_map.count(typeid(T)) > 0) {
 			msghdr.type = d_types_map.at(typeid(T));
-        } else msghdr.type = USDUNI_TYPE_UNKNOWN;
+		} else msghdr.type = USDUNI_TYPE_UNKNOWN;
 		msghdr.size = sizeof(T);
 
 		int result = -1;

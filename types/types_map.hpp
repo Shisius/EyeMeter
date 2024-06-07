@@ -6,7 +6,7 @@
 #include <typeindex>
 #include "comm_types.h"
 #include "cam_types.h"
-#include "ai_types.h";
+#include "ai_types.h"
 
 struct UdsUniTypeInfo
 {
