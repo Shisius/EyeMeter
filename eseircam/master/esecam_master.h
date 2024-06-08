@@ -34,12 +34,16 @@ protected:
 
 	std::thread d_comm_thread;
 	std::atomic<bool> d_is_alive;
+	std::atomic<bool> d_in_stream;
+	std::chrono::time_point<std::chrono::high_resolution_clock> d_last_frame_time;
 
 	int start_stream();
 	int stop_stream();
 	int frame_free(UdsUniPack & pack);
+	
 	int set_led_pwr(UdsUniPack & pack);
 
+	int set_trigger(bool enable, bool hard);
 	int get_frame_soft_trigger();
 
 	void comm_process();

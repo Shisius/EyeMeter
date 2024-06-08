@@ -28,6 +28,7 @@ typedef struct _stream_settings
 	unsigned char pixel_bits;
 	unsigned char cam_format;
 	unsigned char frame_queue_depth;
+	unsigned char fps_max;
 } StreamSettings;
 
 typedef struct _measure_settings

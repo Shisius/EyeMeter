@@ -34,10 +34,12 @@ void esecam_callback (const char* szCameraName,
 EseCamMaster::EseCamMaster()
 {
 	d_is_alive.store(false);
+	d_in_stream.store(false);
 
 	d_stream_settings.cam_format = 0;
 	d_stream_settings.cam_shutter_us = 10000;
 	d_stream_settings.frame_queue_depth = 80;
+	d_stream_settings.fps_max = 50;
 
 	d_uds = std::make_unique<UdsUniComm>(EYEMETER_ROLE_CAM);
 	d_serial = std::make_unique<SerialComm>("/dev/ttyUSB0", B115200);
@@ -97,6 +99,8 @@ int EseCamMaster::start_stream()
 	if (USB_SetFormat(d_cam_name.c_str(), d_stream_settings.cam_format) != 1) return -1;
 	// if (USB_SetCameraFeature(d_cam_name.c_str(), SHUTTER, d_stream_settings.cam_shutter_us) != 1) return -1;
 
+	set_trigger(true, false);
+
 	VIDEO_STREAM_PARAM_EX oStreamParam = {};
 	oStreamParam.ppReturnedParams = nullptr;
 	oStreamParam.pBuffBitmap = nullptr; 
@@ -108,7 +112,13 @@ int EseCamMaster::start_stream()
 		return -1;
 	}
 
+	d_in_stream.store(true);
+
 	d_uds->send(UDSUNI_TITLE_STREAM_RUNNING, d_stream_settings);
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+	get_frame_soft_trigger();
 
 	return 0;
 }
@@ -116,6 +126,7 @@ int EseCamMaster::start_stream()
 int EseCamMaster::stop_stream()
 {
 	USB_StopVideoStream(d_cam_name.c_str());
+	d_in_stream.store(false);
 	return 0;
 }
 
@@ -125,12 +136,14 @@ int EseCamMaster::frame_free(UdsUniPack & pack)
 		int id;
 		if (pack.fetch_data(id) == 0) {
 			d_shmem->block_free(id);
+			if (d_in_stream.load()) get_frame_soft_trigger();
 			return 0;
 		}
 	} else if (pack.msg.type == UDSUNI_TYPE_SHARED_FRAME) {
 		SharedFrame sf;
 		if (pack.fetch_data(sf) == 0) {
 			d_shmem->block_free(sf.id);
+			if (d_in_stream.load()) get_frame_soft_trigger();
 			return 0;
 		}
 	}
@@ -152,9 +165,32 @@ int EseCamMaster::set_led_pwr(UdsUniPack & pack)
 	return -1;
 }
 
+int EseCamMaster::set_trigger(bool enable, bool hard)
+{
+	TRIGGER_CTRL_REG reg;
+
+	if (USB_GetCameraFeature(d_cam_name.c_str(), TRIGGER_MODE, (eseusbcam_unsigned_long_t*)&reg) != 1) {
+		printf("EseCamMaster:: get trigger failed\n");
+		return -1;
+	}
+
+	if (enable) reg.OnOff = 1;
+	else reg.OnOff = 0;
+
+	if (hard) reg.TriggerMode = 0;
+	else reg.TriggerMode = 3;
+
+	eseusbcam_unsigned_long_t _reg;
+	memcpy(&_reg, &reg, sizeof(TRIGGER_CTRL_REG));
+	if (USB_SetCameraFeature(d_cam_name.c_str(), TRIGGER_MODE, _reg) == 1) return 0;
+	printf("EseCamMaster:: set trigger failed\n");
+	return -1;
+}
+
 int EseCamMaster::get_frame_soft_trigger()
 {
 	if (USB_SetCameraFeature(d_cam_name.c_str(), ONE_MULTI_FRAME_REQUEST, 1) == 1) return 0;
+	printf("EseCamMaster::soft trigger failed\n");
 	return -1;
 }
 
