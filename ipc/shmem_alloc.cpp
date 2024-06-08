@@ -51,6 +51,44 @@ int ShmemBlockAllocator::setup()
     return 0;
 }
 
+int ShmemBlockAllocator::resize(unsigned int unit_size, unsigned int n_units)
+{
+	if (d_unit_size == unit_size && d_n_units == n_units) return 0;
+
+	if (check_free() < d_n_units) return -1;
+	munmap((void*)(d_mmap_ptr), d_n_units *d_unit_size);
+
+	int d_handle = shm_open(d_name.c_str(), O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+    if (d_handle < 0) {
+    	perror("ShmemBlockAllocator::resize:shm_open");
+    	return -1;
+    }
+
+	// and set its size to the size of struct shmbuf
+    if(ftruncate(d_handle, n_units *unit_size) == -1) { //seek??            
+        perror("ShmemBlockAllocator::resize:ftruncate");
+        return -1;
+    }
+    // mmap
+    d_mmap_ptr = mmap(nullptr, n_units * unit_size, PROT_READ | PROT_WRITE, MAP_SHARED, d_handle, 0);
+	if(d_mmap_ptr == MAP_FAILED){             
+        perror("ShmemBlockAllocator::resize:mmap");
+        return -1;
+    }
+    if(close(d_handle) == -1){ /* No longer needed */                       
+        perror("ShmemBlockAllocator::resize:close");
+    }
+    // Set
+    d_n_units = n_units;
+    d_unit_size = unit_size;
+    d_blocks.clear();
+    for (unsigned int i = 0; i < d_n_units; i++) {
+		ShmemBlock sb({i, unit_size, nullptr});
+		d_blocks.push_back(sb);
+	}
+    return 0;
+}
+
 int ShmemBlockAllocator::block_alloc(ShmemBlock & block)
 {
 	for (ShmemBlock & sb : d_blocks) {

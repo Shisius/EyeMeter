@@ -34,9 +34,11 @@ public:
 
 	int setup();
 
+	int resize(unsigned int unit_size, unsigned int n_units);
+
 	int block_alloc(ShmemBlock & block);
 	int block_free(unsigned int block_id);
-	unsigned int check_free();
+	unsigned int check_free(); // Returns number of free blocks
 
 	void show(unsigned int n_bytes) {
 		for (unsigned int i = 0; i < n_bytes; i++) {
