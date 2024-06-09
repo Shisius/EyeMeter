@@ -10,6 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
     showFullScreen();
     setCentralWidget( &d_l_snapshot);
     d_l_snapshot.setStyleSheet("background-color: black");
+    initNetwork();
 #ifdef TEST_snapshot
     d_snapshotParams.frame_height = 1216;
     d_snapshotParams.frame_width = 1936;

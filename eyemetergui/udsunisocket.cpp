@@ -5,7 +5,7 @@ UdsUniSocket_inner::UdsUniSocket_inner(QObject *parent)
 {
     qDebug() << Q_FUNC_INFO;
     d_udsUniComm = new UdsUniComm(EyeMeterRoles::EYEMETER_ROLE_GUI);
-    if(d_udsUniComm->start() == -1)
+    if(d_udsUniComm->start() == 0)
         d_isBound = true;
 }
 
