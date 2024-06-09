@@ -19,6 +19,8 @@ inline std::map<std::type_index, unsigned char> get_types_map()
 	std::map<std::type_index, unsigned char> types_map;
 	types_map[typeid(int)] = UDSUNI_TYPE_INT;
 	types_map[typeid(SharedFrame)] = UDSUNI_TYPE_SHARED_FRAME;
+	types_map[typeid(StreamSettings)] = UDSUNI_TYPE_STREAM_SETTINGS;
+	types_map[typeid(MeasureSettings)] = UDSUNI_TYPE_MEASURE_SETTINGS;
 
 	return types_map;
 };
@@ -28,6 +30,8 @@ inline unsigned char get_size_by_code(unsigned char code)
 	switch (code) {
 	case UDSUNI_TYPE_INT: 			return sizeof(int);
 	case UDSUNI_TYPE_SHARED_FRAME : return sizeof(SharedFrame);
+	case UDSUNI_TYPE_STREAM_SETTINGS : return sizeof(StreamSettings);
+	case UDSUNI_TYPE_MEASURE_SETTINGS : return sizeof(MeasureSettings);
 	}
 
 	return 0;

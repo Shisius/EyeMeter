@@ -9,6 +9,7 @@ void esecam_callback (const char* szCameraName,
 						void*  pUserData)
 {
 	EseCamMaster * master = (EseCamMaster*)(pUserData);
+	// printf("EseCamMaster::frame callback\n");
 	if (eventID == NEW_FRAME || eventID == NEW_FRAME_SYNCHRO_ERROR)
 	{
 		if (pFrame) {
@@ -52,7 +53,7 @@ EseCamMaster::~EseCamMaster()
 
 void EseCamMaster::stop()
 {
-	USB_StopVideoStream(d_cam_name.c_str());
+	stop_stream();
 	d_is_alive.store(false);
 	d_uds->stop();
 	if (d_comm_thread.joinable())
@@ -64,7 +65,10 @@ int EseCamMaster::setup()
 	if (d_uds->start() < 0) return -1;
 
 	d_cam_name = esecam_getname();
-	if (d_cam_name == "") return -1;
+	if (d_cam_name == "") {
+		printf("EseCamMaster:: esecam is not found\n");
+		return -1;
+	}
 
 	if (d_serial->setup(true) < 0) return -1;
 
@@ -93,13 +97,17 @@ int EseCamMaster::setup()
 
 int EseCamMaster::start_stream()
 {
+	printf("EseCamMaster:: start stream\n");
 	// Shmem
 	d_shmem->resize(d_stream_settings.frame_size, d_stream_settings.frame_queue_depth);
 	// Set
-	if (USB_SetFormat(d_cam_name.c_str(), d_stream_settings.cam_format) != 1) return -1;
+	if (USB_SetFormat(d_cam_name.c_str(), d_stream_settings.cam_format) != 1) {
+		printf("EseCamMaster::set format failed\n");
+		return -1;
+	}
 	// if (USB_SetCameraFeature(d_cam_name.c_str(), SHUTTER, d_stream_settings.cam_shutter_us) != 1) return -1;
 
-	set_trigger(true, false);
+	set_trigger(false, false);
 
 	VIDEO_STREAM_PARAM_EX oStreamParam = {};
 	oStreamParam.ppReturnedParams = nullptr;
@@ -159,6 +167,7 @@ int EseCamMaster::set_led_pwr(UdsUniPack & pack)
 			if (pwr == 0) cmd = 0x00;
 			else cmd = 0x02;
 			d_serial->write_from(&cmd, 1);
+			printf("EseCamMaster:: led send cmd %d\n", cmd);
 			return 0;
 		}
 	}

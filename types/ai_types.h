@@ -11,6 +11,8 @@ typedef struct _eye_frame_position
 
 typedef struct _AI_stream_result
 {
+	unsigned int id;
+
 	unsigned char no_face; // > 0 - Ошибка Лицо за кадром
 	unsigned char no_eyefix; // > 0 - Ошибка Отсутствие фиксации взгляда
 	unsigned char change_distance; // > 0 - Ошибка Слишком близко. < 0 - Ошибка Слишком далеко

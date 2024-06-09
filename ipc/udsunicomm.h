@@ -34,15 +34,19 @@ struct UdsUniPack
 	void * data_ptr = nullptr;
 
 	UdsUniPack() : data_ptr(nullptr) {}
-	~UdsUniPack() {if (data_ptr) free(data_ptr);}
+	~UdsUniPack() {} //printf("UdsUniPack::destroy\n");}//{if (data_ptr != nullptr) {free(data_ptr); data_ptr = nullptr;}}
 
 	template<typename T>
 	int fetch_data(T & data) const
 	{
 		if (sizeof(T) != msg.size) return -1;
+		if (data_ptr == nullptr) return -1;
 		memcpy(&data, data_ptr, msg.size);
+		free(data_ptr);
 		return 0;
 	}
+
+	void clear_data() {if (data_ptr != nullptr) free(data_ptr);}
 
 	void put_data(void * ptr);
 };
@@ -88,6 +92,7 @@ public:
 				result += sendto(d_sock, msg, sizeof(UdsUniMsg)+sizeof(T), 0, (struct sockaddr *) &(p.second), sizeof(sockaddr_un));
 			}
 		}
+		if (result < 0) printf("UdsUniComm:: send error %d\n", errno);
 		return result;
 	}
 
