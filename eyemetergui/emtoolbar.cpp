@@ -83,3 +83,8 @@ void EMToolBar::slot_start()
 {
     emit sig_startTriggered();
 }
+
+void EMToolBar::slot_pwr()
+{
+    emit sig_pwrTriggered();
+}

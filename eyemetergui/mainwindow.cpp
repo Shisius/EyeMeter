@@ -35,6 +35,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    qDebug() << Q_FUNC_INFO;
+    d_udsUniSocket->stop();
 }
 
 void MainWindow::createToolBar()

@@ -22,7 +22,8 @@ void UdsUniSocket_inner::receiveLoop()
                 emit readyRead(pack);
         }
     }
-    emit finished();
+    qDebug() << Q_FUNC_INFO<< "finish";
+    emit finished();    
 }
 
 int UdsUniSocket_inner::send(unsigned char title, unsigned char role)
@@ -39,6 +40,10 @@ bool UdsUniSocket_inner::isValid() const
     return d_isBound;
 }
 
+void UdsUniSocket_inner::stop()
+{
+    d_udsUniComm->stop();
+}
 
 UdsUniSocket::UdsUniSocket(QObject *parent)
     : QObject{parent}
@@ -58,6 +63,7 @@ UdsUniSocket::UdsUniSocket(QObject *parent)
 UdsUniSocket::~UdsUniSocket()
 {
     qDebug() << Q_FUNC_INFO;
+
     d_udsThread.quit();
     d_udsThread.wait();
 }
