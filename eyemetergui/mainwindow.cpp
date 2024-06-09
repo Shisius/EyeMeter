@@ -45,6 +45,7 @@ void MainWindow::createToolBar()
     d_toolbar = new EMToolBar(this);
     addToolBar(Qt::LeftToolBarArea,d_toolbar);
     qDebug() << connect(d_toolbar, SIGNAL(sig_startTriggered()), SLOT(slot_start()));
+    qDebug() << connect(d_toolbar, SIGNAL(sig_pwrTriggered()), SLOT(slot_pwr()));
 }
 
 void MainWindow::slot_start()
@@ -60,7 +61,8 @@ void MainWindow::slot_pwr()
     qDebug() << Q_FUNC_INFO;
     if(d_udsUniSocket == nullptr)
         return;
-    d_udsUniSocket->send(UdsUniTitle::UDSUNI_TITLE_LED_PWR, 1, EYEMETER_ROLE_CAM);
+    int pwr = 1;
+    d_udsUniSocket->send(UdsUniTitle::UDSUNI_TITLE_LED_PWR, pwr, EYEMETER_ROLE_CAM);
 }
 
 void MainWindow::initNetwork()
@@ -114,7 +116,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 memcpy(d_snapshotParams.buf.data(), block.ptr, block.size);
                 QPixmap pix = snapshot();
                 d_l_snapshot.setPixmap(pix);
-                d_udsUniSocket->send(UDSUNI_TITLE_FRAME_FREE);
+                d_udsUniSocket->send(UDSUNI_TITLE_FRAME_FREE, frame.id, EYEMETER_ROLE_CAM);
             }
         }
         break;
