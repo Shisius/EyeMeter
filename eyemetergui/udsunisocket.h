@@ -55,10 +55,12 @@ public:
         d_udsUniSocket->stop();
     }
 public slots:
-    void slot_readUds(const UdsUniPack &);
+    //void slot_readUds(const UdsUniPack &);
+    void slot_readUds(UdsUniPack);
 
 signals:
-    void readyRead(const UdsUniPack &);
+    //void readyRead(const UdsUniPack &);
+    void readyRead(UdsUniPack );
 };
 
 #endif // UDSUNISOCKET_H

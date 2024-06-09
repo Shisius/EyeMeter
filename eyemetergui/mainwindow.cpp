@@ -69,7 +69,7 @@ void MainWindow::initNetwork()
     d_udsUniSocket = new UdsUniSocket();
     if(!d_udsUniSocket->isValid())
         return;
-    qDebug() << connect(d_udsUniSocket, SIGNAL(readyRead(const UdsUniPack &)), SLOT(slot_readUds(const UdsUniPack &)));
+    qDebug() << connect(d_udsUniSocket, SIGNAL(readyRead(UdsUniPack)), SLOT(slot_readUds(UdsUniPack)));
     if(d_toolbar != nullptr)
     {
         d_toolbar->setStartEnabled(true);
@@ -77,13 +77,14 @@ void MainWindow::initNetwork()
     }
 }
 
-void MainWindow::slot_readUds(const UdsUniPack &pack)
+void MainWindow::slot_readUds(UdsUniPack pack)
 {
     qDebug() << Q_FUNC_INFO;
     if(pack.msg.proto != UDSUNI_PROTO_PTTS4)
         return;
     switch (pack.msg.title) {
     case UDSUNI_TITLE_STREAM_RUNNING:
+        qDebug() << "UDSUNI_TITLE_STREAM_RUNNING";
         if(pack.msg.type == UDSUNI_TYPE_STREAM_SETTINGS)
         {
             d_shmemBlockReader.reset();
@@ -99,12 +100,14 @@ void MainWindow::slot_readUds(const UdsUniPack &pack)
         }
         break;
     case UDSUNI_TITLE_FRAME_READY:
+        qDebug() << "UDSUNI_TITLE_FRAME_READY";
         if(pack.msg.type == UDSUNI_TYPE_SHARED_FRAME)
         {
             if(d_shmemBlockReader!=nullptr)
             {
                 SharedFrame frame;
                 pack.fetch_data(frame);
+                qDebug() << "SharedFrame::id " <<frame.id;
                 ShmemBlock block;
                 block.id = frame.id;
                 d_shmemBlockReader->get_block(block);
@@ -121,7 +124,7 @@ void MainWindow::slot_readUds(const UdsUniPack &pack)
     default:
         break;
     }
-
+    pack.clear_data();
 
 
 

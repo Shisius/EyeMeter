@@ -38,7 +38,8 @@ public:
 private slots:
     void slot_start();
     void slot_pwr();
-    void slot_readUds(const UdsUniPack &pack);
+    //void slot_readUds(const UdsUniPack &pack);
+    void slot_readUds(UdsUniPack pack);
     QPixmap snapshot();
 };
 #endif // MAINWINDOW_H

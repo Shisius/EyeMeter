@@ -20,6 +20,7 @@ void UdsUniSocket_inner::receiveLoop()
                 break;
             else
                 emit readyRead(pack);
+
         }
     }
     qDebug() << Q_FUNC_INFO<< "finish";
@@ -55,7 +56,7 @@ UdsUniSocket::UdsUniSocket(QObject *parent)
 
     d_udsUniSocket->moveToThread(&d_udsThread);
     qDebug() << connect(&d_udsThread, SIGNAL(started()), d_udsUniSocket, SLOT(receiveLoop()));
-    qDebug() << connect(d_udsUniSocket, SIGNAL(readyRead(const UdsUniPack &)), SLOT(slot_readUds(const UdsUniPack &)));
+    qDebug() << connect(d_udsUniSocket, SIGNAL(readyRead(UdsUniPack)), SLOT(slot_readUds(UdsUniPack)));
     qDebug() << connect(&d_udsThread, SIGNAL(finished()), d_udsUniSocket, SLOT(deleteLater()));
     d_udsThread.start();
 }
@@ -68,7 +69,7 @@ UdsUniSocket::~UdsUniSocket()
     d_udsThread.wait();
 }
 
-void UdsUniSocket::slot_readUds(const UdsUniPack & pack)
+void UdsUniSocket::slot_readUds(UdsUniPack pack)
 {
     qDebug() << Q_FUNC_INFO;
     emit readyRead(pack);
