@@ -19,6 +19,7 @@ public:
             return -1;
         return d_udsUniComm->send(title, data, role);
     }
+    void stop();
 
 public slots:
     void receiveLoop();
@@ -48,6 +49,10 @@ public:
     int send(unsigned char title, T data, unsigned char role = EYEMETER_ROLE_ALL)
     {
         return d_udsUniSocket->send(title, data, role);
+    }
+    void stop()
+    {
+        d_udsUniSocket->stop();
     }
 public slots:
     void slot_readUds(const UdsUniPack &);

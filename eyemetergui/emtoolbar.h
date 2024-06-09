@@ -31,8 +31,10 @@ private slots:
     void slot_enterName();
     void slot_enterDate();
     void slot_start();
+    void slot_pwr();
 signals:
     void sig_startTriggered();
+    void sig_pwrTriggered();
 };
 
 #endif // EMTOOLBAR_H
