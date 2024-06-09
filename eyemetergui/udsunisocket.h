@@ -2,7 +2,10 @@
 #define UDSUNISOCKET_H
 
 #include <QObject>
+#include <QMetaType>
 #include "udsunicomm.h"
+Q_DECLARE_METATYPE(UdsUniPack)
+
 class UdsUniSocket_inner : public QObject
 {
     Q_OBJECT
@@ -24,7 +27,8 @@ public:
 public slots:
     void receiveLoop();
 signals:
-    void readyRead(const UdsUniPack &);
+    //void readyRead(const UdsUniPack &);
+    void readyRead(UdsUniPack);
     void finished();
 };
 
