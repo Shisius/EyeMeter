@@ -7,7 +7,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     qDebug() << Q_FUNC_INFO;
     createToolBar();
-    showFullScreen();
+    //showFullScreen();
+    resize(1500,1500);
     setCentralWidget( &d_l_snapshot);
     d_l_snapshot.setStyleSheet("background-color: black");
     initNetwork();
@@ -46,6 +47,7 @@ void MainWindow::createToolBar()
     addToolBar(Qt::LeftToolBarArea,d_toolbar);
     qDebug() << connect(d_toolbar, SIGNAL(sig_startTriggered()), SLOT(slot_start()));
     qDebug() << connect(d_toolbar, SIGNAL(sig_pwrTriggered()), SLOT(slot_pwr()));
+    qDebug() << connect(d_toolbar, SIGNAL(sig_measureTriggered()), SLOT(slot_measure()));
 }
 
 void MainWindow::slot_start()
@@ -65,6 +67,15 @@ void MainWindow::slot_pwr()
     d_udsUniSocket->send(UdsUniTitle::UDSUNI_TITLE_LED_PWR, pwr, EYEMETER_ROLE_CAM);
 }
 
+void MainWindow::slot_measure()
+{
+    qDebug() << Q_FUNC_INFO;
+    if(d_udsUniSocket == nullptr)
+        return;
+    d_udsUniSocket->send(UdsUniTitle::UDSUNI_TITLE_MEAS_START);
+    d_file_measure.setFileName(d_toolbar->name().append('_').append(QDateTime::currentDateTime().toString("yyyy_MM_dd_hh_mm_ss")));
+}
+
 void MainWindow::initNetwork()
 {
     qDebug() << Q_FUNC_INFO;
@@ -76,6 +87,7 @@ void MainWindow::initNetwork()
     {
         d_toolbar->setStartEnabled(true);
         d_toolbar->setPwrEnabled(true);
+        d_toolbar->setMeasureEnabled(true);
     }
 }
 
@@ -116,12 +128,48 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 memcpy(d_snapshotParams.buf.data(), block.ptr, block.size);
                 QPixmap pix = snapshot();
                 d_l_snapshot.setPixmap(pix);
+                if(d_file_measure.isOpen())
+                {
+                    d_file_measure.write(d_snapshotParams.buf.data(),d_snapshotParams.size);
+                }
                 d_udsUniSocket->send(UDSUNI_TITLE_FRAME_FREE, frame.id, EYEMETER_ROLE_CAM);
+
             }
         }
         break;
-    case UDSUNI_TITLE_FRAME_PROCESSED:
+    case UDSUNI_TITLE_MEAS_RUNNING:
+        qDebug() << "UDSUNI_TITLE_MEAS_RUNNING";
+        if(pack.msg.type == UDSUNI_TYPE_MEASURE_SETTINGS)
+        {
 
+                MeasureSettings settings;
+                pack.fetch_data(settings);
+                d_shmemBlockReader.reset();
+                d_shmemBlockReader = std::make_unique<ShmemBlockReader>(settings.stream.frame_size, settings.stream.frame_queue_depth, FRAME_SHBUF_NAME);
+                d_snapshotParams.frame_height = settings.stream.frame_height;
+                d_snapshotParams.frame_width = settings.stream.frame_width;
+                d_snapshotParams.size = settings.stream.frame_size;
+                d_snapshotParams.buf.resize(d_snapshotParams.size);
+                if(!d_file_measure.isOpen())
+                    d_file_measure.open(QIODevice::WriteOnly | QIODevice::Append);
+                if(d_file_measure.isOpen())
+                {
+                    ;
+                }
+//                qDebug() << "SharedFrame::id " <<frame.id;
+//                ShmemBlock block;
+//                block.id = frame.id;
+//                d_shmemBlockReader->get_block(block);
+//                memcpy(d_snapshotParams.buf.data(), block.ptr, block.size);
+//                QPixmap pix = snapshot();
+//                d_l_snapshot.setPixmap(pix);
+//                d_udsUniSocket->send(UDSUNI_TITLE_FRAME_FREE, frame.id, EYEMETER_ROLE_CAM);
+            //}
+        }
+        break;
+    case UDSUNI_TITLE_MEAS_SHOOT_DONE:
+        qDebug() << "UDSUNI_TITLE_MEAS_SHOOT_DONE";
+        d_file_measure.close();
         break;
     default:
         break;

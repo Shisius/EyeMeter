@@ -24,6 +24,9 @@ EMToolBar::EMToolBar(QWidget *parent)
     d_act_pwr  = addAction(tr("Освещение"));
     d_act_pwr->setDisabled(true);
     qDebug() << connect(d_act_pwr, SIGNAL(triggered()), SLOT(slot_pwr()));
+    d_act_measure = addAction(tr("Измерение"));
+    d_act_measure->setDisabled(true);
+    qDebug() << connect(d_act_measure, SIGNAL(triggered()), SLOT(slot_measure()));
 }
 
 QString EMToolBar::name() const
@@ -36,6 +39,12 @@ void EMToolBar::setStartEnabled(bool en)
 {
     qDebug() << Q_FUNC_INFO;
     d_act_start->setEnabled(en);
+}
+
+void EMToolBar::setMeasureEnabled(bool en)
+{
+    qDebug() << Q_FUNC_INFO;
+    d_act_measure->setEnabled(en);
 }
 
 void EMToolBar::setPwrEnabled(bool en)
@@ -87,4 +96,9 @@ void EMToolBar::slot_start()
 void EMToolBar::slot_pwr()
 {
     emit sig_pwrTriggered();
+}
+
+void EMToolBar::slot_measure()
+{
+    emit sig_measureTriggered();
 }

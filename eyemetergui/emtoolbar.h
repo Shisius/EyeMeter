@@ -14,6 +14,7 @@ class EMToolBar : public QToolBar
     QAction *d_act_start;
     QAction *d_act_name;
     QAction *d_act_date;
+    QAction *d_act_measure;
     QAction *d_act_pwr;
     LineEdit_Clickable *d_le_name;
     InputNameDialog *d_dialog_name = nullptr;
@@ -27,14 +28,18 @@ public:
     QString name() const;
     void setStartEnabled(bool);
     void setPwrEnabled(bool);
+    void setMeasureEnabled(bool);
+
 private slots:
     void slot_enterName();
     void slot_enterDate();
     void slot_start();
     void slot_pwr();
+    void slot_measure();
 signals:
     void sig_startTriggered();
     void sig_pwrTriggered();
+    void sig_measureTriggered();
 };
 
 #endif // EMTOOLBAR_H

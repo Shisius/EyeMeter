@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QtWidgets>
+#include <QFile>
 #include "emtoolbar.h"
 #include "udsunisocket.h"
 #include "shmem_alloc.h"
@@ -27,6 +28,7 @@ class MainWindow : public QMainWindow
         std::string buf;
     } d_snapshotParams;
     QLabel d_l_snapshot;
+    QFile d_file_measure;
     //void createActions();
     //void createMenus();
     void createToolBar();
@@ -38,6 +40,7 @@ public:
 private slots:
     void slot_start();
     void slot_pwr();
+    void slot_measure();
     //void slot_readUds(const UdsUniPack &pack);
     void slot_readUds(UdsUniPack pack);
     QPixmap snapshot();
