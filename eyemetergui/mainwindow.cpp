@@ -133,6 +133,8 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 if(d_shmemBlockReader->get_block(block) < 0)
                     break;
                 qDebug() << "UDSUNI_TITLE_FRAME_READY 1";
+                if(block.ptr == nullptr || block.size == 0)
+                    break;
                 memcpy(d_snapshotParams.buf.data(), block.ptr, block.size);
                 qDebug() << "UDSUNI_TITLE_FRAME_READY 2";
                 QPixmap pix = snapshot();
