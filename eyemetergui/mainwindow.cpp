@@ -37,6 +37,8 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     qDebug() << Q_FUNC_INFO;
+    d_file_measure.flush();
+    d_file_measure.close();
     d_udsUniSocket->stop();
 }
 
@@ -128,7 +130,8 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 ShmemBlock block;
                 block.id = frame.id;
                 qDebug() << "UDSUNI_TITLE_FRAME_READY 0";
-                d_shmemBlockReader->get_block(block);
+                if(d_shmemBlockReader->get_block(block) < 0)
+                    break;
                 qDebug() << "UDSUNI_TITLE_FRAME_READY 1";
                 memcpy(d_snapshotParams.buf.data(), block.ptr, block.size);
                 qDebug() << "UDSUNI_TITLE_FRAME_READY 2";
@@ -138,6 +141,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 if(d_file_measure.isOpen())
                 {
                     d_file_measure.write(d_snapshotParams.buf.data(),d_snapshotParams.size);
+                    d_file_measure.flush();
                 }
                 d_udsUniSocket->send(UDSUNI_TITLE_FRAME_FREE, frame.id, EYEMETER_ROLE_CAM);
 
@@ -176,6 +180,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
         break;
     case UDSUNI_TITLE_MEAS_SHOOT_DONE:
         qDebug() << "UDSUNI_TITLE_MEAS_SHOOT_DONE";
+        d_file_measure.flush();
         d_file_measure.close();
         break;
     default:
