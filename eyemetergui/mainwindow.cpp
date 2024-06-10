@@ -73,13 +73,16 @@ void MainWindow::slot_measure()
     if(d_udsUniSocket == nullptr)
         return;
     d_udsUniSocket->send(UdsUniTitle::UDSUNI_TITLE_MEAS_START);
-    d_file_measure.setFileName(d_toolbar->name().append('_').append(QDateTime::currentDateTime().toString("yyyy_MM_dd_hh_mm_ss")));
+    QString file_measure_str = d_toolbar->name().append('_').append(QDateTime::currentDateTime().toString("yyyy_MM_dd_hh_mm_ss")).append(".bin");
+    qDebug() << "file_measure: " << file_measure_str;
+    d_file_measure.setFileName(file_measure_str);
 }
 
 void MainWindow::initNetwork()
 {
     qDebug() << Q_FUNC_INFO;
     d_udsUniSocket = new UdsUniSocket();
+    qDebug() << d_udsUniSocket->isValid();
     if(!d_udsUniSocket->isValid())
         return;
     qDebug() << connect(d_udsUniSocket, SIGNAL(readyRead(UdsUniPack)), SLOT(slot_readUds(UdsUniPack)));
@@ -124,9 +127,13 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 qDebug() << "SharedFrame::id " <<frame.id;
                 ShmemBlock block;
                 block.id = frame.id;
+                qDebug() << "UDSUNI_TITLE_FRAME_READY 0";
                 d_shmemBlockReader->get_block(block);
+                qDebug() << "UDSUNI_TITLE_FRAME_READY 1";
                 memcpy(d_snapshotParams.buf.data(), block.ptr, block.size);
+                qDebug() << "UDSUNI_TITLE_FRAME_READY 2";
                 QPixmap pix = snapshot();
+                qDebug() << "UDSUNI_TITLE_FRAME_READY 3";
                 d_l_snapshot.setPixmap(pix);
                 if(d_file_measure.isOpen())
                 {

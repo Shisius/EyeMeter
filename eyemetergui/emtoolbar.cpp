@@ -5,7 +5,14 @@ EMToolBar::EMToolBar(QWidget *parent)
     :QToolBar(parent)
 {
     qDebug() << Q_FUNC_INFO;
+//    setStyleSheet("background-color: #a9c9c2;"
+//                  "spacing: 20px; "
+//                  "color: black;"
+//                  "QPushButton { color: red; } ");/* spacing between items in the tool bar */
     d_act_start  = addAction(tr("Начать сеанс"));
+//    but_start.setText(tr("Начать сеанс"));
+//    but_start.setStyleSheet("color: #051f34;");
+//    d_act_start  = addWidget(&but_start);
     d_act_start->setDisabled(true);
     qDebug() << connect(d_act_start, SIGNAL(triggered()), SLOT(slot_start()));
     d_le_name = new LineEdit_Clickable();
@@ -27,6 +34,11 @@ EMToolBar::EMToolBar(QWidget *parent)
     d_act_measure = addAction(tr("Измерение"));
     d_act_measure->setDisabled(true);
     qDebug() << connect(d_act_measure, SIGNAL(triggered()), SLOT(slot_measure()));
+//    setStyleSheet("background-color: #a9c9c2;"
+//                  "spacing: 20px; " /* spacing between items in the tool bar */
+//                  "color: black;");
+                 // "{QPushButton { color: red; } }");
+    //setStyleSheet( "QPushButton { color: red; } ");
 }
 
 QString EMToolBar::name() const
@@ -90,15 +102,18 @@ void EMToolBar::slot_enterDate()
 
 void EMToolBar::slot_start()
 {
+    qDebug() << Q_FUNC_INFO;
     emit sig_startTriggered();
 }
 
 void EMToolBar::slot_pwr()
 {
+    qDebug() << Q_FUNC_INFO;
     emit sig_pwrTriggered();
 }
 
 void EMToolBar::slot_measure()
 {
+    qDebug() << Q_FUNC_INFO;
     emit sig_measureTriggered();
 }

@@ -3,6 +3,7 @@
 
 #include <QToolBar>
 #include <QDateEdit>
+#include <QPushButton>
 #include "lineedit_clickable.h"
 #include "dateedit_clickable.h"
 #include "inputnamedialog.h"
@@ -12,6 +13,7 @@ class EMToolBar : public QToolBar
     Q_OBJECT
 
     QAction *d_act_start;
+    QPushButton but_start;
     QAction *d_act_name;
     QAction *d_act_date;
     QAction *d_act_measure;
