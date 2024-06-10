@@ -157,8 +157,8 @@ void MainWindow::slot_readUds(UdsUniPack pack)
 
                 MeasureSettings settings;
                 pack.fetch_data(settings);
-                d_shmemBlockReader.reset();
-                d_shmemBlockReader = std::make_unique<ShmemBlockReader>(settings.stream.frame_size, settings.stream.frame_queue_depth, FRAME_SHBUF_NAME);
+                //d_shmemBlockReader.reset();
+                //d_shmemBlockReader = std::make_unique<ShmemBlockReader>(settings.stream.frame_size, settings.stream.frame_queue_depth, FRAME_SHBUF_NAME);
                 d_snapshotParams.frame_height = settings.stream.frame_height;
                 d_snapshotParams.frame_width = settings.stream.frame_width;
                 d_snapshotParams.size = settings.stream.frame_size;
