@@ -8,7 +8,8 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug() << Q_FUNC_INFO;
     createToolBar();
     //showFullScreen();
-    resize(1500,1500);
+    //resize(1500,1500);
+    showMaximized();
     setCentralWidget( &d_l_snapshot);
     d_l_snapshot.setStyleSheet("background-color: black");
     initNetwork();
@@ -37,8 +38,11 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     qDebug() << Q_FUNC_INFO;
-    d_file_measure.flush();
-    d_file_measure.close();
+    if(d_file_measure.isOpen())
+    {
+        d_file_measure.flush();
+        d_file_measure.close();
+    }
     d_udsUniSocket->stop();
 }
 
