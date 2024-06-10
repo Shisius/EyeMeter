@@ -38,6 +38,7 @@ public:
 
 	int block_alloc(ShmemBlock & block);
 	int block_free(unsigned int block_id);
+	void clear();
 	unsigned int check_free(); // Returns number of free blocks
 
 	void show(unsigned int n_bytes) {

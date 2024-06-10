@@ -9,7 +9,7 @@ typedef enum
 
 typedef struct _shared_frame
 {
-	unsigned int id;
+	int id;
 	unsigned int width;
 	unsigned int height;
 	unsigned int size;

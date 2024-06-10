@@ -113,6 +113,13 @@ int ShmemBlockAllocator::block_free(unsigned int block_id)
 	return -1;
 }
 
+void ShmemBlockAllocator::clear()
+{
+	for (ShmemBlock & sb : d_blocks) {
+		sb.ptr = nullptr;
+	}
+}
+
 unsigned int ShmemBlockAllocator::check_free()
 {
 	unsigned int n_free = 0;

@@ -1,1 +1,1 @@
-1. Shmem init by frame params / stream settings.
+1. Meas - do not stop stream? free shmem

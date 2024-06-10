@@ -37,12 +37,13 @@ struct UdsUniPack
 	~UdsUniPack() {} //printf("UdsUniPack::destroy\n");}//{if (data_ptr != nullptr) {free(data_ptr); data_ptr = nullptr;}}
 
 	template<typename T>
-	int fetch_data(T & data) const
+	int fetch_data(T & data) 
 	{
 		if (sizeof(T) != msg.size) return -1;
 		if (data_ptr == nullptr) return -1;
 		memcpy(&data, data_ptr, msg.size);
 		free(data_ptr);
+		data_ptr = nullptr;
 		return 0;
 	}
 

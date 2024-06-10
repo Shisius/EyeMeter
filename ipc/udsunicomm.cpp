@@ -165,7 +165,7 @@ void UdsUniComm::recv_process()
 			if (result >= int(sizeof(UdsUniMsg))) {
 				UdsUniPack pack;
 				memcpy(&(pack.msg), buf, sizeof(UdsUniMsg));
-				printf("UdsUniComm:: new msg %d\n", pack.msg.title);
+				// printf("UdsUniComm:: new msg %d\n", pack.msg.title);
 				if (pack.msg.proto != UDSUNI_PROTO_PTTS4) {
 					printf("UdsUniComm: wrong proto %d", pack.msg.proto);
 					continue;
