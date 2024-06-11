@@ -47,10 +47,10 @@ EseCamMaster::EseCamMaster()
 	d_stream_settings.cam_format = 0;
 	d_stream_settings.cam_shutter_us = 10000;
 	d_stream_settings.frame_queue_depth = d_meas_settings.n_led_pos * d_meas_settings.n_repeat;
-	d_stream_settings.fps_max = 50;
+	d_stream_settings.fps_max = 30;
 
 	d_uds = std::make_unique<UdsUniComm>(EYEMETER_ROLE_CAM);
-	d_serial = std::make_unique<SerialComm>("/dev/ttyUSB0", B115200);
+	d_serial = std::make_unique<SerialComm>("/dev/ttyUSB0", B115200, 100);
 }
 
 EseCamMaster::~EseCamMaster()
@@ -111,17 +111,17 @@ int EseCamMaster::start_stream()
 	// Shmem
 	d_shmem->resize(d_stream_settings.frame_size, d_stream_settings.frame_queue_depth);
 	// Set
-	if (USB_SetFormat(d_cam_name.c_str(), d_stream_settings.cam_format) != 1) {
-		printf("EseCamMaster::set format failed\n");
-		return -1;
-	}
+	// if (USB_SetFormat(d_cam_name.c_str(), d_stream_settings.cam_format) != 1) {
+	// 	printf("EseCamMaster::set format failed\n");
+	// 	return -1;
+	// }
 	// if (USB_SetCameraFeature(d_cam_name.c_str(), SHUTTER, d_stream_settings.cam_shutter_us) != 1) return -1;
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 	set_trigger(true, false);
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 	VIDEO_STREAM_PARAM_EX oStreamParam = {};
 	oStreamParam.ppReturnedParams = nullptr;
@@ -136,12 +136,14 @@ int EseCamMaster::start_stream()
 
 	d_uds->send(UDSUNI_TITLE_STREAM_RUNNING, d_stream_settings);
 
-	for (int i = 0 ; i < 2; i++) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
-		get_frame_soft_trigger();
-	}
+	// for (int i = 0 ; i < 2; i++) {
+	// 	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	// 	get_frame_soft_trigger();
+	// }
 
 	d_in_stream.store(true);
+
+	d_cam_timer_thread = std::thread(&EseCamMaster::cam_timer, this);
 
 	return 0;
 }
@@ -152,6 +154,8 @@ int EseCamMaster::start_meas()
 		printf("Stream is not started!\n");
 		return -1;
 	}
+
+	set_trigger(true, false);
 
 	d_in_stream.store(false);
 	d_in_meas.store(true);
@@ -169,6 +173,7 @@ int EseCamMaster::start_meas()
 void EseCamMaster::meas_routine()
 {
 	printf("EseCamMaster:: meas started\n");
+	bool meas_failed = false;
 
 	if ((d_shmem->check_free() < d_stream_settings.frame_queue_depth)) {
 		printf("EseCamMaster:: waiting shmem %d\n", d_shmem->check_free());
@@ -203,26 +208,38 @@ void EseCamMaster::meas_routine()
 				break;
 			}
 			// Do shot
-			if (get_frame_soft_trigger() < 0) {
-				printf("EseCamMaster:: meas failed on trigger\n");
-				stop_meas();
-				break;
+			while (d_in_meas.load()) {
+				if (get_frame_soft_trigger() < 0) {
+					printf("EseCamMaster:: meas failed on trigger\n");
+					stop_meas();
+					break;
+				}
+				// Wait
+				// {
+				// 	unique_lock<mutex> lk(d_frame_ready_mut);
+				// 	d_frame_ready_cond.wait(lk,[this]{return (d_frame_ready_flag.load() || !(d_in_meas.load()));});
+				// }
+				std::this_thread::sleep_for(std::chrono::milliseconds(25));
+				if (d_frame_ready_flag.load()) {
+					// std::this_thread::sleep_for(std::chrono::milliseconds(15));
+					break;
+				} else {
+					printf("EseCamMaster::meas frame %d, %d repeat\n", i_repeat, i_led);
+				}
 			}
-			// Wait
-			// {
-			// 	unique_lock<mutex> lk(d_frame_ready_mut);
-			// 	d_frame_ready_cond.wait(lk,[this]{return (d_frame_ready_flag.load() || !(d_in_meas.load()));});
-			// }
-			std::this_thread::sleep_for(std::chrono::milliseconds(30));
 		}
 	}
 
+	if (!d_in_meas.load()) meas_failed = true;
 	stop_stream();
 	// d_in_meas.store(false);
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-	d_uds->send(UDSUNI_TITLE_MEAS_SHOOT_DONE);
+	if (meas_failed)
+		d_uds->send(UDSUNI_TITLE_MEAS_FAILED);
+	else
+		d_uds->send(UDSUNI_TITLE_MEAS_SHOOT_DONE);
 
 	printf("EseCamMaster:: meas finished\n");
 }
@@ -234,6 +251,8 @@ int EseCamMaster::stop_stream()
 	d_in_stream.store(false);
 	d_in_meas.store(false);
 	led_control(0);
+	if (d_cam_timer_thread.joinable())
+		d_cam_timer_thread.join();
 	return 0;
 }
 
@@ -260,10 +279,10 @@ int EseCamMaster::frame_free(UdsUniPack & pack)
 		}
 	}
 	d_shmem->block_free(block_id);
-	if (d_in_stream.load()) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(30));
-		if (d_in_stream.load()) get_frame_soft_trigger();
-	}			
+	// if (d_in_stream.load()) {
+	// 	std::this_thread::sleep_for(std::chrono::milliseconds(30));
+	// 	if (d_in_stream.load()) get_frame_soft_trigger();
+	// }			
 	return 0;
 }
 
@@ -300,6 +319,16 @@ int EseCamMaster::led_control(unsigned short led_state)
 		printf("EseCamMaster:: led send cmd %d\n", cmd);
 	} else {
 		printf("EseCamMaster:: led send cmd %d failed!!!\n", cmd);
+		return -1;
+	}
+
+	unsigned char ans = 0;
+	if (d_serial->read_to((char*)&ans, 1) <= 0) {
+		printf("EseCamMaster::led control no answer\n");
+		return -1;
+	}
+	if (ans != cmd) {
+		printf("EseCamMaster::led control ans %d != cmd %d\n", ans, cmd);
 		return -1;
 	}
 
@@ -371,11 +400,21 @@ void EseCamMaster::comm_process()
 	}
 }
 
+void EseCamMaster::cam_timer()
+{
+	while (d_in_stream.load()) {
+		std::this_thread::sleep_for(std::chrono::microseconds(1000000 / d_stream_settings.fps_max));
+		if (d_in_stream.load()) {
+			get_frame_soft_trigger();
+		}
+	}
+}
+
 void EseCamMaster::frame_ready_event(SharedFrame & frame, unsigned char* frame_ptr)
 {
+	d_frame_ready_flag.store(true);
 	{
 		lock_guard<mutex> lk(d_frame_ready_mut);
-		d_frame_ready_flag.store(true);
 		d_frame_ready_cond.notify_one();
 	}
 	ShmemBlock block;
@@ -383,6 +422,7 @@ void EseCamMaster::frame_ready_event(SharedFrame & frame, unsigned char* frame_p
 		frame.id = block.id;
 		memcpy(block.ptr, frame_ptr, frame.size);
 		d_uds->send(UDSUNI_TITLE_FRAME_READY, frame);
+		printf("EseCamMaster:: frame id %d\n", frame.id);
 	} else {
 		printf("EseCamMaster:: shmem overflow\n");
 	}

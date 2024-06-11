@@ -39,6 +39,7 @@ protected:
 	std::unique_ptr<SerialComm> d_serial;
 
 	std::thread d_comm_thread;
+	std::thread d_cam_timer_thread;
 	std::atomic<bool> d_is_alive;
 	std::atomic<bool> d_in_stream;
 	std::atomic<bool> d_in_meas;
@@ -63,6 +64,7 @@ protected:
 
 	void comm_process();
 	void meas_routine();
+	void cam_timer();
 
 };
 
