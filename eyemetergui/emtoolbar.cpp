@@ -21,7 +21,8 @@ EMToolBar::EMToolBar(QWidget *parent)
 //    but_start.setStyleSheet("color: #051f34;");
     d_act_start  = addWidget(&d_but_start);
     d_act_start->setDisabled(true);
-    qDebug() << connect(d_act_start, SIGNAL(triggered()), SLOT(slot_start()));
+    //qDebug() << connect(d_act_start, SIGNAL(triggered()), SLOT(slot_start()));
+    qDebug() << connect(&d_but_start, SIGNAL(clicked()), SLOT(slot_start()));
     d_but_name.setText(tr("ФИО"));
     d_but_name.setFixedHeight(100);
     //d_le_name = new LineEdit_Clickable();
@@ -44,13 +45,15 @@ EMToolBar::EMToolBar(QWidget *parent)
     d_but_pwr.setFixedHeight(100);
     d_act_pwr = addWidget(&d_but_pwr);
     d_act_pwr->setDisabled(true);
-    qDebug() << connect(d_act_pwr, SIGNAL(triggered()), SLOT(slot_pwr()));
+    //qDebug() << connect(d_act_pwr, SIGNAL(triggered()), SLOT(slot_pwr()));
+    qDebug() << connect(&d_but_pwr, SIGNAL(clicked()), SLOT(slot_pwr()));
     //d_act_measure = addAction(tr("Измерение"));
     d_but_measure.setText(tr("Измерение"));
     d_but_measure.setFixedHeight(100);
     d_act_measure = addWidget(&d_but_measure);
     d_act_measure->setDisabled(true);
-    qDebug() << connect(d_act_measure, SIGNAL(triggered()), SLOT(slot_measure()));
+    //qDebug() << connect(d_act_measure, SIGNAL(triggered()), SLOT(slot_measure()));
+    qDebug() << connect(&d_but_measure, SIGNAL(clicked()), SLOT(slot_measure()));
 //    setStyleSheet("background-color: #a9c9c2;"
 //                  "spacing: 20px; " /* spacing between items in the tool bar */
 //                  "color: black;");

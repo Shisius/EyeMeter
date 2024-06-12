@@ -6,7 +6,7 @@
 class ImageButtons: public QWidget
 {
     Q_OBJECT
-    static constexpr uint longSide = 60;
+    static constexpr uint longSide = 100;
     static constexpr uint shortSide = longSide;
     QPushButton *d_but_prev;
     QPushButton *d_but_next;

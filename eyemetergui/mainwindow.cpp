@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
     initNetwork();
     d_measReviewButs = new ImageButtons(&d_l_snapshot);
     //d_measReviewButs->setVisible(false);
-    d_measReviewButs->hide(true);
+    //d_measReviewButs->hide(true);
     //d_measReviewButs->hide(false);
     connect(d_measReviewButs, SIGNAL(showMeasImg_clicked(uint)), SLOT(slot_showMeasImg(uint)));
     //connect(&d_measReviewButs, SIGNAL(imagePrev_clicked(uint)), SLOT(slot_imagePrev(uint)));
