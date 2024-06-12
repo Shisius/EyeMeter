@@ -22,27 +22,29 @@ void esecam_cb (const char* szCameraName,
 			//ofs.write((const char *)pFrame, rRetHeader.ulNextDataSize);
 			//ofs.rdbuf()->pubsync();
     		//ofs.close();
-    		RET_SERV_DATA_ITK4_0 rRetSrv2;
 			if (rRetHeader.ulServDataType == 3) {
-				rRetSrv2 = *((RET_SERV_DATA_ITK4_0 *)(pFrame));
+				RET_SERV_DATA_ITK4_0 rRetSrv2 = *((RET_SERV_DATA_ITK4_0 *)(pFrame));
 				unsigned int width = rRetSrv2.StreamServData.usWidth;
 				unsigned int height = rRetSrv2.StreamServData.usHeight;
 				printf("Width = %d, Height = %d, bpp =%d\n", width, height, rRetSrv2.StreamServData.chBitPerPixel);
+				for (unsigned i = 0; i < 100; i++) {
+					printf("%x ", *((pFrame) + i + sizeof(RET_SERV_DATA_ITK4_0)));
+				}
+				printf("\n");
+				memcpy(pUserData, pFrame+sizeof(RET_SERV_DATA_ITK4_0), 1936*1216*rRetSrv2.StreamServData.chBitPerPixel/8);
+				printf("time = %ld\n",  std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count());
+
 			} else printf("Serv data type is not 3!\n");
-			for (unsigned i = 0; i < 100; i++) {
-				printf("%x ", *((pFrame) + i + sizeof(RET_SERV_DATA_ITK4_0)));
-			}
-			printf("\n");
-			memcpy(pUserData, pFrame+sizeof(RET_SERV_DATA_ITK4_0), 1936*1216*rRetSrv2.StreamServData.chBitPerPixel/8);
-			printf("time = %ld\n",  std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count());
 		} else printf("Error: wrong pFrame ptr\n");
 	}
 }
 
-int main()
+int main(int argc, char ** argv)
 {
 	UdsUniComm uuc(1);
-	ShmemBlockAllocator sba(1936*1216*12/8, 1, FRAME_SHBUF_NAME);
+	UdsUniPack up;
+	// up.fetch_data();
+	ShmemBlockAllocator sba(1936*1216*8/8, 1, FRAME_SHBUF_NAME);
 	ShmemBlock sblk;
 	if (sba.setup() != 0) {printf("Shmem setup failed\n"); return 1;}
 	if (sba.block_alloc(sblk) != 0) {printf("Shmem block failed\n"); return 1;}
@@ -58,7 +60,7 @@ int main()
 
 	esecam_print_features();
 
-	USB_SetFormat(cam_name.c_str(), 1);
+	USB_SetFormat(cam_name.c_str(), 0);
 
 	std::cin.get();
 	// char frame[1936*1216];
@@ -75,6 +77,15 @@ int main()
 	std::cin.get();
 	USB_StopVideoStream(cam_name.c_str());
 	sba.show(100);
+
+	std::string filename = "frame";
+	if (argc > 1) {
+		filename += std::string(argv[1]);
+	}
+	filename += ".bin";
+	std::ofstream ofs(filename.c_str(), std::ofstream::out | std::ofstream::binary);
+	ofs.write((char*)(sblk.ptr), sblk.size);
+	ofs.close();
 	// for (unsigned i = 0; i < 100; i++) {
 	// 	printf("%x ", *((char*)(oStreamParam.pBuffBitmap) + i));
 	// }
