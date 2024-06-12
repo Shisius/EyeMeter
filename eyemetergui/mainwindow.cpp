@@ -96,6 +96,7 @@ void MainWindow::slot_measure()
     d_vec_snapshots.reserve(CONST_MEASURE_SHOTS_COUNT);
     if(d_measReviewButs != nullptr)
         d_measReviewButs->hide(true);
+    d_isMeasurStarted = false;
 }
 
 void MainWindow::slot_showMeasImg(uint num)
@@ -168,7 +169,8 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 QPixmap pix = snapshot(d_snapshotParams);
                 qDebug() << "UDSUNI_TITLE_FRAME_READY 3";
                 d_l_snapshot.setPixmap(pix);
-                d_vec_snapshots.push_back(d_snapshotParams);
+                if(d_isMeasurStarted)
+                    d_vec_snapshots.push_back(d_snapshotParams);
 //                if(d_file_measure.isOpen())
 //                {
 //                    d_file_measure.write(d_snapshotParams.buf.data(),d_snapshotParams.size);
@@ -183,7 +185,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
         qDebug() << "UDSUNI_TITLE_MEAS_RUNNING";
         if(pack.msg.type == UDSUNI_TYPE_MEASURE_SETTINGS)
         {
-
+                d_isMeasurStarted = true;
                 MeasureSettings settings;
                 pack.fetch_data(settings);
                 //d_shmemBlockReader.reset();
@@ -212,6 +214,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
     case UDSUNI_TITLE_MEAS_SHOOT_DONE:
     {
         qDebug() << "UDSUNI_TITLE_MEAS_SHOOT_DONE";
+        d_isMeasurStarted = false;
         QString file_measure_str = d_toolbar->name().append('_').append(QDateTime::currentDateTime().toString("yyyy_MM_dd_hh_mm_ss")).append(".bin");
         qDebug() << "file_measure: " << file_measure_str;
         d_file_measure.setFileName(file_measure_str);
@@ -220,7 +223,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
             foreach (Snapshot_params shot, d_vec_snapshots) {
                 d_file_measure.write(shot.buf.data(),shot.size);
             }
-        }
+        }        
         d_file_measure.flush();
         d_file_measure.close();
         /*int ret = */QMessageBox::information(this, tr("Измерения завершены."),
@@ -232,10 +235,13 @@ void MainWindow::slot_readUds(UdsUniPack pack)
             d_measReviewButs->hide(false);
             d_measReviewButs->setImageCount(d_vec_snapshots.size());
         }
+        d_vec_snapshots.clear();
+        qDebug() << "UDSUNI_TITLE_MEAS_SHOOT_DONE end";
     }
         break;
     case UDSUNI_TITLE_MEAS_FAILED:
         qDebug() << "UDSUNI_TITLE_MEAS_FAILED";
+        d_isMeasurStarted = false;
         d_file_measure.close();
         /*int ret = */QMessageBox::information(this, tr("Измерения завершены."),
                                                tr("Ошибка."),
@@ -248,7 +254,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
     pack.clear_data();
 
 
-
+    qDebug()<<Q_FUNC_INFO << "end";
 }
 
 QPixmap MainWindow::snapshot(const Snapshot_params &snapshotParams)

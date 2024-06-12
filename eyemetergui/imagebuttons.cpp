@@ -48,7 +48,7 @@ void ImageButtons::hide(bool visible)
 
 void ImageButtons::setImageCount(uint imageCount)
 {
-    qDebug()<<Q_FUNC_INFO;
+    qDebug()<<Q_FUNC_INFO << imageCount;
     d_imageNum = imageCount;
     d_imageCount = imageCount;
     if(imageCount < 2)
@@ -67,13 +67,16 @@ void ImageButtons::setImageCount(uint imageCount)
             d_but_next->setVisible(false);
         } else
         {
+            qDebug()<<Q_FUNC_INFO << "imageCount > 2";
 //            d_but_prev->setEnabled(true);
 //            d_but_next->setEnabled(true);
             d_but_prev->setVisible(true);
             d_but_next->setVisible(true);
+            qDebug()<<Q_FUNC_INFO << "imageCount > 2 end";
         }
     }
     d_but_next->setDisabled(true);
+    qDebug()<<Q_FUNC_INFO << "end";
 }
 
 void ImageButtons::setHotKeys(QString prevPB,

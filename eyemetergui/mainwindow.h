@@ -34,6 +34,7 @@ class MainWindow : public QMainWindow
     QLabel d_l_snapshot;
     QFile d_file_measure;
     ImageButtons *d_measReviewButs = nullptr;
+    bool d_isMeasurStarted = false;
     //void createActions();
     //void createMenus();
     void createToolBar();
