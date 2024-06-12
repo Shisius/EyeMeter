@@ -73,6 +73,7 @@ void ImageButtons::setImageCount(uint imageCount)
             d_but_next->setVisible(true);
         }
     }
+    d_but_next->setDisabled(true);
 }
 
 void ImageButtons::setHotKeys(QString prevPB,
@@ -100,6 +101,8 @@ void ImageButtons::resize(int width, int height)
 void ImageButtons::slot_imagePrev()
 {
     qDebug()<<Q_FUNC_INFO;
+    if (d_imageNum == 0)
+        return;
     d_imageNum--;
     if(d_imageNum == 0)
         d_but_prev->setDisabled(true);
@@ -111,6 +114,8 @@ void ImageButtons::slot_imagePrev()
 void ImageButtons::slot_imageNext()
 {
     qDebug()<<Q_FUNC_INFO;
+    if (d_imageNum >= d_imageCount-1)
+        return;
     d_imageNum++;
     if(d_imageNum == d_imageCount-1)
         d_but_next->setDisabled(true);
