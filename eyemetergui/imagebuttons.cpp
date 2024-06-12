@@ -11,13 +11,13 @@ ImageButtons::ImageButtons(QWidget *parent) :
 //                              "border-width: 2px;"
 //                             " border-radius: 10px;"
 //                              "border-color: beige;");
-    d_but_prev->setIcon(QIcon(":/img/prev.jpg"));
+    d_but_prev->setIcon(QIcon(":/img/prev.png"));
     //d_but_prev->setStyleSheet("border: none");
     d_but_prev->setIconSize(QSize(shortSide, longSide));
     connect(d_but_prev, SIGNAL(clicked()), SLOT(slot_imagePrev()));
 
     d_but_next = new QPushButton(parent);
-    d_but_next->setIcon(QIcon(":/img/next.jpg"));
+    d_but_next->setIcon(QIcon(":/img/next.png"));
     //d_but_next->setStyleSheet("border: none");
     d_but_next->setIconSize(QSize(shortSide, longSide));
     connect(d_but_next, SIGNAL(clicked()), SLOT(slot_imageNext()));
@@ -31,6 +31,7 @@ ImageButtons::ImageButtons(QWidget *parent) :
 
 void ImageButtons::hide(bool visible)
 {
+    qDebug()<<Q_FUNC_INFO;
 //    if(!visible)
 //    {
 //        d_but_prev->show();
@@ -47,6 +48,7 @@ void ImageButtons::hide(bool visible)
 
 void ImageButtons::setImageCount(uint imageCount)
 {
+    qDebug()<<Q_FUNC_INFO;
     d_imageNum = imageCount;
     d_imageCount = imageCount;
     if(imageCount < 2)
@@ -76,7 +78,7 @@ void ImageButtons::setImageCount(uint imageCount)
 void ImageButtons::setHotKeys(QString prevPB,
                                    QString nextPB)
 {
-
+    qDebug()<<Q_FUNC_INFO;
     d_but_prev->setShortcut(   prevPB);
     d_but_next->setShortcut(  nextPB);
 
@@ -97,6 +99,7 @@ void ImageButtons::resize(int width, int height)
 
 void ImageButtons::slot_imagePrev()
 {
+    qDebug()<<Q_FUNC_INFO;
     d_imageNum--;
     if(d_imageNum == 0)
         d_but_prev->setDisabled(true);
@@ -107,6 +110,7 @@ void ImageButtons::slot_imagePrev()
 }
 void ImageButtons::slot_imageNext()
 {
+    qDebug()<<Q_FUNC_INFO;
     d_imageNum++;
     if(d_imageNum == d_imageCount-1)
         d_but_next->setDisabled(true);
