@@ -22,6 +22,7 @@ SOURCES += \
     dateedit_clickable.cpp \
     dateedit_keyboard.cpp \
     emtoolbar.cpp \
+    imagebuttons.cpp \
     inputdatedialog.cpp \
     inputnamedialog.cpp \
     lineedit_clickable.cpp \
@@ -36,6 +37,7 @@ HEADERS += \
     dateedit_clickable.h \
     dateedit_keyboard.h \
     emtoolbar.h \
+    imagebuttons.h \
     inputdatedialog.h \
     inputnamedialog.h \
     lineedit_clickable.h \
@@ -56,3 +58,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 #DEFINES += TEST_snapshot
+
+RESOURCES += \
+    images.qrc

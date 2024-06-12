@@ -13,6 +13,13 @@ MainWindow::MainWindow(QWidget *parent)
     setCentralWidget( &d_l_snapshot);
     d_l_snapshot.setStyleSheet("background-color: black");
     initNetwork();
+    d_measReviewButs = new ImageButtons(&d_l_snapshot);
+    //d_measReviewButs->setVisible(false);
+    d_measReviewButs->hide(true);
+    //d_measReviewButs->hide(false);
+    connect(d_measReviewButs, SIGNAL(showMeasImg_clicked(uint)), SLOT(slot_showMeasImg(uint)));
+    //connect(&d_measReviewButs, SIGNAL(imagePrev_clicked(uint)), SLOT(slot_imagePrev(uint)));
+    //connect(&d_measReviewButs, SIGNAL(imageNext_clicked(uint)), SLOT(slot_imageNext(uint)));
 #ifdef TEST_snapshot
     d_snapshotParams.frame_height = 1216;
     d_snapshotParams.frame_width = 1936;
@@ -49,6 +56,7 @@ MainWindow::~MainWindow()
 void MainWindow::createToolBar()
 {
     qDebug() << Q_FUNC_INFO;
+    //setStyleSheet("QPushButton { color: red; spacing: 20px;  } ");
     d_toolbar = new EMToolBar(this);
     addToolBar(Qt::LeftToolBarArea,d_toolbar);
     qDebug() << connect(d_toolbar, SIGNAL(sig_startTriggered()), SLOT(slot_start()));
@@ -62,6 +70,8 @@ void MainWindow::slot_start()
     if(d_udsUniSocket == nullptr)
         return;
     d_udsUniSocket->send(UdsUniTitle::UDSUNI_TITLE_STREAM_START);
+    if(d_measReviewButs != nullptr)
+        d_measReviewButs->hide(true);
 }
 
 void MainWindow::slot_pwr()
@@ -79,9 +89,23 @@ void MainWindow::slot_measure()
     if(d_udsUniSocket == nullptr)
         return;
     d_udsUniSocket->send(UdsUniTitle::UDSUNI_TITLE_MEAS_START);
-    QString file_measure_str = d_toolbar->name().append('_').append(QDateTime::currentDateTime().toString("yyyy_MM_dd_hh_mm_ss")).append(".bin");
-    qDebug() << "file_measure: " << file_measure_str;
-    d_file_measure.setFileName(file_measure_str);
+//    QString file_measure_str = d_toolbar->name().append('_').append(QDateTime::currentDateTime().toString("yyyy_MM_dd_hh_mm_ss")).append(".bin");
+//    qDebug() << "file_measure: " << file_measure_str;
+//    d_file_measure.setFileName(file_measure_str);
+    d_vec_snapshots.clear();
+    d_vec_snapshots.reserve(CONST_MEASURE_SHOTS_COUNT);
+    if(d_measReviewButs != nullptr)
+        d_measReviewButs->hide(true);
+}
+
+void MainWindow::slot_showMeasImg(uint num)
+{
+    qDebug() << Q_FUNC_INFO;
+    if(d_vec_snapshots.size()>static_cast<int>(num))
+    {
+        QPixmap pix = snapshot( d_vec_snapshots.at(num));
+        d_l_snapshot.setPixmap(pix);
+    }
 }
 
 void MainWindow::initNetwork()
@@ -141,14 +165,15 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                     break;
                 memcpy(d_snapshotParams.buf.data(), block.ptr, block.size);
                 qDebug() << "UDSUNI_TITLE_FRAME_READY 2";
-                QPixmap pix = snapshot();
+                QPixmap pix = snapshot(d_snapshotParams);
                 qDebug() << "UDSUNI_TITLE_FRAME_READY 3";
                 d_l_snapshot.setPixmap(pix);
-                if(d_file_measure.isOpen())
-                {
-                    d_file_measure.write(d_snapshotParams.buf.data(),d_snapshotParams.size);
-                    d_file_measure.flush();
-                }
+                d_vec_snapshots.push_back(d_snapshotParams);
+//                if(d_file_measure.isOpen())
+//                {
+//                    d_file_measure.write(d_snapshotParams.buf.data(),d_snapshotParams.size);
+//                    d_file_measure.flush();
+//                }
                 d_udsUniSocket->send(UDSUNI_TITLE_FRAME_FREE, frame.id, EYEMETER_ROLE_CAM);
 
             }
@@ -167,12 +192,12 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 d_snapshotParams.frame_width = settings.stream.frame_width;
                 d_snapshotParams.size = settings.stream.frame_size;
                 d_snapshotParams.buf.resize(d_snapshotParams.size);
-                if(!d_file_measure.isOpen())
-                    d_file_measure.open(QIODevice::WriteOnly | QIODevice::Append);
-                if(d_file_measure.isOpen())
-                {
-                    ;
-                }
+//                if(!d_file_measure.isOpen())
+//                    d_file_measure.open(QIODevice::WriteOnly | QIODevice::Append);
+//                if(d_file_measure.isOpen())
+//                {
+//                    ;
+//                }
 //                qDebug() << "SharedFrame::id " <<frame.id;
 //                ShmemBlock block;
 //                block.id = frame.id;
@@ -185,9 +210,37 @@ void MainWindow::slot_readUds(UdsUniPack pack)
         }
         break;
     case UDSUNI_TITLE_MEAS_SHOOT_DONE:
+    {
         qDebug() << "UDSUNI_TITLE_MEAS_SHOOT_DONE";
+        QString file_measure_str = d_toolbar->name().append('_').append(QDateTime::currentDateTime().toString("yyyy_MM_dd_hh_mm_ss")).append(".bin");
+        qDebug() << "file_measure: " << file_measure_str;
+        d_file_measure.setFileName(file_measure_str);
+        if(d_file_measure.open(QIODevice::WriteOnly | QIODevice::Append))
+        {
+            foreach (Snapshot_params shot, d_vec_snapshots) {
+                d_file_measure.write(shot.buf.data(),shot.size);
+            }
+        }
         d_file_measure.flush();
         d_file_measure.close();
+        /*int ret = */QMessageBox::information(this, tr("Измерения завершены."),
+                                               tr("СНЯТО."),
+                                               QMessageBox::Ok,
+                                               QMessageBox::Ok);
+        if(d_measReviewButs != nullptr)
+        {
+            d_measReviewButs->hide(false);
+            d_measReviewButs->setImageCount(d_vec_snapshots.size());
+        }
+    }
+        break;
+    case UDSUNI_TITLE_MEAS_FAILED:
+        qDebug() << "UDSUNI_TITLE_MEAS_FAILED";
+        d_file_measure.close();
+        /*int ret = */QMessageBox::information(this, tr("Измерения завершены."),
+                                               tr("Ошибка."),
+                                               QMessageBox::Ok,
+                                               QMessageBox::Ok);
         break;
     default:
         break;
@@ -198,11 +251,11 @@ void MainWindow::slot_readUds(UdsUniPack pack)
 
 }
 
-QPixmap MainWindow::snapshot()
+QPixmap MainWindow::snapshot(const Snapshot_params &snapshotParams)
 {
     qDebug() << Q_FUNC_INFO;
-    int bytesPerLine = d_snapshotParams.frame_width;
-    QImage snapshot_img((uchar*)d_snapshotParams.buf.c_str(), d_snapshotParams.frame_width, d_snapshotParams.frame_height, bytesPerLine, QImage::Format_Grayscale8 /*QImage::Format_Indexed8, QImageCleanupFunction cleanupFunction = nullptr, void *cleanupInfo = nullptr*/);
+    int bytesPerLine = snapshotParams.frame_width;
+    QImage snapshot_img((uchar*)snapshotParams.buf.c_str(), snapshotParams.frame_width, snapshotParams.frame_height, bytesPerLine, QImage::Format_Grayscale8 /*QImage::Format_Indexed8, QImageCleanupFunction cleanupFunction = nullptr, void *cleanupInfo = nullptr*/);
     return QPixmap::fromImage(snapshot_img);
 }
 
@@ -211,3 +264,9 @@ void MainWindow::setPhotoScreen()
 
 }
 
+void MainWindow::resizeEvent(QResizeEvent* /*event*/)
+{
+    qDebug() << Q_FUNC_INFO;
+    if(d_measReviewButs != nullptr)
+        d_measReviewButs->resize(d_l_snapshot.width(),d_l_snapshot.height());
+}
