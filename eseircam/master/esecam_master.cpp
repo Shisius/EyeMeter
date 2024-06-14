@@ -47,7 +47,7 @@ EseCamMaster::EseCamMaster()
 	d_stream_settings.cam_format = 0;
 	d_stream_settings.cam_shutter_us = 10000;
 	d_stream_settings.frame_queue_depth = d_meas_settings.n_led_pos * d_meas_settings.n_repeat;
-	d_stream_settings.fps_max = 30;
+	d_stream_settings.fps_max = 20;
 
 	d_uds = std::make_unique<UdsUniComm>(EYEMETER_ROLE_CAM);
 	d_serial = std::make_unique<SerialComm>("/dev/ttyUSB0", B115200, 100);
@@ -176,6 +176,7 @@ void EseCamMaster::meas_routine()
 	printf("EseCamMaster:: meas started\n");
 	bool meas_failed = false;
 
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	if ((d_shmem->check_free() < d_stream_settings.frame_queue_depth)) {
 		printf("EseCamMaster:: waiting shmem %d\n", d_shmem->check_free());
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
