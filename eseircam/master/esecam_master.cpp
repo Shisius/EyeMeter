@@ -376,7 +376,7 @@ int EseCamMaster::led_control(unsigned short led_state)
 		}
 	} else {
 		unsigned int iled = 0;
-		unsigned short ledstate_tmp = led_state;
+		unsigned short ledstate_tmp = led_state >> 1;
 		while (ledstate_tmp > 0) {
 			ledstate_tmp = ledstate_tmp >> 1;
 			iled += 1;
