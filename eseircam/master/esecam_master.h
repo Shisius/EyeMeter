@@ -65,6 +65,7 @@ protected:
 
 	int set_trigger(bool enable, bool hard);
 	int get_frame_soft_trigger();
+	int get_frame_hard_trigger();
 
 	void comm_process();
 	void meas_routine();

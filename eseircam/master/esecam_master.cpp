@@ -51,9 +51,9 @@ EseCamMaster::EseCamMaster()
 
 	d_uds = std::make_unique<UdsUniComm>(EYEMETER_ROLE_CAM);
 	// d_serial = std::make_unique<SerialComm>("/dev/ttyUSB0", B115200, 100);
+	d_irleds.resize(EYEMETER_N_LEDS);
 	for (int iled = 0; iled < EYEMETER_N_LEDS; iled++) {
-		std::unique_ptr led = std::make_unique<SysPwm>(iled);
-		d_irleds.push_back(led); 
+		d_irleds[iled] = std::make_unique<SysPwm>(iled);
 	}
 }
 
@@ -357,14 +357,14 @@ int EseCamMaster::led_control(unsigned short led_state)
 
 	if (led_state == 0) {
 		for (auto & led : d_irleds) {
-			if (d_irleds.set_duty(0.0) < 0) {
+			if (led->set_duty(0.0) < 0) {
 				printf("EseCamMaster:: set duty failed\n");
 				return -1;
 			}
 		}
 	} else if (led_state == EYEMETER_LEDS_MASK) {
 		for (auto & led : d_irleds) {
-			if (d_irleds.set_duty(0.25) < 0) {
+			if (led->set_duty(0.25) < 0) {
 				printf("EseCamMaster:: set duty failed\n");
 				return -1;
 			}

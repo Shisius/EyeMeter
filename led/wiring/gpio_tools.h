@@ -6,9 +6,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "iostream"
 #include <chrono>
 #include <vector>
+#define USE_MATH_DEFINES
+#include <math.h>
+#include <string>
 
 class SysPwm
 {
