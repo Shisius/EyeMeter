@@ -23,6 +23,7 @@ int SysPwm::get_sys_number()
 		printf("SysPwm: wrong pwm number %d\n", d_sys_pwm_num);
 		return -1;
 	}
+	return 0;
 }
 
 int SysPwm::setup()
