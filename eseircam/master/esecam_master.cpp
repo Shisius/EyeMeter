@@ -76,10 +76,10 @@ int EseCamMaster::setup()
 {
 	if (d_uds->start() < 0) return -1;
 
-	if (wiringPiSetup() == -1) {
-		printf("EseCamMaster: wiringPi setup failed \n");
-    	return -1;
-	}
+	// if (wiringPiSetup() == -1) {
+	// 	printf("EseCamMaster: wiringPi setup failed \n");
+    // 	return -1;
+	// }
 
 	d_cam_name = esecam_getname();
 	if (d_cam_name == "") {
@@ -91,8 +91,8 @@ int EseCamMaster::setup()
 	for (auto & led : d_irleds) {
 		if (led->setup() < 0) return -1;
 	}
-	pinMode(TRIGGER_GPIO, OUTPUT);
-	digitalWrite(TRIGGER_GPIO, HIGH);
+	//pinMode(TRIGGER_GPIO, OUTPUT);
+	//digitalWrite(TRIGGER_GPIO, HIGH);
 
 	if (USB_GetCameraCapabilites(d_cam_name.c_str(), &d_caps) != 1) {
 		printf("EseCamMaster::get caps failed\n");
@@ -231,12 +231,12 @@ void EseCamMaster::meas_routine()
 			}
 			// Do shot
 			while (d_in_meas.load()) {
-				// if (get_frame_soft_trigger() < 0) {
-				// 	printf("EseCamMaster:: meas failed on trigger\n");
-				// 	stop_meas();
-				// 	break;
-				// }
-				get_frame_hard_trigger();
+				if (get_frame_soft_trigger() < 0) {
+					printf("EseCamMaster:: meas failed on trigger\n");
+					stop_meas();
+					break;
+				}
+				// get_frame_hard_trigger();
 				// Wait
 				// {
 				// 	unique_lock<mutex> lk(d_frame_ready_mut);
@@ -472,8 +472,8 @@ void EseCamMaster::cam_timer()
 	while (d_in_stream.load()) {
 		std::this_thread::sleep_for(std::chrono::microseconds(1000000 / d_stream_settings.fps_max));
 		if (d_in_stream.load()) {
-			// get_frame_soft_trigger();
-			get_frame_hard_trigger();
+			get_frame_soft_trigger();
+			// get_frame_hard_trigger();
 		}
 	}
 }
