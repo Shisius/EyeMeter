@@ -47,10 +47,14 @@ EseCamMaster::EseCamMaster()
 	d_stream_settings.cam_format = 0;
 	d_stream_settings.cam_shutter_us = 10000;
 	d_stream_settings.frame_queue_depth = d_meas_settings.n_led_pos * d_meas_settings.n_repeat;
-	d_stream_settings.fps_max = 20;
+	d_stream_settings.fps_max = 10;
 
 	d_uds = std::make_unique<UdsUniComm>(EYEMETER_ROLE_CAM);
-	d_serial = std::make_unique<SerialComm>("/dev/ttyUSB0", B115200, 100);
+	// d_serial = std::make_unique<SerialComm>("/dev/ttyUSB0", B115200, 100);
+	for (int iled = 0; iled < EYEMETER_N_LEDS; iled++) {
+		std::unique_ptr led = std::make_unique<SysPwm>(iled);
+		d_irleds.push_back(led); 
+	}
 }
 
 EseCamMaster::~EseCamMaster()
@@ -78,7 +82,12 @@ int EseCamMaster::setup()
 		return -1;
 	}
 
-	if (d_serial->setup(true) < 0) return -1;
+	// if (d_serial->setup(true) < 0) return -1;
+	for (auto & led : d_irleds) {
+		if (led->setup() < 0) return -1;
+	}
+	pinMode(TRIGGER_GPIO, OUTPUT);
+	digitalWrite(TRIGGER_GPIO, HIGH);
 
 	if (USB_GetCameraCapabilites(d_cam_name.c_str(), &d_caps) != 1) {
 		printf("EseCamMaster::get caps failed\n");
@@ -108,6 +117,10 @@ int EseCamMaster::setup()
 int EseCamMaster::start_stream()
 {
 	printf("EseCamMaster:: start stream\n");
+	if (d_in_stream.load()) {
+		stop_stream();
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	}
 	// Shmem
 	d_shmem->clear();
 	d_shmem->resize(d_stream_settings.frame_size, d_stream_settings.frame_queue_depth);
@@ -120,7 +133,7 @@ int EseCamMaster::start_stream()
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-	set_trigger(true, false);
+	set_trigger(true, true);
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -143,6 +156,8 @@ int EseCamMaster::start_stream()
 	// }
 
 	d_in_stream.store(true);
+
+	led_control(0xFFFF & EYEMETER_LEDS_MASK);
 
 	d_cam_timer_thread = std::thread(&EseCamMaster::cam_timer, this);
 
@@ -211,17 +226,18 @@ void EseCamMaster::meas_routine()
 			}
 			// Do shot
 			while (d_in_meas.load()) {
-				if (get_frame_soft_trigger() < 0) {
-					printf("EseCamMaster:: meas failed on trigger\n");
-					stop_meas();
-					break;
-				}
+				// if (get_frame_soft_trigger() < 0) {
+				// 	printf("EseCamMaster:: meas failed on trigger\n");
+				// 	stop_meas();
+				// 	break;
+				// }
+				get_frame_hard_trigger();
 				// Wait
 				// {
 				// 	unique_lock<mutex> lk(d_frame_ready_mut);
 				// 	d_frame_ready_cond.wait(lk,[this]{return (d_frame_ready_flag.load() || !(d_in_meas.load()));});
 				// }
-				std::this_thread::sleep_for(std::chrono::milliseconds(30));
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
 				if (d_frame_ready_flag.load()) {
 					// std::this_thread::sleep_for(std::chrono::milliseconds(15));
 					break;
@@ -310,33 +326,64 @@ int EseCamMaster::set_led_pwr(UdsUniPack & pack)
 
 int EseCamMaster::led_control(unsigned short led_state)
 {
-	unsigned char cmd;
+	// unsigned char cmd;
 
-	if (led_state == 0) cmd = 0x00;
-	else if (led_state == EYEMETER_LEDS_MASK) cmd = 0x0F;
-	else {
-		cmd = 0x00;
-		while (led_state > 0) {
-			led_state = led_state >> 1;
-			cmd += 1;
+	// if (led_state == 0) cmd = 0x00;
+	// else if (led_state == EYEMETER_LEDS_MASK) cmd = 0x0F;
+	// else {
+	// 	cmd = 0x00;
+	// 	while (led_state > 0) {
+	// 		led_state = led_state >> 1;
+	// 		cmd += 1;
+	// 	}
+	// }
+
+	// if (d_serial->write_from((char*)&cmd, 1) > 0) {
+	// 	printf("EseCamMaster:: led send cmd %d\n", cmd);
+	// } else {
+	// 	printf("EseCamMaster:: led send cmd %d failed!!!\n", cmd);
+	// 	return -1;
+	// }
+
+	// unsigned char ans = 0;
+	// if (d_serial->read_to((char*)&ans, 1) <= 0) {
+	// 	printf("EseCamMaster::led control no answer\n");
+	// 	return -1;
+	// }
+	// if (ans != cmd) {
+	// 	printf("EseCamMaster::led control ans %d != cmd %d\n", ans, cmd);
+	// 	return -1;
+	// }
+
+	if (led_state == 0) {
+		for (auto & led : d_irleds) {
+			if (d_irleds.set_duty(0.0) < 0) {
+				printf("EseCamMaster:: set duty failed\n");
+				return -1;
+			}
 		}
-	}
-
-	if (d_serial->write_from((char*)&cmd, 1) > 0) {
-		printf("EseCamMaster:: led send cmd %d\n", cmd);
+	} else if (led_state == EYEMETER_LEDS_MASK) {
+		for (auto & led : d_irleds) {
+			if (d_irleds.set_duty(0.25) < 0) {
+				printf("EseCamMaster:: set duty failed\n");
+				return -1;
+			}
+		}
 	} else {
-		printf("EseCamMaster:: led send cmd %d failed!!!\n", cmd);
-		return -1;
-	}
-
-	unsigned char ans = 0;
-	if (d_serial->read_to((char*)&ans, 1) <= 0) {
-		printf("EseCamMaster::led control no answer\n");
-		return -1;
-	}
-	if (ans != cmd) {
-		printf("EseCamMaster::led control ans %d != cmd %d\n", ans, cmd);
-		return -1;
+		unsigned int iled = 0;
+		unsigned short ledstate_tmp = led_state;
+		while (ledstate_tmp > 0) {
+			ledstate_tmp = ledstate_tmp >> 1;
+			iled += 1;
+		}
+		if (iled >= d_irleds.size()) {
+			printf("EseCamMaster:: wrong led_state %d\n", led_state);
+			return -1;
+		}
+		if (d_irleds[iled]->set_duty(1.0) < 0) {
+			printf("EseCamMaster:: set duty failed\n");
+			return -1;
+		}
 	}
 
 	d_led_state.store(led_state);
@@ -370,12 +417,20 @@ int EseCamMaster::get_frame_soft_trigger()
 {
 	d_frame_ready_flag.store(false);
 	int result = USB_SetCameraFeature(d_cam_name.c_str(), ONE_MULTI_FRAME_REQUEST, 1);
-	// result = USB_SetCameraFeature(d_cam_name.c_str(), ONE_MULTI_FRAME_REQUEST, 1);
 	if (result == 1) {
 		return 0;
 	}
 	printf("EseCamMaster::soft trigger failed\n");
 	return -1;
+}
+
+int EseCamMaster::get_frame_hard_trigger()
+{
+	d_frame_ready_flag.store(false);
+	digitalWrite(TRIGGER_GPIO, LOW);
+	std::this_thread::sleep_for(std::chrono::microseconds(100));
+	digitalWrite(TRIGGER_GPIO, HIGH);
+	return 0;
 }
 
 void EseCamMaster::comm_process()
@@ -412,7 +467,8 @@ void EseCamMaster::cam_timer()
 	while (d_in_stream.load()) {
 		std::this_thread::sleep_for(std::chrono::microseconds(1000000 / d_stream_settings.fps_max));
 		if (d_in_stream.load()) {
-			get_frame_soft_trigger();
+			// get_frame_soft_trigger();
+			get_frame_hard_trigger();
 		}
 	}
 }

@@ -8,9 +8,12 @@
 #include "shmem_alloc.h"
 #include "udsunicomm.h"
 #include "serial_comm.h"
+#include "gpio_tools.h"
 
 #define EYEMETER_N_LEDS 6 
 #define EYEMETER_LEDS_MASK ((1 << EYEMETER_N_LEDS) - 1)
+
+#define TRIGGER_GPIO 19
 
 class EseCamMaster
 {
@@ -36,7 +39,8 @@ protected:
 
 	std::unique_ptr<ShmemBlockAllocator> d_shmem;
 	std::unique_ptr<UdsUniComm> d_uds;
-	std::unique_ptr<SerialComm> d_serial;
+	// std::unique_ptr<SerialComm> d_serial;
+	std::vector<std::unique_ptr<SysPwm>> d_irleds;
 
 	std::thread d_comm_thread;
 	std::thread d_cam_timer_thread;

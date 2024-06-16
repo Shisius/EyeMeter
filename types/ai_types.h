@@ -22,4 +22,19 @@ typedef struct _AI_stream_result
 	EyeFramePos eye_right;
 } AIStreamResult;
 
+typedef struct _eye_meas_parameters
+{
+	float sphere;
+	float cylinder;
+	float angle;
+	float diameter;
+} EyeMeasParameters;
+
+typedef struct _AI_eye_meas_result
+{
+	EyeMeasParameters left;
+	EyeMeasParameters right;
+	float interocular;
+} AIEyeMeasResult;
+
 #endif //_AI_TYPES_H_
