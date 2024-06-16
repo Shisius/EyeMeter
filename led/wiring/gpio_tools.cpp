@@ -4,7 +4,7 @@ SysPwm::SysPwm(int pwm_num)
 {
 	d_sys_pwm_num = pwm_num;
 	d_period_ns = 100000;
-	std::vector<int> d_pwm_numbs = {5, 7, 1, 0, 6, 3};	
+	// std::vector<int> d_pwm_numbs = {5, 7, 1, 0, 6, 3};	
 }
 
 SysPwm::~SysPwm()
@@ -13,8 +13,9 @@ SysPwm::~SysPwm()
 	close(d_duty_fd);
 }
 
-int SysPwm::setup()
+int SysPwm::get_sys_number()
 {
+	std::vector<int> d_pwm_numbs = {5, 7, 1, 0, 6, 3};
 	if ( (d_sys_pwm_num >= 0) && (d_sys_pwm_num < (int)(d_pwm_numbs.size())) ) {
 		d_sys_pwm_num = d_pwm_numbs[d_sys_pwm_num];
 	}
@@ -22,6 +23,11 @@ int SysPwm::setup()
 		printf("SysPwm: wrong pwm number %d\n", d_sys_pwm_num);
 		return -1;
 	}
+}
+
+int SysPwm::setup()
+{
+	if (get_sys_number() < 0) return -1;
 	std::string filename = "/sys/class/pwm/pwmchip" + std::to_string(d_sys_pwm_num) + "/pwm0/duty_cycle";
 	d_duty_fd = open(filename.c_str(), O_RDWR);
 	if (d_duty_fd < 0) {

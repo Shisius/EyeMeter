@@ -30,12 +30,14 @@ protected:
 	// numbers
 	int d_period_ns;
 	int d_sys_pwm_num;
-	std::vector<int> d_pwm_numbs;
+	// std::vector<int> d_pwm_numbs;
 
 	// fd
 	//int d_period_fd;
 	int d_duty_fd;
 	//int d_enable_fd;
+
+	int get_sys_number();
 
 
 };
