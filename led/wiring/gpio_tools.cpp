@@ -15,7 +15,7 @@ SysPwm::~SysPwm()
 
 int SysPwm::setup()
 {
-	if (d_sys_pwm_num >= 0 && d_sys_pwm_num < d_pwm_numbs.size())
+	if (d_sys_pwm_num >= 0 && d_sys_pwm_num < (int)(d_pwm_numbs.size()))
 		d_sys_pwm_num = d_pwm_numbs[d_sys_pwm_num];
 	else {
 		printf("SysPwm: wrong pwm nnumber %d\n", d_sys_pwm_num);
@@ -39,9 +39,9 @@ int SysPwm::set_duty(float duty)
 	}
 	int sysduty = d_period_ns - static_cast<int>(round(duty * static_cast<float>(d_period_ns)));
 	std::string duty_str = std::to_string(sysduty);
-	ssize_t result = write(d_duty_fd. duty_str.c_str(), duty_str.size());
-	if (result != duty_str.size()) {
-		printf("SysPwm:: write failed with result = %d\n", result);
+	ssize_t result = write(d_duty_fd, duty_str.c_str(), duty_str.size());
+	if (result != (ssize_t)(duty_str.size())) {
+		printf("SysPwm:: write failed with result = %ld\n", result);
 		return -1;
 	}
 	return 0;
