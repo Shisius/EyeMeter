@@ -15,10 +15,11 @@ SysPwm::~SysPwm()
 
 int SysPwm::setup()
 {
-	if (d_sys_pwm_num >= 0 && d_sys_pwm_num < (int)(d_pwm_numbs.size()))
+	if ( (d_sys_pwm_num >= 0) && (d_sys_pwm_num < (int)(d_pwm_numbs.size())) ) {
 		d_sys_pwm_num = d_pwm_numbs[d_sys_pwm_num];
+	}
 	else {
-		printf("SysPwm: wrong pwm nnumber %d\n", d_sys_pwm_num);
+		printf("SysPwm: wrong pwm number %d\n", d_sys_pwm_num);
 		return -1;
 	}
 	std::string filename = "/sys/class/pwm/pwmchip" + std::to_string(d_sys_pwm_num) + "/pwm0/duty_cycle";
