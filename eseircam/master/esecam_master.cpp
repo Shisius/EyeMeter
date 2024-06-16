@@ -391,6 +391,8 @@ int EseCamMaster::led_control(unsigned short led_state)
 		}
 	}
 
+	printf("EseCamMaster:: led set %d\n", led_state);
+
 	d_led_state.store(led_state);
 
 	return 0;
