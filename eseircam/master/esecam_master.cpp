@@ -76,6 +76,11 @@ int EseCamMaster::setup()
 {
 	if (d_uds->start() < 0) return -1;
 
+	if (wiringPiSetup() == -1) {
+		printf("EseCamMaster: wiringPi setup failed \n");
+    	return -1;
+	}
+
 	d_cam_name = esecam_getname();
 	if (d_cam_name == "") {
 		printf("EseCamMaster:: esecam is not found\n");
