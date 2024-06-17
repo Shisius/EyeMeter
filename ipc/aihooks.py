@@ -9,7 +9,7 @@ class SharedFrames:
 
     def __init__(self):
         self.shmem = shared_memory.SharedMemory(name=FRAME_SHBUF_NAME)
-        self.data = np.ndarray([1216, 1936, 40], dtype=np.uint8, buffer=self.shmem.buf)
+        self.data = np.ndarray([40, 1216, 1936], dtype=np.uint8, buffer=self.shmem.buf)
 
     def get_frame(self, n):
     	return np.ndarray([1216, 1936], dtype=np.uint8, buffer=self.shmem.buf[1216*1936*n:1216*1936*(n+1)])

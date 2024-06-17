@@ -371,7 +371,7 @@ int EseCamMaster::led_control(unsigned short led_state)
 		}
 	} else if (led_state == EYEMETER_LEDS_MASK) {
 		for (auto & led : d_irleds) {
-			if (led->set_duty(1.0/6.0) < 0) {
+			if (led->set_duty(0.14) < 0) {
 				printf("EseCamMaster:: set duty failed\n");
 				return -1;
 			}
@@ -387,7 +387,7 @@ int EseCamMaster::led_control(unsigned short led_state)
 			printf("EseCamMaster:: wrong led_state %d\n", led_state);
 			return -1;
 		}
-		if (d_irleds[iled]->set_duty(1.0) < 0) {
+		if (d_irleds[iled]->set_duty(0.84) < 0) {
 			printf("EseCamMaster:: set duty failed\n");
 			return -1;
 		}
