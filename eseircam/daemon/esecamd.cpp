@@ -23,7 +23,7 @@ int main(int argc, char ** argv)
 	bool exit_daemon = false;
 	int charopt = -1;
 	while (true) {
-		charopt = getopt(argc, argv, "aitfdxh");
+		charopt = getopt(argc, argv, "dxh");
 		if (charopt == -1) break;
 		switch (charopt) {
 			case 'd':
@@ -81,7 +81,7 @@ int main(int argc, char ** argv)
 		return 0;
 	}
 	if (exit_daemon) return 0;
-	
+
 	if (run_as_daemon) {
 		printf("Starting daemon\n");
 		if (!(doublefork())) printf("Double fork failed\n");

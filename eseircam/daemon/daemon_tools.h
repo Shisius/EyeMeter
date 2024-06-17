@@ -156,6 +156,7 @@ __attribute__((unused)) static inline bool is_daemon_self_running(void)
 	FILE* f = fopen(fullname, "r");
 	if (f == NULL) return false;
 	fclose(f);
+	if (name) free(name);
 	return true;
 }
 
@@ -164,7 +165,9 @@ __attribute__((unused)) static inline bool daemon_self_write_pid_file(void)
 	// Get name
 	char * name = get_application_name();
 	if (name == NULL) return false;
-	return write_pid_file(name);
+	bool result = write_pid_file(name);
+	if (name) free(name);
+	return result;
 }
 
 __attribute__((unused)) static inline bool daemon_self_stop(int sig_no)
@@ -174,6 +177,7 @@ __attribute__((unused)) static inline bool daemon_self_stop(int sig_no)
 	if (name == NULL) return false;
 	// Get pid
 	pid_t pid = get_pid_from_file(name);
+	if (name) free(name);
 	// Send signal
 	if (kill(pid, sig_no) == 0) return true;
 	return false;
@@ -185,6 +189,7 @@ __attribute__((unused)) static inline void at_daemon_self_exit(void)
 	char fullname[strlen(name) + 10];
 	sprintf(fullname, "/tmp/%s.pid", name);
 	remove(fullname);
+	if (name) free(name);
 }
 
 #endif //_DAEMON_TOOLS_H_
