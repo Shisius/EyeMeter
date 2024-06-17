@@ -75,11 +75,13 @@ int main(int argc, char ** argv)
 	// 	}	
 	// 	//return 1;
 	// }
-	if (exit_daemon) return 0;
+	
 	if (is_daemon_self_running()) {
 		printf("Daemon is already running. Stop it before run again.\n");
 		return 0;
 	}
+	if (exit_daemon) return 0;
+	
 	if (run_as_daemon) {
 		printf("Starting daemon\n");
 		if (!(doublefork())) printf("Double fork failed\n");
