@@ -47,7 +47,28 @@ MainWindow::MainWindow(QWidget *parent)
     d_l_measRes.setWordWrap(true);
     QString measRes_str = QString("%1:\n%2:")
                     .arg(CONST_REFRACTION_STR).arg(CONST_INTEROCULAR_STR);
-    d_l_measRes.setStyleSheet("font: bold 20px "
+//    AIEyeMeasResult measResult;
+//    measResult.left.sphere = 1.3;
+//    measResult.left.cylinder = 2.3;
+//    measResult.left.angle = 3.3;
+//    measResult.left.diameter = 4.3;
+//    measResult.right.sphere = 5.3;
+//    measResult.right.cylinder = 5.3;
+//    measResult.right.angle = 6.3;
+//    measResult.right.diameter = 7.3;
+//    QString measRes_str = QString("%1:   %2   %3   %4º   %5        %6   %7   %8º   %9\n%10:   %11")
+//            .arg(CONST_REFRACTION_STR)     //1
+//            .arg(measResult.left.sphere)   //2
+//            .arg(measResult.left.cylinder) //3
+//            .arg(measResult.left.angle)    //4
+//            .arg(measResult.left.diameter) //5
+//            .arg(measResult.right.sphere)   //6
+//            .arg(measResult.right.cylinder) //7
+//            .arg(measResult.right.angle)    //8
+//            .arg(measResult.right.diameter) //9
+//            .arg(CONST_INTEROCULAR_STR)     //10
+//            .arg(measResult.interocular);
+    d_l_measRes.setStyleSheet("font: 20px "
                   /*"color: black;"*/);
     d_l_measRes.setText(measRes_str);
     //centralWidgetLayout->addLayout(mainWinLayout);
@@ -313,6 +334,28 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                                                tr("Ошибка."),
                                                QMessageBox::Ok,
                                                QMessageBox::Ok);
+        break;
+    case UDSUNI_TITLE_MEAS_RESULT:
+    {
+        qDebug() << "UDSUNI_TITLE_MEAS_RESULT";
+        AIEyeMeasResult measResult;
+        pack.fetch_data(measResult);
+        QString measRes_str = QString("%1:   %2   %3   %4º   %5        %6   %7   %8º   %9\n%10:   %11")
+                .arg(CONST_REFRACTION_STR)     //1
+                .arg(measResult.left.sphere)   //2
+                .arg(measResult.left.cylinder) //3
+                .arg(measResult.left.angle)    //4
+                .arg(measResult.left.diameter) //5
+                .arg(measResult.right.sphere)   //6
+                .arg(measResult.right.cylinder) //7
+                .arg(measResult.right.angle)    //8
+                .arg(measResult.right.diameter) //9
+                .arg(CONST_INTEROCULAR_STR)     //10
+                .arg(measResult.interocular);
+//        d_l_measRes.setStyleSheet("font: 20px "
+//                      /*"color: black;"*/);
+        d_l_measRes.setText(measRes_str);
+    }
         break;
     default:
         break;
