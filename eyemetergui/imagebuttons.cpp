@@ -31,7 +31,7 @@ ImageButtons::ImageButtons(QWidget *parent) :
 
 void ImageButtons::hide(bool visible)
 {
-    qDebug()<<Q_FUNC_INFO;
+    qDebug()<<Q_FUNC_INFO << visible;
 //    if(!visible)
 //    {
 //        d_but_prev->show();
