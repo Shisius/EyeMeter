@@ -8,7 +8,6 @@ extern "C" {
 
 std::unique_ptr<EseCamMaster> cammaster;
 std::mutex cammaster_mut;
-StdInOutErrFds stdfds;
 
 void sigint_handler(int signum)
 {
@@ -19,7 +18,9 @@ void sigint_handler(int signum)
 
 int main(int argc, char ** argv)
 {
+	StdInOutErrFds stdfds;
 	bool run_as_daemon = false;
+	bool exit_daemon = false;
 	int charopt = -1;
 	while (true) {
 		charopt = getopt(argc, argv, "aitfdxh");
@@ -29,9 +30,11 @@ int main(int argc, char ** argv)
 				run_as_daemon = true;
 				break;
 			case 'x':
+				exit_daemon = true;
+				run_as_daemon = false;
 				if (!is_daemon_self_running()) {
 					printf("No daemon running.\n");
-					return 0;
+					break;
 				}
 				if (daemon_self_stop(SIGINT)) {
 					sleep(1);
@@ -43,7 +46,7 @@ int main(int argc, char ** argv)
 				} else {
 					printf("No daemon running\n");
 				}
-				return 0;
+				break;
 			case 'h':
 				printf("EyeMeter: available options:\n \
 						h - print this help\n \
@@ -72,9 +75,10 @@ int main(int argc, char ** argv)
 	// 	}	
 	// 	//return 1;
 	// }
+	if (exit_daemon) return 0;
 	if (is_daemon_self_running()) {
 		printf("Daemon is already running. Stop it before run again.\n");
-		return 1;
+		return 0;
 	}
 	if (run_as_daemon) {
 		printf("Starting daemon\n");
