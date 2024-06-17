@@ -434,9 +434,9 @@ int EseCamMaster::get_frame_soft_trigger()
 int EseCamMaster::get_frame_hard_trigger()
 {
 	d_frame_ready_flag.store(false);
-	digitalWrite(TRIGGER_GPIO, LOW);
+	//digitalWrite(TRIGGER_GPIO, LOW);
 	std::this_thread::sleep_for(std::chrono::microseconds(100));
-	digitalWrite(TRIGGER_GPIO, HIGH);
+	//digitalWrite(TRIGGER_GPIO, HIGH);
 	return 0;
 }
 

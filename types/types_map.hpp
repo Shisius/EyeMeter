@@ -21,6 +21,7 @@ inline std::map<std::type_index, unsigned char> get_types_map()
 	types_map[typeid(SharedFrame)] = UDSUNI_TYPE_SHARED_FRAME;
 	types_map[typeid(StreamSettings)] = UDSUNI_TYPE_STREAM_SETTINGS;
 	types_map[typeid(MeasureSettings)] = UDSUNI_TYPE_MEASURE_SETTINGS;
+	types_map[typeid(AIEyeMeasResult)] = UDSUNI_TYPE_MEASURE_RESULT;
 
 	return types_map;
 };
@@ -32,6 +33,7 @@ inline unsigned char get_size_by_code(unsigned char code)
 	case UDSUNI_TYPE_SHARED_FRAME : return sizeof(SharedFrame);
 	case UDSUNI_TYPE_STREAM_SETTINGS : return sizeof(StreamSettings);
 	case UDSUNI_TYPE_MEASURE_SETTINGS : return sizeof(MeasureSettings);
+	case UDSUNI_TYPE_MEASURE_RESULT : return sizeof(AIEyeMeasResult);
 	}
 
 	return 0;

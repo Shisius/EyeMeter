@@ -1,7 +1,7 @@
 #ifndef _GPIO_TOOLS_H_
 #define _GPIO_TOOLS_H_
 
-#include <wiringPi.h>
+// #include <wiringPi.h>
 
 #include <stdio.h>
 #include <stdlib.h>

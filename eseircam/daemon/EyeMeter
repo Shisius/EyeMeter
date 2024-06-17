@@ -1,0 +1,6 @@
+#!/usr/bin/bash
+
+/home/orangepi/EyeMeter/eseircam/daemon/TargetBuild/tmp/esecamd -x
+sleep 0.1
+/home/orangepi/EyeMeter/eseircam/daemon/TargetBuild/tmp/esecamd -d
+/home/orangepi/EyeMeter/eyemetergui/build-eyemetergui-Desktop-Release/eyemetergui
