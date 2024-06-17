@@ -1,9 +1,7 @@
 
 #include <csignal>
 #include <getopt.h>
-extern "C" {
-	#include "daemon_tools.h"
-}
+#include "daemon_tools.h"
 #include "esecam_master.h"
 
 std::unique_ptr<EseCamMaster> cammaster;

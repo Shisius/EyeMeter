@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <sys/fcntl.h>
 #include <signal.h>
+#include <string>
 
 typedef struct std_in_out_err_fds
 {
@@ -35,36 +36,38 @@ __attribute__((unused)) static inline void get_process_name_by_pid(char* name, c
     }
 }
 
-__attribute__((unused)) static inline char * get_application_name(void)
+__attribute__((unused)) static inline std::string get_application_name(void)
 {
-	const int MAX_APPLICATION_NAME_LENGTH = 1024;
+	// const int MAX_APPLICATION_NAME_LENGTH = 1024;
 	// Create name
-	char * name = (char*)malloc(MAX_APPLICATION_NAME_LENGTH);
-	memset(name, 0, MAX_APPLICATION_NAME_LENGTH);
+	// char * name = (char*)malloc(MAX_APPLICATION_NAME_LENGTH);
+	// memset(name, 0, MAX_APPLICATION_NAME_LENGTH);
+	std::string name = "esecamd";
 	// Open proc self file
-	FILE* f = fopen("/proc/self/comm", "r");
-	if (f == NULL) return NULL;
-	// Read name
-	size_t name_l = fread(name, sizeof(char), MAX_APPLICATION_NAME_LENGTH, f);
-	// Delete \n
-	if (name_l > 0) {
-		if (name[name_l-1] == '\n') name[name_l-1] = '\0';
-	}
-	fclose(f);
+	// FILE* f = fopen("/proc/self/comm", "r");
+	// if (f == NULL) return NULL;
+	// // Read name
+	// size_t name_l = fread(name, sizeof(char), MAX_APPLICATION_NAME_LENGTH, f);
+	// // Delete \n
+	// if (name_l > 0) {
+	// 	if (name[name_l-1] == '\n') name[name_l-1] = '\0';
+	// }
+	// fclose(f);
 	return name;
 }
 
-__attribute__((unused)) static inline bool write_pid_file(const char * name)
+__attribute__((unused)) static inline bool write_pid_file(const std::string & name)
 {
 	// Get pid and convert to string
 	pid_t pid = getpid();
 	char pid_s[8];
 	sprintf(pid_s, "%d\n", pid);
 	// Open pid file
-	if (name == NULL) return false;
-	char fullname[strlen(name) + 5];
-	sprintf(fullname, "/tmp/%s.pid", name);
-	FILE* f = fopen(fullname, "w");
+	// if (name == NULL) return false;
+	// char fullname[name.size() + 10];
+	// sprintf(fullname, "/tmp/%s.pid", name.c_str());
+	std::string fullname = "/tmp/" + name + ".pid";
+	FILE* f = fopen(fullname.c_str(), "w");
 	if (f == NULL) return false;
 	// Write PID and \n
 	size_t n_bytes = fwrite(pid_s, sizeof(char), strlen(pid_s), f);
@@ -74,12 +77,13 @@ __attribute__((unused)) static inline bool write_pid_file(const char * name)
 	return false;
 }
 
-__attribute__((unused)) static inline pid_t get_pid_from_file(const char * name)
+__attribute__((unused)) static inline pid_t get_pid_from_file(const std::string & name)
 {
 	// Open file
-	char fullname[strlen(name) + 5];
-	sprintf(fullname, "/tmp/%s.pid", name);
-	FILE* f = fopen(fullname, "r");
+	// char fullname[strlen(name) + 5];
+	// sprintf(fullname, "/tmp/%s.pid", name);
+	std::string fullname = "/tmp/" + name + ".pid";
+	FILE* f = fopen(fullname.c_str(), "r");
 	if (f == NULL) return -1;
 	// Get content
 	char pid_s[8];
@@ -120,18 +124,18 @@ __attribute__((unused)) static inline void close_stdio(void)
 	close(STDERR_FILENO);
 }
 
-__attribute__((unused)) static inline int redirect_std(int stdfd, const char * file_name)
+__attribute__((unused)) static inline int redirect_std(int stdfd, std::string file_name)
 {
 	int flags = O_RDWR | O_APPEND;
 	if (stdfd == STDIN_FILENO) flags = O_RDONLY;
 	if (stdfd != STDIN_FILENO) fsync(stdfd);
-	int new_fd = open(file_name, flags);
+	int new_fd = open(file_name.c_str(), flags);
 	if (new_fd < 0) return new_fd;
 	if (dup2(new_fd, stdfd) < 0) return -1;
 	return new_fd;
 }
 
-__attribute__((unused)) static inline StdInOutErrFds redirect_stdfd(const char * stdin_name, const char * stdout_name, const char * stderr_name)
+__attribute__((unused)) static inline StdInOutErrFds redirect_stdfd(std::string stdin_name, std::string stdout_name, std::string stderr_name)
 {
 	StdInOutErrFds stdfds;
 	stdfds.in = redirect_std(STDIN_FILENO, stdin_name);
@@ -148,36 +152,37 @@ __attribute__((unused)) static inline StdInOutErrFds redirect_std2null(void)
 __attribute__((unused)) static inline bool is_daemon_self_running(void)
 {
 	// Get name
-	char * name = get_application_name();
-	if (name == NULL) return false;
+	std::string name = get_application_name();
+	// if (name == NULL) return false;
 	// Open file
-	char fullname[strlen(name) + 5];
-	sprintf(fullname, "/tmp/%s.pid", name);
-	FILE* f = fopen(fullname, "r");
+	// char fullname[strlen(name) + 5];
+	// sprintf(fullname, "/tmp/%s.pid", name);
+	std::string fullname = "/tmp/" + name + ".pid";
+	FILE* f = fopen(fullname.c_str(), "r");
 	if (f == NULL) return false;
 	fclose(f);
-	if (name) free(name);
+	// if (name) free(name);
 	return true;
 }
 
 __attribute__((unused)) static inline bool daemon_self_write_pid_file(void)
 {
 	// Get name
-	char * name = get_application_name();
-	if (name == NULL) return false;
+	std::string name = get_application_name();
+	// if (name == NULL) return false;
 	bool result = write_pid_file(name);
-	if (name) free(name);
+	// if (name) free(name);
 	return result;
 }
 
 __attribute__((unused)) static inline bool daemon_self_stop(int sig_no)
 {
 	// Get name
-	char * name = get_application_name();
-	if (name == NULL) return false;
+	std::string name = get_application_name();
+	// if (name == NULL) return false;
 	// Get pid
 	pid_t pid = get_pid_from_file(name);
-	if (name) free(name);
+	// if (name) free(name);
 	// Send signal
 	if (kill(pid, sig_no) == 0) return true;
 	return false;
@@ -185,11 +190,12 @@ __attribute__((unused)) static inline bool daemon_self_stop(int sig_no)
 
 __attribute__((unused)) static inline void at_daemon_self_exit(void)
 {
-	char * name = get_application_name();
-	char fullname[strlen(name) + 10];
-	sprintf(fullname, "/tmp/%s.pid", name);
-	remove(fullname);
-	if (name) free(name);
+	std::string name = get_application_name();
+	std::string fullname = "/tmp/" + name + ".pid";
+	//char fullname[strlen(name) + 10];
+	//sprintf(fullname, "/tmp/%s.pid", name);
+	remove(fullname.c_str());
+	//if (name) free(name);
 }
 
 #endif //_DAEMON_TOOLS_H_
