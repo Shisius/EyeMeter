@@ -12,7 +12,7 @@ EMToolBar::EMToolBar(QWidget *parent)
     setFixedWidth(210);
     setStyleSheet("background-color: #a9c9c2;"
                   "spacing: 20px; "
-                  "font: bold 30px "
+                  "font: bold 20px "
                   /*"color: black;"*/);
     //setStyleSheet("QPushButton { color: red; } ");/* spacing between items in the tool bar */
 //    d_act_start  = addAction(tr("Начать сеанс"));

@@ -1,45 +1,89 @@
 #include "mainwindow.h"
 #include <QToolBar>
 #include <QDebug>
+#include <QIcon>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     qDebug() << Q_FUNC_INFO;
     createToolBar();
+    d_topToolbar = new QToolBar;
+    addToolBar(Qt::TopToolBarArea,d_topToolbar);
+//d_but_close.setText("Закрыть");
+    //
+    QIcon closeicon = QIcon::fromTheme("window-close");
+    d_but_close.setIcon(closeicon);
+    d_but_close.setIconSize(QSize(50,50));
+    QWidget* dummy = new QWidget();
+    dummy->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
+    d_topToolbar->addWidget(dummy);
+    tb_layout.addWidget(&d_but_close);
+    connect(&d_but_close, SIGNAL(clicked()), SLOT(close()));
+    //d_topToolbar->setLayout(&tb_layout);
+    //setIconSize(QSize(100,100));
+    d_topToolbar->addSeparator();
+    d_topToolbar->addWidget(&d_but_close);
     //showFullScreen();
     //resize(1500,1500);
     showMaximized();
-    setCentralWidget( &d_l_snapshot);
+    //setCentralWidget( &d_l_snapshot);
+
     d_l_snapshot.setStyleSheet("background-color: black");
-    initNetwork();
     d_measReviewButs = new ImageButtons(&d_l_snapshot);
     //d_measReviewButs->setVisible(false);
     d_measReviewButs->hide(true);
     //d_measReviewButs->hide(false);
     connect(d_measReviewButs, SIGNAL(showMeasImg_clicked(uint)), SLOT(slot_showMeasImg(uint)));
+    d_mainWidget = new QWidget();
+    //QVBoxLayout mainWinLayout;
+    QSizePolicy sp;
+    sp.setHeightForWidth(true);
+    //d_l_snapshot.setSizePolicy(sp);
+    mainWinLayout.addWidget(&d_l_snapshot);
+    d_l_snapshot.setAlignment(Qt::AlignCenter);
+    mainWinLayout.addWidget(&d_l_measRes);
+    d_l_measRes.setFixedHeight(200);
+    d_l_measRes.setWordWrap(true);
+    QString measRes_str = QString("%1:\n%2:")
+                    .arg(CONST_REFRACTION_STR).arg(CONST_INTEROCULAR_STR);
+    d_l_measRes.setStyleSheet("font: bold 20px "
+                  /*"color: black;"*/);
+    d_l_measRes.setText(measRes_str);
+    //centralWidgetLayout->addLayout(mainWinLayout);
+    d_mainWidget->setLayout(&mainWinLayout);
+    setCentralWidget( d_mainWidget);
+    //qDebug() << d_l_snapshot.width();
+    //qDebug() << d_l_snapshot.height();
+    //qDebug() << static_cast<double>(d_l_snapshot.width())/d_l_snapshot.height();
+    //qDebug() << d_l_snapshot.width()/CONST_RATIO_WIDTH2HEIGHT;
+    //d_l_snapshot.setFixedHeight(d_l_snapshot.width()/CONST_RATIO_WIDTH2HEIGHT);
+
+    initNetwork();
+
     //connect(&d_measReviewButs, SIGNAL(imagePrev_clicked(uint)), SLOT(slot_imagePrev(uint)));
     //connect(&d_measReviewButs, SIGNAL(imageNext_clicked(uint)), SLOT(slot_imageNext(uint)));
-#ifdef TEST_snapshot
-    d_snapshotParams.frame_height = 1216;
-    d_snapshotParams.frame_width = 1936;
-    d_snapshotParams.size = d_snapshotParams.frame_height * d_snapshotParams.frame_width;
-    d_snapshotParams.buf.resize(d_snapshotParams.size);
-    //uchar buf[d_snapshotParams.size];
-    qDebug() << Q_FUNC_INFO << "file_0";
-    FILE *f; // переменная для работы с файлом
+//#ifdef TEST_snapshot
+//    d_snapshotParams.frame_height = 1216;
+//    d_snapshotParams.frame_width = 1936;
+//    d_snapshotParams.size = d_snapshotParams.frame_height * d_snapshotParams.frame_width;
+//    d_snapshotParams.buf.resize(d_snapshotParams.size);
+//    //uchar buf[d_snapshotParams.size];
+//    qDebug() << Q_FUNC_INFO << "file_0";
+//    FILE *f; // переменная для работы с файлом
 
-       f=fopen("/home/moonlight/Main/Work/eyemeter/repa/EyeMeter/eyemetergui/frame1.bin", "r"); // открываем бинарный файл для записи и чтения в режиме добавления, то есть, если файла нет, то он создастся, а если файл есть, то содержимое файла не будет уничтожено, из файла можно будет читать и в файл можно будет записывать
+//       f=fopen("/home/moonlight/Main/Work/eyemeter/repa/EyeMeter/eyemetergui/frame1.bin", "r"); // открываем бинарный файл для записи и чтения в режиме добавления, то есть, если файла нет, то он создастся, а если файл есть, то содержимое файла не будет уничтожено, из файла можно будет читать и в файл можно будет записывать
 
-       qDebug() << Q_FUNC_INFO << f;
-       qDebug() << fread(d_snapshotParams.buf.data() , sizeof(uchar), d_snapshotParams.size, f); // считываем из файла f ровно 1 пакет pack размера int_double
+//       qDebug() << Q_FUNC_INFO << f;
+//       qDebug() << fread(d_snapshotParams.buf.data() , sizeof(uchar), d_snapshotParams.size, f); // считываем из файла f ровно 1 пакет pack размера int_double
 
-       fclose(f);
-       qDebug() << Q_FUNC_INFO << "file_end";
-       //memcpy(d_snapshotParams.buf, &buf, d_snapshotParams.size);
-       QPixmap pix = snapshot();
-       d_l_snapshot.setPixmap(pix);
-#endif
+//       fclose(f);
+//       qDebug() << Q_FUNC_INFO << "file_end";
+//       //memcpy(d_snapshotParams.buf, &buf, d_snapshotParams.size);
+//       QPixmap pix = snapshot(d_snapshotParams);
+//       d_l_snapshot.setPixmap(pix);
+//       //d_l_snapshot.adjustSize();
+//#endif
 }
 
 MainWindow::~MainWindow()
@@ -72,6 +116,27 @@ void MainWindow::slot_start()
     d_udsUniSocket->send(UdsUniTitle::UDSUNI_TITLE_STREAM_START);
     if(d_measReviewButs != nullptr)
         d_measReviewButs->hide(true);
+#ifdef TEST_snapshot
+    d_snapshotParams.frame_height = 1216;
+    d_snapshotParams.frame_width = 1936;
+    d_snapshotParams.size = d_snapshotParams.frame_height * d_snapshotParams.frame_width;
+    d_snapshotParams.buf.resize(d_snapshotParams.size);
+    //uchar buf[d_snapshotParams.size];
+    qDebug() << Q_FUNC_INFO << "file_0";
+    FILE *f; // переменная для работы с файлом
+
+       f=fopen("/home/moonlight/Main/Work/eyemeter/repa/EyeMeter/eyemetergui/frame1.bin", "r"); // открываем бинарный файл для записи и чтения в режиме добавления, то есть, если файла нет, то он создастся, а если файл есть, то содержимое файла не будет уничтожено, из файла можно будет читать и в файл можно будет записывать
+
+       qDebug() << Q_FUNC_INFO << f;
+       qDebug() << fread(d_snapshotParams.buf.data() , sizeof(uchar), d_snapshotParams.size, f); // считываем из файла f ровно 1 пакет pack размера int_double
+
+       fclose(f);
+       qDebug() << Q_FUNC_INFO << "file_end";
+       //memcpy(d_snapshotParams.buf, &buf, d_snapshotParams.size);
+       QPixmap pix = snapshot(d_snapshotParams);
+       d_l_snapshot.setPixmap(pix);
+       //d_l_snapshot.adjustSize();
+#endif
 }
 
 void MainWindow::slot_pwr()
@@ -106,6 +171,7 @@ void MainWindow::slot_showMeasImg(uint num)
     {
         QPixmap pix = snapshot( d_vec_snapshots.at(num));
         d_l_snapshot.setPixmap(pix);
+        //d_l_snapshot.adjustSize();
     }
 }
 
@@ -275,4 +341,14 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/)
     qDebug() << Q_FUNC_INFO;
     if(d_measReviewButs != nullptr)
         d_measReviewButs->resize(d_l_snapshot.width(),d_l_snapshot.height());
+//    if(d_lastShotWidth != d_l_snapshot.width())
+//    {
+//        qDebug() << "d_lastShotWidth" << d_lastShotWidth;
+//        qDebug() << "d_l_snapshot.width()" << d_l_snapshot.width();
+//        qDebug() << "d_l_snapshot.height()" << d_l_snapshot.height();
+//        qDebug() << "w/h" << static_cast<double>(d_l_snapshot.width())/d_l_snapshot.height();
+//        qDebug() << "h" << d_l_snapshot.width()/CONST_RATIO_WIDTH2HEIGHT;
+//        d_l_snapshot.setFixedHeight(d_l_snapshot.width()/CONST_RATIO_WIDTH2HEIGHT);
+//        d_lastShotWidth = d_l_snapshot.width();
+//    }
 }
