@@ -3,13 +3,16 @@ from multiprocessing import shared_memory
 from matplotlib import pyplot as plt
 import socket
 import struct
-import eyemetercomm
+from eyemetercomm import *
 
 class SharedFrames:
 
     def __init__(self):
         self.shmem = shared_memory.SharedMemory(name=FRAME_SHBUF_NAME)
         self.data = np.ndarray([1216, 1936, 40], dtype=np.uint8, buffer=self.shmem.buf)
+
+    def get_frame(self, n):
+    	return np.ndarray([1216, 1936], dtype=np.uint8, buffer=self.shmem.buf[1216*1936*n:1216*1936*(n+1)])
 
     def __del__(self):
         self.shmem.close()
@@ -29,3 +32,10 @@ def ai_hook_send_result(left, right, interoccular):
 # sf = SharedFrames()
 # left, right, interoccular = ai(sf.data)
 # ai_hook_send_result(left, right, interoccular)
+
+if __name__ == "__main__":
+	sf = SharedFrames()
+	left = [1,2,3,4]
+	right = [5,6,7,8]
+	interoccular = 10
+	ai_hook_send_result(left, right, interoccular)

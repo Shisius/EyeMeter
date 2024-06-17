@@ -267,6 +267,8 @@ void EseCamMaster::meas_routine()
 	}
 	else {
 		d_uds->send(UDSUNI_TITLE_MEAS_SHOOT_DONE);
+		if (system("sh /home/orangepi/EyeMeter/run_eye_ai.sh") < 0)
+			printf("EseCamMaster:: ai script failed\n");
 		printf("EseCamMaster:: meas finished\n");
 	}
 }
