@@ -1,7 +1,7 @@
-QT       += core gui
+QT       += core gui virtualkeyboard
 #svg
 #QT += virtualkeyboard
-QTPLUGINS += qtvirtualkeyboardplugin
+#QTPLUGINS += qtvirtualkeyboardplugin
 #static {
 #      QTPLUGIN += qtvirtualkeyboardplugin
 #      QT += svg
@@ -9,8 +9,10 @@ QTPLUGINS += qtvirtualkeyboardplugin
 #QT_QPA_PLATFORM=wayland
 #QT_QPA_PLATFORMTHEME=gnome
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
+CONFIG += disable-layouts
+CONFIG += lang-en_GB
 CONFIG += c++17
+CONFIG += retro-style
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -24,7 +26,6 @@ SOURCES += \
     emtoolbar.cpp \
     imagebuttons.cpp \
     inputdatedialog.cpp \
-    inputnamedialog.cpp \
     lineedit_clickable.cpp \
     lineedit_keyboard.cpp \
     main.cpp \
@@ -39,7 +40,6 @@ HEADERS += \
     emtoolbar.h \
     imagebuttons.h \
     inputdatedialog.h \
-    inputnamedialog.h \
     lineedit_clickable.h \
     lineedit_keyboard.h \
     mainwindow.h \
@@ -58,7 +58,10 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 #DEFINES += TEST_snapshot
+DEFINES += NEWVISION
 
 RESOURCES += \
     images.qrc
 LIBS += -lrt -lm
+
+DISTFILES +=
