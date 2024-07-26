@@ -12,9 +12,9 @@ set(MAIN_PATH "../../")
 include(${BUILD_FOLDER}/settings.cmake)
 
 # Flags
-set(MAIN_FLAGS "-Wall -Ofast -pthread -std=c++17 -lrt -lm -lESEUsbCam -lwiringPi -lwiringPiDev ")
+set(MAIN_FLAGS "-Wall -Ofast -pthread -std=c++17 -lrt -lm -lESEUsbCam") # -lwiringPi -lwiringPiDev ")
 set(ALL_CXX_FLAGS "${MAIN_FLAGS} ${PLATFORM_FLAGS}")
-set(ALL_C_FLAGS "-Wall -std=c11 -Ofast -lrt -pthread -lm -lESEUsbCam -lwiringPi -lwiringPiDev ")
+set(ALL_C_FLAGS "-Wall -std=c11 -Ofast -lrt -pthread -lm -lESEUsbCam") # -lwiringPi -lwiringPiDev ")
 list(APPEND ALL_C_FLAGS ${PLATFORM_C_FLAGS})
 
 # Include 
@@ -45,5 +45,5 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${ALL_INCLUDE_PATH} ${ALL_LIB
 target_link_libraries(${PROJECT_NAME} PRIVATE ${ALL_LIBS})
 target_link_libraries(${PROJECT_NAME} PRIVATE rt)
 target_link_libraries(${PROJECT_NAME} PRIVATE ESEUsbCam)
-target_link_libraries(${PROJECT_NAME} PRIVATE wiringPi)
-target_link_libraries(${PROJECT_NAME} PRIVATE wiringPiDev)
+#target_link_libraries(${PROJECT_NAME} PRIVATE wiringPi)
+#target_link_libraries(${PROJECT_NAME} PRIVATE wiringPiDev)

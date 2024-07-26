@@ -1,3 +1,3 @@
 #!/usr/bin/bash
 
-g++ gpio_test.cpp -Wall -Ofast -lwiringpi -o gpio_test
+g++ gpio_test.cpp -Wall -pthread -Ofast -lwiringPi -lwiringPiDev -o gpio_test

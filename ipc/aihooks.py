@@ -24,7 +24,7 @@ def ai_hook_send_result(left, right, interoccular):
 	msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_MEAS_RESULT, UDSUNI_TYPE_MEASURE_RESULT, 36)
 	params = left + right + [interoccular]
 	msg += struct.pack('9f', *params)
-	uds.sento(msg, "/tmp/gui.sock")
+	uds.sendto(msg, "/tmp/gui.sock")
 	uds.close()
 
 

@@ -15,7 +15,7 @@ SysPwm::~SysPwm()
 
 int SysPwm::get_sys_number()
 {
-	std::vector<int> d_pwm_numbs = {5, 7, 1, 0, 6, 3};
+	std::vector<int> d_pwm_numbs = {5, 7, 1, 0, 6, 3}; //{3, 0, 6, 7, 1, 5}; //{5, 7, 1, 0, 6, 3};
 	if ( (d_sys_pwm_num >= 0) && (d_sys_pwm_num < (int)(d_pwm_numbs.size())) ) {
 		d_sys_pwm_num = d_pwm_numbs[d_sys_pwm_num];
 	}

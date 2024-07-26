@@ -1,0 +1,23 @@
+#ifndef _LED_TYPES_H_
+#define _LED_TYPES_H_
+
+typedef enum
+{
+	LED_BYTE_CMD_OFF = 0,
+	LED_BYTE_CMD_1 = 1,
+	LED_BYTE_CMD_2 = 2,
+	LED_BYTE_CMD_3 = 3,
+	LED_BYTE_CMD_4 = 4,
+	LED_BYTE_CMD_5 = 5,
+	LED_BYTE_CMD_6 = 6,
+	LED_BYTE_CMD_ALL = 0xF,
+	LED_BYTE_CMD_TRIG = 0x1E
+} LED_BYTE_CMDS;
+
+typedef enum
+{
+	LED_BYTE_ANS_OK = 0x0A,
+	LED_BYTE_ANS_FAIL = 0x0E
+} LED_BYTE_ANSS;
+
+#endif //_LED_TYPES_H_
