@@ -23,7 +23,6 @@ SOURCES += \
     ../ipc/udsunicomm.cpp \
     dateedit_clickable.cpp \
     dateedit_keyboard.cpp \
-    emtoolbar.cpp \
     imagebuttons.cpp \
     inputdatedialog.cpp \
     lineedit_clickable.cpp \
@@ -37,7 +36,6 @@ HEADERS += \
     ../ipc/udsunicomm.h \
     dateedit_clickable.h \
     dateedit_keyboard.h \
-    emtoolbar.h \
     imagebuttons.h \
     inputdatedialog.h \
     lineedit_clickable.h \
