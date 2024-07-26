@@ -50,11 +50,14 @@ EseCamMaster::EseCamMaster()
 	d_stream_settings.fps_max = 5;
 
 	d_uds = std::make_unique<UdsUniComm>(EYEMETER_ROLE_CAM);
-	// d_serial = std::make_unique<SerialComm>("/dev/ttyUSB0", B115200, 100);
+#ifdef LED_SERIAL
+	d_serial = std::make_unique<SerialComm>(LED_SERIAL_PORT, B115200, 100);
+#else
 	d_irleds.resize(EYEMETER_N_LEDS);
 	for (int iled = 0; iled < EYEMETER_N_LEDS; iled++) {
 		d_irleds[iled] = std::make_unique<SysPwm>(iled);
 	}
+#endif
 }
 
 EseCamMaster::~EseCamMaster()
@@ -87,10 +90,13 @@ int EseCamMaster::setup()
 		return -1;
 	}
 
-	// if (d_serial->setup(true) < 0) return -1;
+#ifdef LED_SERIAL
+	if (d_serial->setup(true) < 0) return -1;
+#else
 	for (auto & led : d_irleds) {
 		if (led->setup() < 0) return -1;
 	}
+#endif
 	//pinMode(TRIGGER_GPIO, OUTPUT);
 	//digitalWrite(TRIGGER_GPIO, HIGH);
 
@@ -267,8 +273,8 @@ void EseCamMaster::meas_routine()
 	}
 	else {
 		d_uds->send(UDSUNI_TITLE_MEAS_SHOOT_DONE);
-		if (system("sh /home/orangepi/EyeMeter/run_eye_ai.sh") < 0)
-			printf("EseCamMaster:: ai script failed\n");
+		// if (system("sh /home/orangepi/EyeMeter/run_eye_ai.sh") < 0)
+		// 	printf("EseCamMaster:: ai script failed\n");
 		printf("EseCamMaster:: meas finished\n");
 	}
 }
@@ -333,35 +339,37 @@ int EseCamMaster::set_led_pwr(UdsUniPack & pack)
 
 int EseCamMaster::led_control(unsigned short led_state)
 {
-	// unsigned char cmd;
 
-	// if (led_state == 0) cmd = 0x00;
-	// else if (led_state == EYEMETER_LEDS_MASK) cmd = 0x0F;
-	// else {
-	// 	cmd = 0x00;
-	// 	while (led_state > 0) {
-	// 		led_state = led_state >> 1;
-	// 		cmd += 1;
-	// 	}
-	// }
+#ifdef LED_SERIAL
+	unsigned char cmd;
 
-	// if (d_serial->write_from((char*)&cmd, 1) > 0) {
-	// 	printf("EseCamMaster:: led send cmd %d\n", cmd);
-	// } else {
-	// 	printf("EseCamMaster:: led send cmd %d failed!!!\n", cmd);
-	// 	return -1;
-	// }
+	if (led_state == 0) cmd = LED_BYTE_CMD_OFF;
+	else if (led_state == EYEMETER_LEDS_MASK) cmd = LED_BYTE_CMD_ALL;
+	else {
+		cmd = 0x00;
+		while (led_state > 0) {
+			led_state = led_state >> 1;
+			cmd += 1;
+		}
+	}
 
-	// unsigned char ans = 0;
-	// if (d_serial->read_to((char*)&ans, 1) <= 0) {
-	// 	printf("EseCamMaster::led control no answer\n");
-	// 	return -1;
-	// }
-	// if (ans != cmd) {
-	// 	printf("EseCamMaster::led control ans %d != cmd %d\n", ans, cmd);
-	// 	return -1;
-	// }
+	if (d_serial->write_from((char*)&cmd, 1) > 0) {
+		printf("EseCamMaster:: led send cmd %d\n", cmd);
+	} else {
+		printf("EseCamMaster:: led send cmd %d failed!!!\n", cmd);
+		return -1;
+	}
 
+	unsigned char ans = 0;
+	if (d_serial->read_to((char*)&ans, 1) <= 0) {
+		printf("EseCamMaster::led control no answer\n");
+		return -1;
+	}
+	if (ans != LED_BYTE_ANS_OK) {
+		printf("EseCamMaster::led control failed with ans %x for cmd %x\n", ans, cmd);
+		return -1;
+	}
+#else 
 	if (led_state == 0) {
 		for (auto & led : d_irleds) {
 			if (led->set_duty(0.0) < 0) {
@@ -392,6 +400,7 @@ int EseCamMaster::led_control(unsigned short led_state)
 			return -1;
 		}
 	}
+#endif 
 
 	printf("EseCamMaster:: led set %d\n", led_state);
 
@@ -436,9 +445,29 @@ int EseCamMaster::get_frame_soft_trigger()
 int EseCamMaster::get_frame_hard_trigger()
 {
 	d_frame_ready_flag.store(false);
+#ifdef LED_SERIAL
+	unsigned char cmd = LED_BYTE_CMD_TRIG;
+	if (d_serial->write_from((char*)&cmd, 1) > 0) {
+		printf("EseCamMaster:: led send cmd %d\n", cmd);
+	} else {
+		printf("EseCamMaster:: led send cmd %d failed!!!\n", cmd);
+		return -1;
+	}
+
+	unsigned char ans = 0;
+	if (d_serial->read_to((char*)&ans, 1) <= 0) {
+		printf("EseCamMaster::led control no answer\n");
+		return -1;
+	}
+	if (ans != LED_BYTE_ANS_OK) {
+		printf("EseCamMaster::led control failed with ans %x for cmd %x\n", ans, cmd);
+		return -1;
+	}
+#else
 	//digitalWrite(TRIGGER_GPIO, LOW);
 	std::this_thread::sleep_for(std::chrono::microseconds(100));
 	//digitalWrite(TRIGGER_GPIO, HIGH);
+#endif
 	return 0;
 }
 

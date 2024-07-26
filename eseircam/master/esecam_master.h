@@ -4,6 +4,7 @@
 #include <memory>
 #include <condition_variable>
 #include "cam_types.h"
+#include "led_types.h"
 #include "esecam_print.h"
 #include "shmem_alloc.h"
 #include "udsunicomm.h"
@@ -14,6 +15,9 @@
 #define EYEMETER_LEDS_MASK ((1 << EYEMETER_N_LEDS) - 1)
 
 #define TRIGGER_GPIO 19
+
+#define LED_SERIAL
+#define LED_SERIAL_PORT "/dev/ttyACM0"
 
 class EseCamMaster
 {
@@ -39,7 +43,9 @@ protected:
 
 	std::unique_ptr<ShmemBlockAllocator> d_shmem;
 	std::unique_ptr<UdsUniComm> d_uds;
-	// std::unique_ptr<SerialComm> d_serial;
+#ifdef LED_SERIAL
+	std::unique_ptr<SerialComm> d_serial;
+#endif
 	std::vector<std::unique_ptr<SysPwm>> d_irleds;
 
 	std::thread d_comm_thread;
