@@ -23,7 +23,7 @@ LineEdit_Keyboard::LineEdit_Keyboard(const QString& txt, QWidget *parent) : /*QL
 }
 
 bool LineEdit_Keyboard::event(QEvent* e) {
-    qDebug() << Q_FUNC_INFO;
+    //qDebug() << Q_FUNC_INFO;
     const auto keyboard_rect = QGuiApplication::inputMethod()->keyboardRectangle();
     const auto keyboard_visible = QGuiApplication::inputMethod()->isVisible();
     const auto global_y = QWidget::mapToGlobal(rect().topLeft()).y() + height();
