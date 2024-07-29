@@ -73,6 +73,7 @@ class UdsUniCommAI:
                 if _proto == 0xAF:
                     if _title == UDSUNI_TITLE_MEAS_RUNNING:
                         if _type == UDSUNI_TYPE_MEASURE_SETTINGS and _size == sturct.calcsize(MEASURE_SETTINGS_RULE):
+                            print("UdsUniCommAI: Meas settings")
                             self.meas_settings.unpack(msg[4:])
                             continue
                     if _title == UDSUNI_TITLE_MEAS_SHOOT_DONE:
