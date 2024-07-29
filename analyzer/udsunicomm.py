@@ -72,15 +72,21 @@ class UdsUniCommAI:
                 _proto, _title, _type, _size = struct.unpack('4B', msg[:4])
                 if _proto == 0xAF:
                     if _title == UDSUNI_TITLE_MEAS_RUNNING:
+                        print("UdsUniCommAI: Meas settings:", hex(_type), hex(_size))
                         if _type == UDSUNI_TYPE_MEASURE_SETTINGS and _size == sturct.calcsize(MEASURE_SETTINGS_RULE):
                             self.meas_settings.unpack(msg[4:])
-                            continue
-                    if _title == UDSUNI_TITLE_MEAS_SHOOT_DONE:
+                            #continue
+                        else:
+                            print("UdsUniCommAI: Wrong size or type: ", _proto, _title, _type, _size)
+                    elif _title == UDSUNI_TITLE_MEAS_SHOOT_DONE:
                         self.meas_shoot_done()
-                        continue
-                    if _title == UDSUNI_TITLE_STREAM_START or _title == UDSUNI_TITLE_MEAS_START:
-                        continue
-                print("UdsUniCommAI: Wrong msg: ", _proto, _title, _type, _size)
+                        #continue
+                    elif _title == UDSUNI_TITLE_STREAM_START or _title == UDSUNI_TITLE_MEAS_START:
+                        pass
+                    else:
+                        print("UdsUniCommAI: Wrong size: ", _proto, _title, _type, _size)
+                else:
+                    print("UdsUniCommAI: Wrong proto: ", _proto, _title, _type, _size)
             except Exception as e:
                 print("UdsUniCommAI: recv failed, ", e)
 
