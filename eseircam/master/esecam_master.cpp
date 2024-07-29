@@ -505,8 +505,8 @@ void EseCamMaster::cam_timer()
 	while (d_in_stream.load()) {
 		std::this_thread::sleep_for(std::chrono::microseconds(1000000 / d_stream_settings.fps_max));
 		if (d_in_stream.load()) {
-			get_frame_soft_trigger();
-			// get_frame_hard_trigger();
+			// get_frame_soft_trigger();
+			get_frame_hard_trigger();
 		}
 	}
 }
