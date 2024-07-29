@@ -50,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent)
     /*STYLES*/
     QString str_labelStyle_title = QString("background-color: transparent;"
                                            "color: %1;"
-                                           "font: bold 20px;")
+                                           "font: bold 15px;")
                                            .arg(str_light_color_label);
     QString str_lineStyle = QString("background-color: %1; ")
                                     .arg(str_color_line);
@@ -87,7 +87,7 @@ MainWindow::MainWindow(QWidget *parent)
     QLabel *l_firstName = new QLabel(tr("Имя"));
     list_labels_caption << l_firstName;
     layout_data->addWidget(l_firstName);
-    layout_data->addSpacing(15);
+    layout_data->addSpacing(5);
     /*last name*/
     d_le_lastName = new QLineEdit;
     d_le_lastName->setPlaceholderText(tr("Введите фамилию"));
@@ -99,7 +99,7 @@ MainWindow::MainWindow(QWidget *parent)
     QLabel *l_lastName = new QLabel(tr("Фамилия"));
     list_labels_caption << l_lastName;    
     layout_data->addWidget(l_lastName);
-    layout_data->addSpacing(15);
+    layout_data->addSpacing(5);
     /*middle name*/
     d_le_middleName = new QLineEdit;
     d_le_middleName->setPlaceholderText(tr("Введите отчество"));
@@ -111,13 +111,13 @@ MainWindow::MainWindow(QWidget *parent)
     QLabel *l_fatherName = new QLabel(tr("Отчество"));
     list_labels_caption << l_fatherName;    
     layout_data->addWidget(l_fatherName);
-    //layout_data->addSpacing(5);
+    layout_data->addSpacing(5);
     /*birth date*/
     d_de_birthDate = new QDateEdit;
     d_de_birthDate->setInputMethodHints( Qt::ImhDigitsOnly);    
     d_de_birthDate->setButtonSymbols(QAbstractSpinBox::UpDownArrows);
     QString str_dateEditStyle = QString("border-style: none ;"
-                                        "font: bold 20px; "
+                                        "font: bold 15px; "
                                         //"padding-right: 15px;" /* make room for the arrows */
                                         "color: %1;"
                                         "height: 43px;")
@@ -223,7 +223,7 @@ MainWindow::MainWindow(QWidget *parent)
     QLabel *l_birthDate = new QLabel(tr("Дата Рождения"));
     list_labels_caption << l_birthDate;
     layout_data->addWidget(l_birthDate);
-    layout_data->addSpacing(15);
+    layout_data->addSpacing(5);
     /*ID*/
     d_le_id = new QLineEdit;
     d_le_id->setPlaceholderText(tr("Введите ID"));
@@ -242,7 +242,7 @@ MainWindow::MainWindow(QWidget *parent)
     QString str_lineeditStyle = "border-style: none ; font: bold 20px; text-align: center;";
     QFont font_lineedit("Ubuntu Thin");
     setStyle2list(list_lineedits_enterText, p, str_lineeditStyle, Qt::AlignLeft/*HCenter*/, font_lineedit);
-    layout_data->addSpacing(15);
+    layout_data->addSpacing(5);
 
     /*diseases*/
     d_pte_disease = new LineEdit_Keyboard();
