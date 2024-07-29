@@ -47,7 +47,7 @@ EseCamMaster::EseCamMaster()
 	d_stream_settings.cam_format = 0;
 	d_stream_settings.cam_shutter_us = 10000;
 	d_stream_settings.frame_queue_depth = d_meas_settings.n_led_pos * d_meas_settings.n_repeat;
-	d_stream_settings.fps_max = 5;
+	d_stream_settings.fps_max = 30;
 
 	d_uds = std::make_unique<UdsUniComm>(EYEMETER_ROLE_CAM);
 #ifdef LED_SERIAL
@@ -248,7 +248,7 @@ void EseCamMaster::meas_routine()
 				// 	unique_lock<mutex> lk(d_frame_ready_mut);
 				// 	d_frame_ready_cond.wait(lk,[this]{return (d_frame_ready_flag.load() || !(d_in_meas.load()));});
 				// }
-				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
 				if (d_frame_ready_flag.load()) {
 					// std::this_thread::sleep_for(std::chrono::milliseconds(15));
 					break;
