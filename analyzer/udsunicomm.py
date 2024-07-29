@@ -47,7 +47,7 @@ class UdsUniCommAI:
             except Exception as e:
                 pass
             self.sock.bind(self.name)
-            self.sock.settimeout(1)
+            self.sock.settimeout(0.1)
         else:
             print("UdsUniCommAI: read role file failed!");
         self.is_alive = True
@@ -77,6 +77,8 @@ class UdsUniCommAI:
                             continue
                     if _title == UDSUNI_TITLE_MEAS_SHOOT_DONE:
                         self.meas_shoot_done()
+                        continue
+                    if _title == UDSUNI_TITLE_STREAM_START or _title == UDSUNI_TITLE_MEAS_START:
                         continue
                 print("UdsUniCommAI: Wrong msg: ", _proto, _title, _type, _size)
             except Exception as e:
