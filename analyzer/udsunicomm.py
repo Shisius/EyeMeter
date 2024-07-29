@@ -1,5 +1,6 @@
 import socket
 import struct
+import os
 from multiprocessing import shared_memory
 from eyemetercomm import *
 
@@ -34,15 +35,19 @@ class UdsUniCommAI:
                     continue
                 role = int(datal[0])
                 if role == EYEMETER_ROLE_AI:
-                    self.name = udsuni_makesockname(data[1].strip())
+                    self.name = udsuni_makesockname(datal[1].strip())
                 else:
-                    self.other_socks += {role : udsuni_makesockname(data[1].strip())}
+                    self.other_socks.update({role : udsuni_makesockname(datal[1].strip())})
 
     def setup(self):
         self.read_roles_file()
         if self.name != '':
+            try:
+                os.unlink(self.name)
+            except Exception as e:
+                pass
             self.sock.bind(self.name)
-            self.sock.settimeout(1)
+            self.sock.settimeout(0.1)
         else:
             print("UdsUniCommAI: read role file failed!");
         self.is_alive = True
@@ -53,23 +58,27 @@ class UdsUniCommAI:
         self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_GUI])
 
     def meas_shoot_done(self):
+        printf("UdsUniCommAI: shoot done!")
         if self.meas_settings.pixel_bits == 8:
             data = np.ndarray([self.meas_settings.n_led_pos * self.meas_settings.n_repeat, self.meas_settings.frame_height, self.meas_settings.frame_width], 
                               dtype=np.uint8, buffer=self.shmem.buf)
             out_dict = self.analyzer.process_array(data)
+            print(out_dict)
 
     def recv_process(self):
         while self.is_alive:
             try:
-                msg, addr = self.sock.recv_from(1024)
+                msg, addr = self.sock.recvfrom(1024)
                 _proto, _title, _type, _size = struct.unpack('4B', msg[:4])
                 if _proto == 0xAF:
-                    if _title == UDSUNI_TITLE_MEAS_START:
+                    if _title == UDSUNI_TITLE_MEAS_RUNNING:
                         if _type == UDSUNI_TYPE_MEASURE_SETTINGS and _size == sturct.calcsize(MEASURE_SETTINGS_RULE):
                             self.meas_settings.unpack(msg[4:])
                             continue
                     if _title == UDSUNI_TITLE_MEAS_SHOOT_DONE:
                         self.meas_shoot_done()
+                        continue
+                    if _title == UDSUNI_TITLE_STREAM_START or _title == UDSUNI_TITLE_MEAS_START:
                         continue
                 print("UdsUniCommAI: Wrong msg: ", _proto, _title, _type, _size)
             except Exception as e:
