@@ -1,5 +1,5 @@
 import socket
-import srtuct
+import struct
 from multiprocessing import shared_memory
 from eyemetercomm import *
 
@@ -23,7 +23,7 @@ class UdsUniCommAI:
         self.shmem = shared_memory.SharedMemory(name=FRAME_SHBUF_NAME)
         self.analyzer = analyzer
         self.meas_settings = MeasSettings()
-        self.meas_result = MeasResult()
+        self.meas_result = MeasResult(0,0,0,0,0,0,0,0,0)
 
     def read_roles_file(self):
         with open(UDS_UNI_NAMES_FILEPATH, 'r') as f:
@@ -48,7 +48,7 @@ class UdsUniCommAI:
 
     def send_meas_result(self, title, data):
         msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_MEAS_RESULT, UDSUNI_TYPE_MEASURE_RESULT, 36)
-
+        msg += self.meas_result.pack()
         self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_GUI])
 
     def meas_shoot_done(self):
