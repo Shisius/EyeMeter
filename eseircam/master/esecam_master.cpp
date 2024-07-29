@@ -248,7 +248,7 @@ void EseCamMaster::meas_routine()
 				// 	unique_lock<mutex> lk(d_frame_ready_mut);
 				// 	d_frame_ready_cond.wait(lk,[this]{return (d_frame_ready_flag.load() || !(d_in_meas.load()));});
 				// }
-				std::this_thread::sleep_for(std::chrono::milliseconds(30));
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
 				if (d_frame_ready_flag.load()) {
 					// std::this_thread::sleep_for(std::chrono::milliseconds(15));
 					break;
@@ -505,8 +505,8 @@ void EseCamMaster::cam_timer()
 	while (d_in_stream.load()) {
 		std::this_thread::sleep_for(std::chrono::microseconds(1000000 / d_stream_settings.fps_max));
 		if (d_in_stream.load()) {
-			// get_frame_soft_trigger();
-			get_frame_hard_trigger();
+			get_frame_soft_trigger();
+			// get_frame_hard_trigger();
 		}
 	}
 }
