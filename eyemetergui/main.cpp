@@ -69,7 +69,7 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
 //    }
     // Записываем в вывод категорию сообщения и само сообщение
     //out << context.category << ": "
-    out    << msg << Qt::endl;
+    out    << msg << "\n";/*<< Qt::endl*/;
     out.flush();    // Очищаем буферизированные данные
 }
 #endif
