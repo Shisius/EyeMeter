@@ -45,6 +45,7 @@ class UdsUniCommAI:
             self.sock.settimeout(1)
         else:
             print("UdsUniCommAI: read role file failed!");
+        self.is_alive = True
 
     def send_meas_result(self, title, data):
         msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_MEAS_RESULT, UDSUNI_TYPE_MEASURE_RESULT, 36)
@@ -74,6 +75,10 @@ class UdsUniCommAI:
             except Exception as e:
                 print("UdsUniCommAI: recv failed, ", e)
 
+if __name__ == "__main__":
+    ea_inst = bin_analyzer.EyeAnalyzer()
+    uc = udsunicomm.UdsUniCommAI(ea_inst)
+    uc.setup()
+    uc.recv_process()
 
-
-        
+     
