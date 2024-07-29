@@ -1,5 +1,6 @@
 import socket
 import struct
+import os
 from multiprocessing import shared_memory
 from eyemetercomm import *
 
@@ -41,6 +42,10 @@ class UdsUniCommAI:
     def setup(self):
         self.read_roles_file()
         if self.name != '':
+            try:
+                os.unlink(self.name)
+            except Exception as e:
+                pass
             self.sock.bind(self.name)
             self.sock.settimeout(1)
         else:
