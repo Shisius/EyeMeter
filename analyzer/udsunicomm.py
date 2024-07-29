@@ -47,7 +47,7 @@ class UdsUniCommAI:
             except Exception as e:
                 pass
             self.sock.bind(self.name)
-            self.sock.settimeout(0)
+            self.sock.settimeout(0.1)
         else:
             print("UdsUniCommAI: read role file failed!");
         self.is_alive = True
