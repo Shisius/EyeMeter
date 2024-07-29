@@ -34,9 +34,9 @@ class UdsUniCommAI:
                     continue
                 role = int(datal[0])
                 if role == EYEMETER_ROLE_AI:
-                    self.name = udsuni_makesockname(data[1].strip())
+                    self.name = udsuni_makesockname(datal[1].strip())
                 else:
-                    self.other_socks += {role : udsuni_makesockname(data[1].strip())}
+                    self.other_socks += {role : udsuni_makesockname(datal[1].strip())}
 
     def setup(self):
         self.read_roles_file()
