@@ -61,7 +61,7 @@ class UdsUniCommAI:
     def recv_process(self):
         while self.is_alive:
             try:
-                msg, addr = self.sock.recv_from(1024)
+                msg, addr = self.sock.recvfrom(1024)
                 _proto, _title, _type, _size = struct.unpack('4B', msg[:4])
                 if _proto == 0xAF:
                     if _title == UDSUNI_TITLE_MEAS_START:
