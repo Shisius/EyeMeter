@@ -47,7 +47,7 @@ class UdsUniCommAI:
             except Exception as e:
                 pass
             self.sock.bind(self.name)
-            self.sock.settimeout(0.1)
+            self.sock.settimeout(0)
         else:
             print("UdsUniCommAI: read role file failed!");
         self.is_alive = True
@@ -75,13 +75,18 @@ class UdsUniCommAI:
                         print("UdsUniCommAI: Meas settings:", hex(_type), hex(_size))
                         if _type == UDSUNI_TYPE_MEASURE_SETTINGS and _size == sturct.calcsize(MEASURE_SETTINGS_RULE):
                             self.meas_settings.unpack(msg[4:])
-                            continue
-                    if _title == UDSUNI_TITLE_MEAS_SHOOT_DONE:
+                            #continue
+                        else:
+                            print("UdsUniCommAI: Wrong size or type: ", _proto, _title, _type, _size)
+                    elif _title == UDSUNI_TITLE_MEAS_SHOOT_DONE:
                         self.meas_shoot_done()
-                        continue
-                    if _title == UDSUNI_TITLE_STREAM_START or _title == UDSUNI_TITLE_MEAS_START:
-                        continue
-                print("UdsUniCommAI: Wrong msg: ", _proto, _title, _type, _size)
+                        #continue
+                    elif _title == UDSUNI_TITLE_STREAM_START or _title == UDSUNI_TITLE_MEAS_START:
+                        pass
+                    else:
+                        print("UdsUniCommAI: Wrong size: ", _proto, _title, _type, _size)
+                else:
+                    print("UdsUniCommAI: Wrong proto: ", _proto, _title, _type, _size)
             except Exception as e:
                 print("UdsUniCommAI: recv failed, ", e)
 
