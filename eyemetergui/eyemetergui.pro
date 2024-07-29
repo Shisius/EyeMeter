@@ -56,8 +56,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 #DEFINES += TEST_snapshot
-DEFINES += NEWVISION
-
+#DEFINES += NEWVISION
+DEFINES += DEBUG2FILE
 RESOURCES += \
     images.qrc
 LIBS += -lrt -lm

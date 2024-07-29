@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <QtWidgets>
 #include <QFile>
-#include "emtoolbar.h"
+//#include "emtoolbar.h"
 #include "udsunisocket.h"
 #include "shmem_alloc.h"
 #include "imagebuttons.h"
@@ -18,8 +18,11 @@
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-#ifdef NEWVISION
+//#ifdef NEWVISION
 
+    //QScopedPointer<QFile>   d_ptr_logFile;
+    //QScopedPointer<QDebug> d_ptr_logDebug;
+    //QDebug logDebug(m_logFile.data());
     QTabWidget* d_tab_central;
     enum class tabWidget
     {
@@ -63,7 +66,7 @@ class MainWindow : public QMainWindow
 
 //#else
 
-#endif
+//#endif
     QLabel d_l_snapshot;
     //QMenu *d_menu;
     //EMToolBar *d_toolbar = nullptr;
