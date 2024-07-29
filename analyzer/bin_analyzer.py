@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader
 from refraction_utils import estimate_coeffs
 from dataset import CustomTestVectorDataset
 from net import RefractionNet
+import platform
 #import pickle
 #from matplotlib import pyplot as plt
 # from src.neural_refraction.train import eval_list
@@ -14,8 +15,11 @@ from net import RefractionNet
 
 
 class EyeAnalyzer:
-    def __init__(self, num_imgs=40, path_to_chck='only_wab.pt'):
-        self.pd = PupilDetect(path_to_chck=path_to_chck, conf=0.5)
+    def __init__(self, num_imgs=40, path_to_chck='.\\weights\\only_wab.pt',
+                 cfg_root='.\\weights\\my_yolo8n-seg.yaml',
+                 ref_weights_path='.\\weights\\weights.pt'):
+
+        self.pd = PupilDetect(path_to_chck=self.adj_os(path_to_chck), conf=0.5, cfg_root=self.adj_os(cfg_root))
         self.num_imgs = num_imgs
         self.pix2mm = 0.09267
         input_sz = 28
@@ -30,8 +34,13 @@ class EyeAnalyzer:
                                 hidden_sz=hidden_sz,
                                 do_rate=do_rate,
                                 num_layers=num_layers)
-        self.ref_net.load_state_dict(torch.load('weights.pt'))
+        self.ref_net.load_state_dict(torch.load(self.adj_os(ref_weights_path)))
         self.ref_net.eval()
+
+    def adj_os(self, path_file: str):
+        if 'Linux' in platform.system():
+            path_file = path_file.replace('\\', '/')
+        return path_file
 
     def pack2tries(self, data):
         tmp_4 = []
@@ -116,8 +125,8 @@ class EyeAnalyzer:
 
 if __name__ == '__main__':
     ea_inst = EyeAnalyzer()
-    #fname = 'D:\Projects\eye_blinks\data_24\\12_06_24\\657_2024_06_12_17_23_56.bin'
-    fname = '777_2024_06_12_20_34_55.bin'
+    fname = 'D:\Projects\eye_blinks\data_24\\12_06_24\\657_2024_06_12_17_23_56.bin'
+    #fname = '777_2024_06_12_20_34_55.bin'
 
     with open(fname, 'rb') as f:
         s = f.read()

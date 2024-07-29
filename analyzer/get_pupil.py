@@ -29,9 +29,10 @@ def crop_center(img) -> Image:
 class PupilDetect:
     def __init__(self, path_to_chck='D:\\Projects\\eye_blinks\\medicoptic\\src\\yolo_v8\\'
                                     'model_train\\runs\segment\\train16\weights\\last.pt',
+                        cfg_root='.\\my_yolo8n-seg.yaml',
                         conf=0.5,
                         imgsz=640):
-        self.model = YOLO('.\\my_yolo8n-seg.yaml')  # build a new model from YAML
+        self.model = YOLO(cfg_root)  # build a new model from YAML
         wab = torch.load(path_to_chck)
         wab = OrderedDict([(k.replace('model.', 'model.model.'), v) for k, v in wab.items()])
         self.model.load_state_dict(wab)
