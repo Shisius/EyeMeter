@@ -58,10 +58,12 @@ class UdsUniCommAI:
         self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_GUI])
 
     def meas_shoot_done(self):
+        printf("UdsUniCommAI: shoot done!")
         if self.meas_settings.pixel_bits == 8:
             data = np.ndarray([self.meas_settings.n_led_pos * self.meas_settings.n_repeat, self.meas_settings.frame_height, self.meas_settings.frame_width], 
                               dtype=np.uint8, buffer=self.shmem.buf)
             out_dict = self.analyzer.process_array(data)
+            print(out_dict)
 
     def recv_process(self):
         while self.is_alive:
@@ -69,7 +71,7 @@ class UdsUniCommAI:
                 msg, addr = self.sock.recvfrom(1024)
                 _proto, _title, _type, _size = struct.unpack('4B', msg[:4])
                 if _proto == 0xAF:
-                    if _title == UDSUNI_TITLE_MEAS_START:
+                    if _title == UDSUNI_TITLE_MEAS_RUNNING:
                         if _type == UDSUNI_TYPE_MEASURE_SETTINGS and _size == sturct.calcsize(MEASURE_SETTINGS_RULE):
                             self.meas_settings.unpack(msg[4:])
                             continue
