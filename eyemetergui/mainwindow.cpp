@@ -850,6 +850,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 //qDebug() << "UDSUNI_TITLE_FRAME_READY 3";
                 d_l_snapshot.setPixmap(pix);
                 qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
+                d_l_snapshot.setFixedSize(d_l_snapshot.size());
                 if(d_isMeasurStarted)
                     d_vec_snapshots.push_back(d_snapshotParams);
 //                if(d_file_measure.isOpen())
@@ -1102,12 +1103,12 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/)
 {
     qDebug() << Q_FUNC_INFO;
     qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
-//    if(d_measReviewButs != nullptr){
-//        qDebug() << "d_measReviewButs->size()" << d_measReviewButs->size();
-//        d_measReviewButs->resize(d_l_snapshot.width(),d_l_snapshot.height());
-//        qDebug() << "d_measReviewButs->size()" << d_measReviewButs->size();
-//    }
-//    qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
+    if(d_measReviewButs != nullptr){
+        qDebug() << "d_measReviewButs->size()" << d_measReviewButs->size();
+        d_measReviewButs->resize(d_l_snapshot.width(),d_l_snapshot.height());
+        qDebug() << "d_measReviewButs->size()" << d_measReviewButs->size();
+    }
+    qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
     qDebug() << "d_pb_shot.size()" << d_pb_shot->size();
     QSize screenSize = QGuiApplication::primaryScreen()->size();
     qDebug() << "screenSize"<<screenSize;
