@@ -991,7 +991,7 @@ QPixmap MainWindow::snapshot(const Snapshot_params &snapshotParams)
     int bytesPerLine = snapshotParams.frame_width;
     qDebug() << "snapshotParams.frame_width" << snapshotParams.frame_width;
     qDebug() << "snapshotParams.frame_height" << snapshotParams.frame_height;
-    QImage snapshot_img((uchar*)snapshotParams.buf.c_str(), snapshotParams.frame_width, snapshotParams.frame_height, bytesPerLine, QImage::Format_Grayscale8 /*QImage::Format_Indexed8, QImageCleanupFunction cleanupFunction = nullptr, void *cleanupInfo = nullptr*/);
+    QImage snapshot_img((uchar*)snapshotParams.buf.c_str(), snapshotParams.frame_width, snapshotParams.frame_height, bytesPerLine, QImage::Format_Indexed8 /*QImage::Format_Grayscale8, QImageCleanupFunction cleanupFunction = nullptr, void *cleanupInfo = nullptr*/);
     qDebug() << "snapshot_img.size()" << snapshot_img.size();
     qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
     QPixmap pix = QPixmap::fromImage(snapshot_img.scaled(d_l_snapshot.size(), Qt::KeepAspectRatio, Qt::FastTransformation));
