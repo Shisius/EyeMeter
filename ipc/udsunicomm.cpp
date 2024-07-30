@@ -71,6 +71,7 @@ int UdsUniComm::get_sockpath()
 	}
 	while ((line_n_read = getline(&line_ptr, &line_len, fd)) != -1) {
 		char role_name[32];
+		memset(role_name, 0, 32);
 		unsigned char role = 0;
         // printf("UdsUniComm::get_sockpath: %s\n", line_ptr);
         if (sscanf(line_ptr, "%hhd %s", &role, role_name) > 0) {
