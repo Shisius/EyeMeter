@@ -1,4 +1,6 @@
 
+import struct
+
 EYEMETER_ROLE_NONE = 0
 EYEMETER_ROLE_GUI = 1
 EYEMETER_ROLE_AI = 2

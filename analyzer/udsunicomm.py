@@ -1,6 +1,7 @@
 import socket
 import struct
 import os
+import numpy as np
 from multiprocessing import shared_memory
 from eyemetercomm import *
 
@@ -70,22 +71,22 @@ class UdsUniCommAI:
                 _proto, _title, _type, _size = struct.unpack('4B', msg[:4])
                 if _proto == 0xAF:
                     if _title == UDSUNI_TITLE_MEAS_RUNNING:
-                        print("UdsUniCommAI: Meas settings:", hex(_type), hex(_size))
+                        print("UdsUniCommAI: Meas settings:", hex(_type), _size)
                         if _type == UDSUNI_TYPE_MEASURE_SETTINGS and _size == struct.calcsize(MEASURE_SETTINGS_RULE):
                             self.meas_settings.unpack(msg[4:])
                             print("UdsUniCommAI: Meas settings:", self.meas_settings.n_led_pos, self.meas_settings.n_repeat)
                             #continue
                         else:
-                            print("UdsUniCommAI: Wrong size or type: ", _proto, _title, _type, _size)
+                            print("UdsUniCommAI: Wrong size or type: ", hex(_proto), hex(_title), hex(_type), _size)
                     elif _title == UDSUNI_TITLE_MEAS_SHOOT_DONE:
                         self.meas_shoot_done()
                         #continue
-                    elif _title == UDSUNI_TITLE_STREAM_START or _title == UDSUNI_TITLE_MEAS_START or _title == UDSUNI_TITLE_FRAME_READY:
+                    elif _title == UDSUNI_TITLE_STREAM_START or _title == UDSUNI_TITLE_STREAM_RUNNING or _title == UDSUNI_TITLE_MEAS_START or _title == UDSUNI_TITLE_FRAME_READY:
                         pass
                     else:
-                        print("UdsUniCommAI: Wrong title: ", _proto, _title, _type, _size)
+                        print("UdsUniCommAI: Wrong title: ", hex(_proto), hex(_title), hex(_type), _size)
                 else:
-                    print("UdsUniCommAI: Wrong proto: ", _proto, _title, _type, _size)
+                    print("UdsUniCommAI: Wrong proto: ", hex(_proto), hex(_title), hex(_type), _size)
             except Exception as e:
                 print("UdsUniCommAI: recv failed, ", e)
 
