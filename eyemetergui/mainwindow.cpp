@@ -597,10 +597,10 @@ QFontDatabase base;
     //d_topToolbar->addSeparator();
     d_topToolbar->addWidget(&d_but_close);
     d_topToolbar->setMovable(false);
-    //showFullScreen();
+    showFullScreen();
     //resize(1500,1500);
-    showMaximized();
-    setWindowFlag(Qt::FramelessWindowHint);
+    //showMaximized();
+    //setWindowFlag(Qt::FramelessWindowHint);
     //setCentralWidget( &d_l_snapshot);
 
     d_l_snapshot.setStyleSheet(str_bgStyle_eye);
