@@ -845,9 +845,11 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                     break;
                 memcpy(d_snapshotParams.buf.data(), block.ptr, block.size);
                 //qDebug() << "UDSUNI_TITLE_FRAME_READY 2";
+                qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
                 QPixmap pix = snapshot(d_snapshotParams);
                 //qDebug() << "UDSUNI_TITLE_FRAME_READY 3";
                 d_l_snapshot.setPixmap(pix);
+                qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
                 if(d_isMeasurStarted)
                     d_vec_snapshots.push_back(d_snapshotParams);
 //                if(d_file_measure.isOpen())
@@ -1106,6 +1108,7 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/)
         qDebug() << "d_measReviewButs->size()" << d_measReviewButs->size();
     }
     qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
+    qDebug() << "d_pb_shot.size()" << d_pb_shot->size();
     QSize screenSize = QGuiApplication::primaryScreen()->size();
     qDebug() << "screenSize"<<screenSize;
     qDebug() << "d_l_leftEye"<<d_l_leftEye->size();
