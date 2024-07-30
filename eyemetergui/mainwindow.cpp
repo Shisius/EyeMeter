@@ -83,6 +83,8 @@ MainWindow::MainWindow(QWidget *parent)
     layout_data->addWidget(d_le_firstName);
     QFrame *line1 = new QFrame;    
     layout_data->addWidget(line1);
+    qDebug() << "line1->lineWidth()"<<line1->lineWidth();
+    qDebug() << "line1->width()"<<line1->width();
     decorateLine(line1, str_lineStyle);
     QLabel *l_firstName = new QLabel(tr("Имя"));
     list_labels_caption << l_firstName;
@@ -119,12 +121,12 @@ MainWindow::MainWindow(QWidget *parent)
     d_de_birthDate = new QDateEdit;
     d_de_birthDate->setInputMethodHints( Qt::ImhDigitsOnly);    
     d_de_birthDate->setButtonSymbols(QAbstractSpinBox::UpDownArrows);
-    QString str_dateEditStyle = QString("border-style: none ;"
-                                        "font: bold 15px; "
-                                        //"padding-right: 15px;" /* make room for the arrows */
-                                        "color: %1;"
-                                        "height: 30px;")
-                                        .arg(str_dark_color_focusText);
+//    QString str_dateEditStyle = QString("border-style: none ;"
+//                                        "font: bold 15px; "
+//                                        //"padding-right: 15px;" /* make room for the arrows */
+//                                        "color: %1;"
+//                                        "height: 30px;")
+//                                        .arg(str_dark_color_focusText);
 //    setStyleSheet("QDateEdit{"
 //                  "font: bold 20px;}"
 //                  "QDateEdit::up-button {"
@@ -182,8 +184,8 @@ MainWindow::MainWindow(QWidget *parent)
             //.arg(STR_MOSTLIGHT_COLOR);
     QString str_dateEditButtonStyle = QString("QDateEdit"
                                               "{"
-                                              "font: bold 15px; "
-                                              "height: 20px;"
+                                              "font: bold 12px; "
+                                              "height: 15px;"
                                               "padding : 2px;"
                                               "color: %1;"
                                               //"image: url(:/img/down_butt.png);"
@@ -192,16 +194,16 @@ MainWindow::MainWindow(QWidget *parent)
                                               "subcontrol-origin: border;"
                                               "subcontrol-position: top right;" /* position at the top right corner */
 
-                                              "width: 40px;" /* 16 + 2*1px border-width = 15px padding + 3px parent border */
-                                              "height:13px;"
+                                              "width: 30px;" /* 16 + 2*1px border-width = 15px padding + 3px parent border */
+                                              "height:10px;"
                                               "border-image: url(:/img/up_butt.png) 1;"
                                               "border-width: 1px;}"
                                               "QDateEdit::down-button {"
                                               "subcontrol-origin: border;"
                                               "subcontrol-position: bottom right;" /* position at the top right corner */
 
-                                              "width: 40px;" /* 16 + 2*1px border-width = 15px padding + 3px parent border */
-                                              "height:13px;"
+                                              "width: 30px;" /* 16 + 2*1px border-width = 15px padding + 3px parent border */
+                                              "height:10px;"
                                               "border-image: url(:/img/down_butt.png) 1;"
                                               "border-width: 1px;"
                                           "}"
@@ -243,7 +245,7 @@ MainWindow::MainWindow(QWidget *parent)
     QPalette p;
     p.setColor(QPalette::PlaceholderText,Qt::gray);
     p.setColor(QPalette::Text,QColor(str_dark_color_focusText));
-    QString str_lineeditStyle = "border-style: none ; font: bold 15px; text-align: center;";
+    QString str_lineeditStyle = "border-style: none ; font: bold 12px; text-align: center;";
     QFont font_lineedit("Ubuntu Thin");
     setStyle2list(list_lineedits_enterText, p, str_lineeditStyle, Qt::AlignLeft/*HCenter*/, font_lineedit);
     //layout_data->addSpacing(5);
@@ -263,7 +265,7 @@ MainWindow::MainWindow(QWidget *parent)
     layout_data->addWidget(l_disease);
     //layout_data->addSpacing(5);
 
-    QString str_labelStyle = "color: gray; font: italic 15px";
+    QString str_labelStyle = "color: gray; font: italic 12px";
     setStyle2list(list_labels_caption, str_labelStyle, Qt::AlignLeft);
 
     frame_data->setLayout(layout_data);
@@ -274,7 +276,7 @@ MainWindow::MainWindow(QWidget *parent)
     layout_data_and_results->addStretch();
     /*PushButton START*/
     d_pb_start = new QPushButton (tr("Начать сеанс"));
-    QString str_butStyle = QString("QPushButton { background-color: %1; font: bold 20px;color: %3; border-radius: 1px;}"
+    QString str_butStyle = QString("QPushButton { background-color: %1; font: bold 15px;color: %3; border-radius: 1px;}"
                                    "QPushButton:pressed { background-color: %2; font: bold 20px;color: %3; border-radius: 1px;}")
                                    .arg(str_color_but)
                                    .arg(str_color_pressedBut)
@@ -476,14 +478,14 @@ QString str_tabStyle = QString("QTabBar::tab:!selected {"
                                "background-color: %2;"
                                "color: %1;"
                                "min-width: 200px;"
-                               "font-size: 20px;"
+                               "font-size: 15px;"
                                //"border-color:  %1;" /* make non-selected tabs look smaller */
                                "}"
                                "QTabBar::tab:selected {"
                                "background-color: %1;"
                                "color: %2;"
                                "min-width: 200px;"
-                               "font: bold 20px;"
+                               "font: bold 15px;"
                                "}"
                                "QTabWidget::pane { "/* The tab widget frame */
                                "border-top: 3px solid %1;"
@@ -567,7 +569,7 @@ QFontDatabase base;
 
     QIcon closeicon(":/img/close.png");
     d_but_close.setIcon(closeicon);
-    d_but_close.setIconSize(QSize(40,40));
+    d_but_close.setIconSize(QSize(35,35));
     d_but_close.setStyleSheet(//"color: grey;"
                               //"border-image: url(:/img/close.png) 50 50 50 50;"
                               "border-top: transparent;"
