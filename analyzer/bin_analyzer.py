@@ -94,10 +94,13 @@ class EyeAnalyzer:
             part_collections = self.pack2tries(tmp)
             info_storage = []
             for part in part_collections:
-                zer_res = estimate_coeffs(img_array, part)
-                info_storage.append({'processed_eyes': zer_res,
-                                     'metadata': part,
-                                     'subset': 'val'})
+                try:
+                    zer_res = estimate_coeffs(img_array, part)
+                    info_storage.append({'processed_eyes': zer_res,
+                                         'metadata': part,
+                                         'subset': 'val'})
+                except:
+                    pass
             val_dataset = CustomTestVectorDataset(info_storage)
             dataloader = DataLoader(val_dataset, batch_size=128, shuffle=False)
             out_lst = []
