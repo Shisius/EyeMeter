@@ -87,7 +87,8 @@ MainWindow::MainWindow(QWidget *parent)
     QLabel *l_firstName = new QLabel(tr("Имя"));
     list_labels_caption << l_firstName;
     layout_data->addWidget(l_firstName);
-    layout_data->addSpacing(5);
+    //layout_data->addSpacing(5);
+    layout_data->addStretch();
     /*last name*/
     d_le_lastName = new QLineEdit;
     d_le_lastName->setPlaceholderText(tr("Введите фамилию"));
@@ -99,7 +100,8 @@ MainWindow::MainWindow(QWidget *parent)
     QLabel *l_lastName = new QLabel(tr("Фамилия"));
     list_labels_caption << l_lastName;    
     layout_data->addWidget(l_lastName);
-    layout_data->addSpacing(5);
+    //layout_data->addSpacing(5);
+    layout_data->addStretch();
     /*middle name*/
     d_le_middleName = new QLineEdit;
     d_le_middleName->setPlaceholderText(tr("Введите отчество"));
@@ -111,7 +113,8 @@ MainWindow::MainWindow(QWidget *parent)
     QLabel *l_fatherName = new QLabel(tr("Отчество"));
     list_labels_caption << l_fatherName;    
     layout_data->addWidget(l_fatherName);
-    layout_data->addSpacing(5);
+    //layout_data->addSpacing(5);
+    layout_data->addStretch();
     /*birth date*/
     d_de_birthDate = new QDateEdit;
     d_de_birthDate->setInputMethodHints( Qt::ImhDigitsOnly);    
@@ -120,7 +123,7 @@ MainWindow::MainWindow(QWidget *parent)
                                         "font: bold 15px; "
                                         //"padding-right: 15px;" /* make room for the arrows */
                                         "color: %1;"
-                                        "height: 43px;")
+                                        "height: 30px;")
                                         .arg(str_dark_color_focusText);
 //    setStyleSheet("QDateEdit{"
 //                  "font: bold 20px;}"
@@ -179,8 +182,8 @@ MainWindow::MainWindow(QWidget *parent)
             //.arg(STR_MOSTLIGHT_COLOR);
     QString str_dateEditButtonStyle = QString("QDateEdit"
                                               "{"
-                                              "font: bold 20px; "
-                                              "height: 40px;"
+                                              "font: bold 15px; "
+                                              "height: 25px;"
                                               "padding : 2px;"
                                               "color: %1;"
                                               //"image: url(:/img/down_butt.png);"
@@ -189,16 +192,16 @@ MainWindow::MainWindow(QWidget *parent)
                                               "subcontrol-origin: border;"
                                               "subcontrol-position: top right;" /* position at the top right corner */
 
-                                              "width: 50px;" /* 16 + 2*1px border-width = 15px padding + 3px parent border */
-                                              "height:20px;"
+                                              "width: 40px;" /* 16 + 2*1px border-width = 15px padding + 3px parent border */
+                                              "height:13px;"
                                               "border-image: url(:/img/up_butt.png) 1;"
                                               "border-width: 1px;}"
                                               "QDateEdit::down-button {"
                                               "subcontrol-origin: border;"
                                               "subcontrol-position: bottom right;" /* position at the top right corner */
 
-                                              "width: 50px;" /* 16 + 2*1px border-width = 15px padding + 3px parent border */
-                                              "height:20px;"
+                                              "width: 40px;" /* 16 + 2*1px border-width = 15px padding + 3px parent border */
+                                              "height:13px;"
                                               "border-image: url(:/img/down_butt.png) 1;"
                                               "border-width: 1px;"
                                           "}"
@@ -223,7 +226,8 @@ MainWindow::MainWindow(QWidget *parent)
     QLabel *l_birthDate = new QLabel(tr("Дата Рождения"));
     list_labels_caption << l_birthDate;
     layout_data->addWidget(l_birthDate);
-    layout_data->addSpacing(5);
+    //layout_data->addSpacing(5);
+    layout_data->addStretch();
     /*ID*/
     d_le_id = new QLineEdit;
     d_le_id->setPlaceholderText(tr("Введите ID"));
@@ -239,11 +243,11 @@ MainWindow::MainWindow(QWidget *parent)
     QPalette p;
     p.setColor(QPalette::PlaceholderText,Qt::gray);
     p.setColor(QPalette::Text,QColor(str_dark_color_focusText));
-    QString str_lineeditStyle = "border-style: none ; font: bold 20px; text-align: center;";
+    QString str_lineeditStyle = "border-style: none ; font: bold 15px; text-align: center;";
     QFont font_lineedit("Ubuntu Thin");
     setStyle2list(list_lineedits_enterText, p, str_lineeditStyle, Qt::AlignLeft/*HCenter*/, font_lineedit);
-    layout_data->addSpacing(5);
-
+    //layout_data->addSpacing(5);
+    layout_data->addStretch();
     /*diseases*/
     d_pte_disease = new LineEdit_Keyboard();
     d_pte_disease->setPlaceholderText(tr("Введите сопутствующие заболевания"));
@@ -977,6 +981,7 @@ QPixmap MainWindow::snapshot(const Snapshot_params &snapshotParams)
     qDebug() << Q_FUNC_INFO;
     int bytesPerLine = snapshotParams.frame_width;
     QImage snapshot_img((uchar*)snapshotParams.buf.c_str(), snapshotParams.frame_width, snapshotParams.frame_height, bytesPerLine, QImage::Format_Grayscale8 /*QImage::Format_Indexed8, QImageCleanupFunction cleanupFunction = nullptr, void *cleanupInfo = nullptr*/);
+    qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
     return QPixmap::fromImage(snapshot_img.scaled(d_l_snapshot.size(), Qt::KeepAspectRatio, Qt::FastTransformation));
 }
 
@@ -1079,8 +1084,10 @@ void MainWindow::decorateLine(QFrame * line, const QString style)
 void MainWindow::resizeEvent(QResizeEvent* /*event*/)
 {
     qDebug() << Q_FUNC_INFO;
+    qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
     if(d_measReviewButs != nullptr)
         d_measReviewButs->resize(d_l_snapshot.width(),d_l_snapshot.height());
+    qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
     QSize screenSize = QGuiApplication::primaryScreen()->size();
     qDebug() << "screenSize"<<screenSize;
     qDebug() << "d_l_leftEye"<<d_l_leftEye->size();
