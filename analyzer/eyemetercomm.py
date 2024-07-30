@@ -7,7 +7,7 @@ EYEMETER_ROLE_ALL = 0xFF
 
 FRAME_SHBUF_NAME = "/shframe"
 MEASURE_RESULT_RULE = '9f'
-MEASURE_SETTINGS_RULE = '3IH6B'
+MEASURE_SETTINGS_RULE = '3IH10B'
 
 UDSUNI_PROTO_PTTS4 = 0xAF
 
@@ -58,7 +58,7 @@ class MeasSettings:
 		self.n_repeat = repeat
 
 	def unpack(self, msg):
-		self.frame_width, self.frame_height, self.frame_size, self.cam_shutter_us, self.pixel_bits, self.cam_format, self.frame_queue_depth, self.fps_max, self.n_led_pos, self.n_repeat = struct.unpack(MEASURE_SETTINGS_RULE, msg)
+		self.frame_width, self.frame_height, self.frame_size, self.cam_shutter_us, self.pixel_bits, self.cam_format, self.frame_queue_depth, self.fps_max, _uu0, _uu1, self.n_led_pos, self.n_repeat, _uu2, uu3 = struct.unpack(MEASURE_SETTINGS_RULE, msg)
 
 class EyeParams:
 
