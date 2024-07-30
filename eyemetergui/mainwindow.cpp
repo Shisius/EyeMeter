@@ -1102,12 +1102,12 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/)
 {
     qDebug() << Q_FUNC_INFO;
     qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
-    if(d_measReviewButs != nullptr){
-        qDebug() << "d_measReviewButs->size()" << d_measReviewButs->size();
-        d_measReviewButs->resize(d_l_snapshot.width(),d_l_snapshot.height());
-        qDebug() << "d_measReviewButs->size()" << d_measReviewButs->size();
-    }
-    qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
+//    if(d_measReviewButs != nullptr){
+//        qDebug() << "d_measReviewButs->size()" << d_measReviewButs->size();
+//        d_measReviewButs->resize(d_l_snapshot.width(),d_l_snapshot.height());
+//        qDebug() << "d_measReviewButs->size()" << d_measReviewButs->size();
+//    }
+//    qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
     qDebug() << "d_pb_shot.size()" << d_pb_shot->size();
     QSize screenSize = QGuiApplication::primaryScreen()->size();
     qDebug() << "screenSize"<<screenSize;
