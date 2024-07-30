@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
     const QString STR_LIGHT_COLOR2 = "#dddde2";
     QString str_dark_color_focusText = STR_MOSTDARK_COLOR;
     QString str_light_color_label = STR_MOSTLIGHT_COLOR;
-    QString str_dark_color_label = STR_COLD_DARK_COLOR;
+    QString str_dark_color_label = STR_COLD_DARK_COLOR;    
     QString str_color_but = STR_WARM_DARK_COLOR;
     QString str_color_pressedBut = STR_WARM_LIGHT_COLOR;
     QString str_mostlight_color_bg = STR_MOSTLIGHT_COLOR;
@@ -183,7 +183,7 @@ MainWindow::MainWindow(QWidget *parent)
     QString str_dateEditButtonStyle = QString("QDateEdit"
                                               "{"
                                               "font: bold 15px; "
-                                              "height: 25px;"
+                                              "height: 20px;"
                                               "padding : 2px;"
                                               "color: %1;"
                                               //"image: url(:/img/down_butt.png);"
@@ -280,7 +280,7 @@ MainWindow::MainWindow(QWidget *parent)
                                    .arg(str_color_pressedBut)
                                    .arg(str_light_color_label);
     d_pb_start->setStyleSheet(str_butStyle);
-    d_pb_start->setFixedSize(300,50);
+    d_pb_start->setFixedSize(300,40);
     //d_pb_start->setMinimumSize(120,30);
     //d_pb_start->setMaximumSize(300,50);
     //d_pb_start->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
@@ -305,16 +305,17 @@ MainWindow::MainWindow(QWidget *parent)
     d_l_pic_FixRight->setAlignment(Qt::AlignRight);
     QVBoxLayout *layout_digitsDataResults = new QVBoxLayout;
     QLabel *l_refraction = new QLabel(tr("Рефракция, dpt"));
-    QString str_labelStyle_resultData = QString("border-style: none ; font: 20px; color: %1").arg(str_dark_color_label);
-    l_refraction->setStyleSheet(str_labelStyle_resultData);
+    QString str_labelStyle_resultHeader = QString("border-style: none ; font: 15px; color: %1").arg(str_dark_color_label);
+    QString str_labelStyle_resultData = QString("border-style: none ; font: 15px; color: %1").arg(str_dark_color_focusText);
+    l_refraction->setStyleSheet(str_labelStyle_resultHeader);
     l_refraction->setAlignment(Qt::AlignHCenter);
     layout_digitsDataResults->addWidget(l_refraction);
     QHBoxLayout *layout_refraction = new QHBoxLayout;
     d_l_refractionLeft = new QLabel;
     d_l_refractionRight = new QLabel;
     d_l_refractionRight->setAlignment(Qt::AlignRight);
-    d_l_refractionLeft->setStyleSheet(str_dateEditStyle);
-    d_l_refractionRight->setStyleSheet(str_dateEditStyle);
+    d_l_refractionLeft->setStyleSheet(str_labelStyle_resultData);
+    d_l_refractionRight->setStyleSheet(str_labelStyle_resultData);
     layout_refraction->addWidget(d_l_refractionLeft);
     layout_refraction->addSpacing(30);
     layout_refraction->addWidget(d_l_refractionRight);
@@ -325,12 +326,14 @@ MainWindow::MainWindow(QWidget *parent)
     QLabel *l_diameter = new QLabel(tr("Диаметр зрачка, мм"));
     //l_diameter->setStyleSheet("color: gray; font: italic 10px");
     l_diameter->setAlignment(Qt::AlignHCenter);
-    l_diameter->setStyleSheet(str_labelStyle_resultData);
+    l_diameter->setStyleSheet(str_labelStyle_resultHeader);
     layout_digitsDataResults->addWidget(l_diameter);
     QHBoxLayout *layout_diameter = new QHBoxLayout;
     d_l_diameterLeft = new QLabel;
     d_l_diameterRight = new QLabel;
     d_l_diameterRight->setAlignment(Qt::AlignRight);
+    d_l_diameterLeft ->setStyleSheet(str_labelStyle_resultData);
+    d_l_diameterRight->setStyleSheet(str_labelStyle_resultData);
     layout_diameter->addWidget(d_l_diameterLeft);
     layout_diameter->addSpacing(30);
     layout_diameter->addWidget(d_l_diameterRight);
@@ -341,9 +344,10 @@ MainWindow::MainWindow(QWidget *parent)
     QLabel *l_interocular = new QLabel(tr("Межзрачковое расстояние, мм"));
     //l_interocular->setStyleSheet("color: gray; font: italic 10px");
     l_interocular->setAlignment(Qt::AlignHCenter);
-    l_interocular->setStyleSheet(str_labelStyle_resultData);
+    l_interocular->setStyleSheet(str_labelStyle_resultHeader);
     layout_digitsDataResults->addWidget(l_interocular);
     d_l_interocularRes = new QLabel;
+    d_l_interocularRes->setStyleSheet(str_labelStyle_resultData);
     layout_digitsDataResults->addWidget(d_l_interocularRes);
     QFrame *line3_res = new QFrame;
     decorateLine(line3_res, str_lineStyle);
@@ -563,7 +567,7 @@ QFontDatabase base;
 
     QIcon closeicon(":/img/close.png");
     d_but_close.setIcon(closeicon);
-    d_but_close.setIconSize(QSize(50,50));
+    d_but_close.setIconSize(QSize(40,40));
     d_but_close.setStyleSheet(//"color: grey;"
                               //"border-image: url(:/img/close.png) 50 50 50 50;"
                               "border-top: transparent;"
@@ -831,16 +835,16 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 qDebug() << "SharedFrame::id " <<frame.id;
                 ShmemBlock block;
                 block.id = frame.id;
-                qDebug() << "UDSUNI_TITLE_FRAME_READY 0";
+                //qDebug() << "UDSUNI_TITLE_FRAME_READY 0";
                 if(d_shmemBlockReader->get_block(block) < 0)
                     break;
-                qDebug() << "UDSUNI_TITLE_FRAME_READY 1";
+                //qDebug() << "UDSUNI_TITLE_FRAME_READY 1";
                 if(block.ptr == nullptr || block.size == 0)
                     break;
                 memcpy(d_snapshotParams.buf.data(), block.ptr, block.size);
-                qDebug() << "UDSUNI_TITLE_FRAME_READY 2";
+                //qDebug() << "UDSUNI_TITLE_FRAME_READY 2";
                 QPixmap pix = snapshot(d_snapshotParams);
-                qDebug() << "UDSUNI_TITLE_FRAME_READY 3";
+                //qDebug() << "UDSUNI_TITLE_FRAME_READY 3";
                 d_l_snapshot.setPixmap(pix);
                 if(d_isMeasurStarted)
                     d_vec_snapshots.push_back(d_snapshotParams);
@@ -982,7 +986,10 @@ QPixmap MainWindow::snapshot(const Snapshot_params &snapshotParams)
     int bytesPerLine = snapshotParams.frame_width;
     QImage snapshot_img((uchar*)snapshotParams.buf.c_str(), snapshotParams.frame_width, snapshotParams.frame_height, bytesPerLine, QImage::Format_Grayscale8 /*QImage::Format_Indexed8, QImageCleanupFunction cleanupFunction = nullptr, void *cleanupInfo = nullptr*/);
     qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
-    return QPixmap::fromImage(snapshot_img.scaled(d_l_snapshot.size(), Qt::KeepAspectRatio, Qt::FastTransformation));
+    QPixmap pix = QPixmap::fromImage(snapshot_img.scaled(d_l_snapshot.size(), Qt::KeepAspectRatio, Qt::FastTransformation));
+    qDebug() << "pix_snapshot.size()" << pix.size();
+    qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
+    return pix;
 }
 
 void MainWindow::measFinished(const QString &res)
@@ -1053,6 +1060,7 @@ QPicture MainWindow::fixation(int side, QColor grid, QColor dot)
 
 void MainWindow::setStyle2list(const QList<QLabel *> &list, const QString &style, Qt::Alignment al, const QFont &f)
 {
+    qDebug() << Q_FUNC_INFO;
     foreach (QLabel * l, list) {
         if(l != nullptr)
         {
@@ -1064,6 +1072,7 @@ void MainWindow::setStyle2list(const QList<QLabel *> &list, const QString &style
 }
 void MainWindow::setStyle2list(const QList<QLineEdit *> &list, const QPalette &p, const QString &style, Qt::Alignment al, const QFont &f)
 {
+    qDebug() << Q_FUNC_INFO;
     foreach (QLineEdit * l, list) {
         if(l != nullptr)
         {
@@ -1076,6 +1085,7 @@ void MainWindow::setStyle2list(const QList<QLineEdit *> &list, const QPalette &p
 }
 void MainWindow::decorateLine(QFrame * line, const QString style)
 {
+    qDebug() << Q_FUNC_INFO;
     line->setFrameShape(QFrame::HLine);
     line->setFrameShadow(QFrame::Plain);
     line->setStyleSheet(style);
