@@ -80,9 +80,10 @@ class EyeAnalyzer:
         img_array = img_array[1:, :, :] if len(img_array) == 41 else img_array
         tmp = []
         for img_num in range(0, self.num_imgs, 4):
-            with torch.no_grad():
-                result = self.pd.model([img_array[img_num][:, :, None].repeat(3, axis=-1)],
-                                       save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
+            with torch.jit.optimized_execution(False):
+                with torch.inference_mode():
+                    result = self.pd.model.predict([img_array[img_num][:, :, None].repeat(3, axis=-1)],
+                                           save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
             if result[0].boxes.xyxy.size(0) == 2:
                 res = result[0].boxes.xyxy
                 masks = result[0].masks.xy
@@ -109,7 +110,7 @@ class EyeAnalyzer:
                 out_lst.append([self.ref_net(Zernicke_coef, eye, rotation, pupil_rad, flick_rad).detach().cpu().numpy(),
                                 rotation, eye])
             left = out_lst[0][0][out_lst[0][2] == 0].mean(0)
-            right = out_lst[0][0][out_lst[0][2] == 0].mean(0)
+            right = out_lst[0][0][out_lst[0][2] == 1].mean(0)
             result_dict['sph_left'] = round(left[0] / 0.25) * 0.25
             result_dict['cyl_left'] = round(left[1] / 0.25) * 0.25
             result_dict['angle_left'] = round(left[2] / 30) * 30
