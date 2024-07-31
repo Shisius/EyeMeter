@@ -36,6 +36,15 @@ class EyeAnalyzer:
                                 num_layers=num_layers)
         self.ref_net.load_state_dict(torch.load(self.adj_os(ref_weights_path)))
         self.ref_net.eval()
+        self.pseudo_run()
+
+    def pseudo_run(self):
+        print('Start pre run')
+        with torch.jit.optimized_execution(False):
+            with torch.inference_mode():
+                result = self.pd.model.predict([np.random.randint(0, 255, (416, 640))[:, :, None].repeat(3, axis=-1)],
+                                               save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
+        print('Pre run finished')
 
     def adj_os(self, path_file: str):
         if 'Linux' in platform.system():
@@ -102,6 +111,8 @@ class EyeAnalyzer:
                                          'subset': 'val'})
                 except:
                     pass
+            left_skew = [d1['left']['flick_pos_rel'] for d in info_storage  for d1 in d['processed_eyes']]
+            right_skew = [d1['right']['flick_pos_rel'] for d in info_storage  for d1 in d['processed_eyes']]
             val_dataset = CustomTestVectorDataset(info_storage)
             dataloader = DataLoader(val_dataset, batch_size=128, shuffle=False)
             out_lst = []
@@ -117,6 +128,8 @@ class EyeAnalyzer:
             result_dict['sph_right'] = round(right[0] / 0.25) * 0.25
             result_dict['cyl_right'] = round(right[1] / 0.25) * 0.25
             result_dict['angle_right'] = round(right[2] / 30) * 30
+            result_dict['left_skew'] = left_skew
+            result_dict['right_skew'] = right_skew
         except:
             pass
         result_dict['interocular_dist'] = self.get_interocular_dist(tmp)
