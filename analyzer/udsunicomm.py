@@ -25,6 +25,11 @@ class UdsUniCommAI:
         self.meas_settings = MeasSettings()
         self.meas_result = MeasResult(0,0,0,0,0,0,0,0,0)
 
+    def __del__(self):
+        self.is_alive = False
+        self.shmem.close()
+        self.sock.close()
+
     def read_roles_file(self):
         with open(UDS_UNI_NAMES_FILEPATH, 'r') as f:
             lines = f.readlines()
