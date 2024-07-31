@@ -6,16 +6,20 @@ import bin_analyzer
 import udsunicomm
 
 class EyeAnalyzerDaemon(Daemon):
-    def run(self, arg = None):
+
+    def setup(self):
         ea_inst = bin_analyzer.EyeAnalyzer()
         self.data = udsunicomm.UdsUniCommAI(ea_inst)
         self.data.setup()
+
+    def run(self, arg = None):
         self.data.recv_process()
 
 if __name__ == "__main__":
     daemon = EyeAnalyzerDaemon('/tmp/eye_analyzerd.pid')
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
+            daemon.setup()
             daemon.start()
         elif 'stop' == sys.argv[1]:
             daemon.stop()
