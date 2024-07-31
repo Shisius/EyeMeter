@@ -51,7 +51,7 @@ class UdsUniCommAI:
             print("UdsUniCommAI: read role file failed!");
         self.is_alive = True
 
-    def send_meas_result(self, title, data):
+    def send_meas_result(self):
         msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_MEAS_RESULT, UDSUNI_TYPE_MEASURE_RESULT, 36)
         msg += self.meas_result.pack()
         self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_GUI])
@@ -63,6 +63,10 @@ class UdsUniCommAI:
                               dtype=np.uint8, buffer=self.shmem.buf)
             out_dict = self.analyzer.process_array(data)
             print(out_dict)
+            self.meas_result = MeasResult(out_dict['sph_left'], out_dict['cyl_left'], out_dict['angle_left'], out_dict['left_eye_d'], 
+                                          out_dict['sph_right'], out_dict['cyl_right'], out_dict['angle_right'], out_dict['right_eye_d'], 
+                                          out_dict['interocular_dist'])
+            self.send_meas_result()
 
     def recv_process(self):
         while self.is_alive:
