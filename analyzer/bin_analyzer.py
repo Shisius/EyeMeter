@@ -80,9 +80,10 @@ class EyeAnalyzer:
         img_array = img_array[1:, :, :] if len(img_array) == 41 else img_array
         tmp = []
         for img_num in range(0, self.num_imgs, 4):
-            with torch.no_grad():
-                result = self.pd.model([img_array[img_num][:, :, None].repeat(3, axis=-1)],
-                                       save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
+            with torch.jit.optimized_execution(False):
+                with torch.inference_mode():
+                    result = self.pd.model.predict([img_array[img_num][:, :, None].repeat(3, axis=-1)],
+                                           save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
             if result[0].boxes.xyxy.size(0) == 2:
                 res = result[0].boxes.xyxy
                 masks = result[0].masks.xy
