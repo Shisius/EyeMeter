@@ -15,6 +15,7 @@ class Daemon:
 		self.stderr = stderr
 		self.pidfile = pidfile
 		self.data = None
+		self.obj = None
 	
 	def daemonize(self):
 		"""

@@ -7,8 +7,8 @@ import udsunicomm
 class EyeAnalyzerDaemon(Daemon):
 
     def setup(self):
-        ea_inst = bin_analyzer.EyeAnalyzer()
-        self.data = udsunicomm.UdsUniCommAI(ea_inst)
+        self.obj = bin_analyzer.EyeAnalyzer()
+        self.data = udsunicomm.UdsUniCommAI(self.obj)
         self.data.setup()
 
     def run(self, arg = None):
