@@ -110,7 +110,7 @@ class EyeAnalyzer:
                 out_lst.append([self.ref_net(Zernicke_coef, eye, rotation, pupil_rad, flick_rad).detach().cpu().numpy(),
                                 rotation, eye])
             left = out_lst[0][0][out_lst[0][2] == 0].mean(0)
-            right = out_lst[0][0][out_lst[0][2] == 0].mean(0)
+            right = out_lst[0][0][out_lst[0][2] == 1].mean(0)
             result_dict['sph_left'] = round(left[0] / 0.25) * 0.25
             result_dict['cyl_left'] = round(left[1] / 0.25) * 0.25
             result_dict['angle_left'] = round(left[2] / 30) * 30
