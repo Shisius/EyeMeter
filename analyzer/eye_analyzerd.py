@@ -2,7 +2,7 @@
  
 import sys, time
 from daemon import Daemon
-import udsunicomm
+# import udsunicomm
 # import bin_analyzer
 
 class EyeAnalyzerDaemon(Daemon):
@@ -13,6 +13,7 @@ class EyeAnalyzerDaemon(Daemon):
         #self.data.setup()
 
     def run(self, arg = None):
+        import udsunicomm
         self.data = udsunicomm.UdsUniCommAI()#(self.obj)
         self.data.setup()
         self.data.recv_process()
@@ -27,6 +28,7 @@ if __name__ == "__main__":
             daemon.stop()
         elif 'print' == sys.argv[1]:
             #ea_inst = bin_analyzer.EyeAnalyzer()
+            import udsunicomm
             uc = udsunicomm.UdsUniCommAI()#(ea_inst)
             uc.setup()
             uc.recv_process()
