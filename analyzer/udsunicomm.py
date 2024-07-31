@@ -4,6 +4,7 @@ import os
 import numpy as np
 from multiprocessing import shared_memory
 from eyemetercomm import *
+import bin_analyzer
 
 UDS_UNI_NAMES_FILEPATH = "/etc/roles.names"
 UDS_UNI_SOCK_FOLDER = "/tmp"
@@ -14,14 +15,14 @@ def udsuni_makesockname(name):
 
 class UdsUniCommAI:
 
-    def __init__(self, analyzer):
+    def __init__(self, analyzer=None):
         self.role = EYEMETER_ROLE_AI
         self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
         self.name = ''
         self.other_socks = {}
         self.is_alive = False
         self.shmem = shared_memory.SharedMemory(name=FRAME_SHBUF_NAME)
-        self.analyzer = analyzer
+        self.analyzer = bin_analyzer.EyeAnalyzer()
         self.meas_settings = MeasSettings()
         self.meas_result = MeasResult(0,0,0,0,0,0,0,0,0)
 

@@ -3,29 +3,31 @@
 import sys, time
 from daemon import Daemon
 import udsunicomm
-import bin_analyzer
+# import bin_analyzer
 
 class EyeAnalyzerDaemon(Daemon):
 
-    def setup(self):
-        self.obj = bin_analyzer.EyeAnalyzer()
-        self.data = udsunicomm.UdsUniCommAI(self.obj)
-        self.data.setup()
+    #def setup(self):
+        #self.obj = bin_analyzer.EyeAnalyzer()
+        #self.data = udsunicomm.UdsUniCommAI()#(self.obj)
+        #self.data.setup()
 
     def run(self, arg = None):
+        self.data = udsunicomm.UdsUniCommAI()#(self.obj)
+        self.data.setup()
         self.data.recv_process()
 
 if __name__ == "__main__":
-    daemon = EyeAnalyzerDaemon('/tmp/eye_analyzerd.pid', stdin='/dev/null', stdout = '/tmp/ai_log.txt', stderr = '/tmp/ai_log.txt')
+    daemon = EyeAnalyzerDaemon('/tmp/eye_analyzerd.pid', stdin='/dev/null', stdout='/tmp/ai_log.txt', stderr='/tmp/ai_err.txt')
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
-            daemon.setup()
+            #daemon.setup()
             daemon.start()
         elif 'stop' == sys.argv[1]:
             daemon.stop()
         elif 'print' == sys.argv[1]:
-            ea_inst = bin_analyzer.EyeAnalyzer()
-            uc = udsunicomm.UdsUniCommAI(ea_inst)
+            #ea_inst = bin_analyzer.EyeAnalyzer()
+            uc = udsunicomm.UdsUniCommAI()#(ea_inst)
             uc.setup()
             uc.recv_process()
         else:
