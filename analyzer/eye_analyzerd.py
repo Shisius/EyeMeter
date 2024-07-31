@@ -14,6 +14,10 @@ class EyeAnalyzerDaemon(Daemon):
 
     def run(self, arg = None):
         import udsunicomm
+        sys.stderr.write('========== NEW ERRORS ==========')
+        sys.stderr.write(time.ctime())
+        sys.stdout.write("========== NEW LOG ===========")
+        sys.stdout.write(time.ctime())
         self.data = udsunicomm.UdsUniCommAI()#(self.obj)
         self.data.setup()
         self.data.recv_process()
