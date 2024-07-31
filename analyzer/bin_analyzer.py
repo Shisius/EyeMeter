@@ -36,6 +36,15 @@ class EyeAnalyzer:
                                 num_layers=num_layers)
         self.ref_net.load_state_dict(torch.load(self.adj_os(ref_weights_path)))
         self.ref_net.eval()
+        self.pseudo_run()
+
+    def pseudo_run(self):
+        print('Start pre run')
+        with torch.jit.optimized_execution(False):
+            with torch.inference_mode():
+                result = self.pd.model.predict([np.random.randint(0, 255, (416, 640))[:, :, None].repeat(3, axis=-1)],
+                                               save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
+        print('Pre run finished')
 
     def adj_os(self, path_file: str):
         if 'Linux' in platform.system():
