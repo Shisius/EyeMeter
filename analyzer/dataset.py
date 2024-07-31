@@ -40,7 +40,15 @@ class CustomVectorDataset(Dataset):
 
 class CustomTestVectorDataset(Dataset):
     def __init__(self, datalist, transform=None, target_transform=None):
-        self.all_data = datalist
+        new_dl = []
+        for d in datalist:
+            new_dl.append(
+                {'processed_eyes': [{'left': d1['left']} for d1 in d['processed_eyes']], 'metadata': d['metadata'],
+                 'subset': d['subset']})
+            new_dl.append(
+                {'processed_eyes': [{'right': d1['right']} for d1 in d['processed_eyes']], 'metadata': d['metadata'],
+                 'subset': d['subset']})
+        self.all_data = new_dl
         self.eye2idx = {'left': 0, 'right': 1}
         self.angle2idx = {0: 0, 60: 1, 120: 2, 180: 3, 240: 4, 300: 5}
         self.transform = transform
@@ -56,11 +64,7 @@ class CustomTestVectorDataset(Dataset):
             rotation = 0  # 0, 60, 120 deg
         else:
             rotation = 1  # 180, 240, 300 deg
-        # eye choose
-        if random() > 0.5:
-            eye = 'left'
-        else:
-            eye = 'right'
+        eye = list(data['processed_eyes'][-1].keys())[-1]
 
         Zernicke_coef = torch.cat([torch.tensor(d[eye]['zernicke_c'])
                                    [None, :] for d in data['processed_eyes']]).to(torch.float32)
