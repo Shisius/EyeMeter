@@ -24,6 +24,7 @@ if __name__ == "__main__":
         elif 'stop' == sys.argv[1]:
             daemon.stop()
         elif 'print' == sys.argv[1]:
+            import bin_analyzer
         	ea_inst = bin_analyzer.EyeAnalyzer()
         	uc = udsunicomm.UdsUniCommAI(ea_inst)
         	uc.setup()
