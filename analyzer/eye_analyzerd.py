@@ -15,7 +15,7 @@ class EyeAnalyzerDaemon(Daemon):
         self.data.recv_process()
 
 if __name__ == "__main__":
-    daemon = EyeAnalyzerDaemon('/tmp/eye_analyzerd.pid')
+    daemon = EyeAnalyzerDaemon('/tmp/eye_analyzerd.pid', stdin='/dev/null', stdout = '/tmp/ai_log.txt', stderr = '/tmp/ai_log.txt')
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
             import bin_analyzer
