@@ -33,9 +33,9 @@ class Daemon:
 			sys.exit(1)
 	
 		# decouple from parent environment
-		#os.chdir("/") 
-		#os.setsid() 
-		#os.umask(0) 
+		os.chdir("/") 
+		os.setsid() 
+		os.umask(0) 
 	
 		# do second fork
 		try: 

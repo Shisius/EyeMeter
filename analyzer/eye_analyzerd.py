@@ -3,6 +3,7 @@
 import sys, time
 from daemon import Daemon
 import udsunicomm
+import bin_analyzer
 
 class EyeAnalyzerDaemon(Daemon):
 
@@ -18,13 +19,11 @@ if __name__ == "__main__":
     daemon = EyeAnalyzerDaemon('/tmp/eye_analyzerd.pid', stdin='/dev/null', stdout = '/tmp/ai_log.txt', stderr = '/tmp/ai_log.txt')
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
-            import bin_analyzer
             daemon.setup()
             daemon.start()
         elif 'stop' == sys.argv[1]:
             daemon.stop()
         elif 'print' == sys.argv[1]:
-            import bin_analyzer
             ea_inst = bin_analyzer.EyeAnalyzer()
             uc = udsunicomm.UdsUniCommAI(ea_inst)
             uc.setup()
