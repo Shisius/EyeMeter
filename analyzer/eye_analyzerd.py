@@ -2,7 +2,6 @@
  
 import sys, time
 from daemon import Daemon
-import bin_analyzer
 import udsunicomm
 
 class EyeAnalyzerDaemon(Daemon):
@@ -19,6 +18,7 @@ if __name__ == "__main__":
     daemon = EyeAnalyzerDaemon('/tmp/eye_analyzerd.pid')
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
+            import bin_analyzer
             daemon.setup()
             daemon.start()
         elif 'stop' == sys.argv[1]:
