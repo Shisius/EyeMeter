@@ -8,6 +8,12 @@ EYEMETER_ROLE_CAM = 3
 EYEMETER_ROLE_ALL = 0xFF
 
 FRAME_SHBUF_NAME = "/shframe"
+MEAS_RESULT_SHBUF_NAME = "/shmeasres"
+MEAS_RESULT_SHBUF_SIZE = 0x40000
+SHARED_PUPIL_IMAGE_WIDTH = 256
+SHARED_PUPIL_IMAGE_HEIGHT = 256
+SHARED_PUPIL_IMAGE_SIZE = (SHARED_PUPIL_IMAGE_WIDTH*SHARED_PUPIL_IMAGE_HEIGHT)
+MEAS_RESULT_ANGLE_INVAL = 1000.0
 MEASURE_RESULT_RULE = '9f'
 MEASURE_SETTINGS_RULE = '3IH10B'
 
@@ -22,6 +28,7 @@ UDSUNI_TITLE_MEAS_START = 0x20
 UDSUNI_TITLE_MEAS_RUNNING = 0x22
 UDSUNI_TITLE_MEAS_SHOOT_DONE = 0x24
 UDSUNI_TITLE_MEAS_RESULT = 0x26
+UDSUNI_TITLE_MEAS_RESULT_FAILED = 0x2E
 UDSUNI_TITLE_MEAS_STOP = 0x2A
 
 UDSUNI_TITLE_FRAME_READY = 0x30
@@ -62,6 +69,16 @@ class MeasSettings:
 	def unpack(self, msg):
 		self.frame_width, self.frame_height, self.frame_size, self.cam_shutter_us, self.pixel_bits, self.cam_format, self.frame_queue_depth, self.fps_max, _uu0, _uu1, self.n_led_pos, self.n_repeat, _uu2, uu3 = struct.unpack(MEASURE_SETTINGS_RULE, msg)
 
+class EyeCirclePos:
+
+	def __init__(self, h, v, r):
+		self.horiz = h
+		self.vert = v
+		self.radius = r
+
+	def pack(self):
+		return struct.pack('2Hf', self.horiz, self.vert, self.radius)
+
 class EyeParams:
 
 	def __init__(self, s, c, a, d):
@@ -69,9 +86,10 @@ class EyeParams:
 		self.cylinder = c
 		self.angle = a
 		self.diameter = d
+		self.position = EyeCirclePos(0,0,0)
 
 	def pack(self):
-		return struct.pack('4f', self.sphere, self.cylinder, self.angle, self.diameter)
+		return struct.pack('4f', self.sphere, self.cylinder, self.angle, self.diameter) + self.position.pack()
 
 class MeasResult:
 
@@ -79,7 +97,17 @@ class MeasResult:
 		self.left = EyeParams(ls, lc, la, ld)
 		self.right = EyeParams(rs, rc, ra, rd)
 		self.interocular = io
+		self.frame4circles = 0
+
+	def add_cirlce(self, lh, lv, lr, rh, rv, rr, fc):
+		self.left.position.horiz = lh
+		self.left.position.vert = lv
+		self.left.position.radius = lr
+		self.right.position.horiz = rh
+		self.right.position.vert = rv
+		self.right.position.radius = rr
+		self.frame4circles = fc
 
 	def pack(self):
-		return self.left.pack() + self.right.pack() + struct.pack('f', self.interocular)
+		return self.left.pack() + self.right.pack() + struct.pack('2f', self.interocular, self.frame4circles)
 	

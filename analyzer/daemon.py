@@ -15,6 +15,7 @@ class Daemon:
 		self.stderr = stderr
 		self.pidfile = pidfile
 		self.data = None
+		self.obj = None
 	
 	def daemonize(self):
 		"""
@@ -32,7 +33,7 @@ class Daemon:
 			sys.exit(1)
 	
 		# decouple from parent environment
-		os.chdir("/") 
+		# os.chdir("/") 
 		os.setsid() 
 		os.umask(0) 
 	

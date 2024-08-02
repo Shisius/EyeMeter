@@ -36,6 +36,15 @@ class EyeAnalyzer:
                                 num_layers=num_layers)
         self.ref_net.load_state_dict(torch.load(self.adj_os(ref_weights_path)))
         self.ref_net.eval()
+        self.pseudo_run()
+
+    def pseudo_run(self):
+        print('Start pre run')
+        with torch.jit.optimized_execution(False):
+            with torch.inference_mode():
+                result = self.pd.model.predict([np.random.randint(0, 255, (416, 640))[:, :, None].repeat(3, axis=-1)],
+                                               save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
+        print('Pre run finished')
 
     def adj_os(self, path_file: str):
         if 'Linux' in platform.system():
@@ -80,9 +89,10 @@ class EyeAnalyzer:
         img_array = img_array[1:, :, :] if len(img_array) == 41 else img_array
         tmp = []
         for img_num in range(0, self.num_imgs, 4):
-            with torch.no_grad():
-                result = self.pd.model([img_array[img_num][:, :, None].repeat(3, axis=-1)],
-                                       save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
+            with torch.jit.optimized_execution(False):
+                with torch.inference_mode():
+                    result = self.pd.model.predict([img_array[img_num][:, :, None].repeat(3, axis=-1)],
+                                           save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
             if result[0].boxes.xyxy.size(0) == 2:
                 res = result[0].boxes.xyxy
                 masks = result[0].masks.xy
@@ -94,10 +104,15 @@ class EyeAnalyzer:
             part_collections = self.pack2tries(tmp)
             info_storage = []
             for part in part_collections:
-                zer_res = estimate_coeffs(img_array, part)
-                info_storage.append({'processed_eyes': zer_res,
-                                     'metadata': part,
-                                     'subset': 'val'})
+                try:
+                    zer_res = estimate_coeffs(img_array, part)
+                    info_storage.append({'processed_eyes': zer_res,
+                                         'metadata': part,
+                                         'subset': 'val'})
+                except:
+                    pass
+            left_skew = [d1['left']['flick_pos_rel'] for d in info_storage  for d1 in d['processed_eyes']]
+            right_skew = [d1['right']['flick_pos_rel'] for d in info_storage  for d1 in d['processed_eyes']]
             val_dataset = CustomTestVectorDataset(info_storage)
             dataloader = DataLoader(val_dataset, batch_size=128, shuffle=False)
             out_lst = []
@@ -106,13 +121,15 @@ class EyeAnalyzer:
                 out_lst.append([self.ref_net(Zernicke_coef, eye, rotation, pupil_rad, flick_rad).detach().cpu().numpy(),
                                 rotation, eye])
             left = out_lst[0][0][out_lst[0][2] == 0].mean(0)
-            right = out_lst[0][0][out_lst[0][2] == 0].mean(0)
+            right = out_lst[0][0][out_lst[0][2] == 1].mean(0)
             result_dict['sph_left'] = round(left[0] / 0.25) * 0.25
             result_dict['cyl_left'] = round(left[1] / 0.25) * 0.25
             result_dict['angle_left'] = round(left[2] / 30) * 30
             result_dict['sph_right'] = round(right[0] / 0.25) * 0.25
             result_dict['cyl_right'] = round(right[1] / 0.25) * 0.25
             result_dict['angle_right'] = round(right[2] / 30) * 30
+            result_dict['left_skew'] = left_skew
+            result_dict['right_skew'] = right_skew
         except:
             pass
         result_dict['interocular_dist'] = self.get_interocular_dist(tmp)

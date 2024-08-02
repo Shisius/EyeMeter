@@ -34,6 +34,7 @@ def get_zernicke_from_image(gray_img, radial_order=6, rad_cut=1.0, norm=False, o
 
 def process_pupil(pup_1_l):
     flick_pos = np.unravel_index(np.argmax(pup_1_l), np.array(pup_1_l).shape)
+    flick_pos_rel = flick_pos[0] / pup_1_l.shape[0], flick_pos[1] / pup_1_l.shape[1]
     gap = 6
     cut_sz = 12
     x1, y1, x2, y2 = flick_pos[1], flick_pos[0], flick_pos[1], flick_pos[0]
@@ -72,7 +73,8 @@ def process_pupil(pup_1_l):
     return {'flickless_pupil': pupil,
             'zernicke_c': res[2].astype(np.float32),
             'init_pupil': np.array(pup_1_l),
-            'flick_position': flick_pos}
+            'flick_position': flick_pos,
+            'flick_pos_rel': flick_pos_rel,}
 
 
 def get_eye_mask(one_eye_m, anoth_eye_m):

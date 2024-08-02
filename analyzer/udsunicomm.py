@@ -4,6 +4,7 @@ import os
 import numpy as np
 from multiprocessing import shared_memory
 from eyemetercomm import *
+import bin_analyzer
 
 UDS_UNI_NAMES_FILEPATH = "/etc/roles.names"
 UDS_UNI_SOCK_FOLDER = "/tmp"
@@ -14,16 +15,24 @@ def udsuni_makesockname(name):
 
 class UdsUniCommAI:
 
-    def __init__(self, analyzer):
+    def __init__(self, analyzer=None):
         self.role = EYEMETER_ROLE_AI
         self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
         self.name = ''
         self.other_socks = {}
         self.is_alive = False
-        self.shmem = shared_memory.SharedMemory(name=FRAME_SHBUF_NAME)
-        self.analyzer = analyzer
+        self.shframe = shared_memory.SharedMemory(name=FRAME_SHBUF_NAME)
+        self.shmeasres = shared_memory.SharedMemory(name=MEAS_RESULT_SHBUF_NAME, create=True, size=MEAS_RESULT_SHBUF_SIZE)
+        self.analyzer = bin_analyzer.EyeAnalyzer()
         self.meas_settings = MeasSettings()
         self.meas_result = MeasResult(0,0,0,0,0,0,0,0,0)
+
+    def __del__(self):
+        self.is_alive = False
+        self.shframe.close()
+        self.shmeasres.close()
+        self.shmeasres.unlink()
+        self.sock.close()
 
     def read_roles_file(self):
         with open(UDS_UNI_NAMES_FILEPATH, 'r') as f:
@@ -51,18 +60,39 @@ class UdsUniCommAI:
             print("UdsUniCommAI: read role file failed!");
         self.is_alive = True
 
-    def send_meas_result(self, title, data):
-        msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_MEAS_RESULT, UDSUNI_TYPE_MEASURE_RESULT, 36)
-        msg += self.meas_result.pack()
+    def send_meas_result(self):
+        meas_msg = self.meas_result.pack()
+        msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_MEAS_RESULT, UDSUNI_TYPE_MEASURE_RESULT, len(meas_msg))
+        msg += meas_msg
         self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_GUI])
+
+    def share_skew(self, skew_left, skew_right):
+        max_n_skew = self.meas_settings.n_repeat * self.meas_settings.n_led_pos
+        # set default
+        pack_rule = str(max_n_skew*2*2) + 'f'
+        self.shmeasres.buf[SHARED_PUPIL_IMAGE_SIZE*2:SHARED_PUPIL_IMAGE_SIZE*2 + struct.calcsize(pack_rule)] = struct.pack(pack_rule, 
+            *([MEAS_RESULT_ANGLE_INVAL]*max_n_skew*2*2))
+        for i in range(len(skew_left)):
+            self.shmeasres.buf[SHARED_PUPIL_IMAGE_SIZE*2 + i*4*2:SHARED_PUPIL_IMAGE_SIZE*2 + i*4*2 + 8] = struct.pack('2f', skew_left[i][0], skew_left[i][1])
+        for i in range(len(skew_right)):
+            self.shmeasres.buf[SHARED_PUPIL_IMAGE_SIZE*2 + max_n_skew*4*2 + i*4*2:SHARED_PUPIL_IMAGE_SIZE*2 + max_n_skew*4*2 + i*4*2 + 8] = struct.pack('2f', skew_right[i][0], skew_right[i][1])
 
     def meas_shoot_done(self):
         print("UdsUniCommAI: shoot done!")
         if self.meas_settings.pixel_bits == 8:
             data = np.ndarray([self.meas_settings.n_led_pos * self.meas_settings.n_repeat, self.meas_settings.frame_height, self.meas_settings.frame_width], 
-                              dtype=np.uint8, buffer=self.shmem.buf)
-            out_dict = self.analyzer.process_array(data)
-            print(out_dict)
+                              dtype=np.uint8, buffer=self.shframe.buf)
+            try:
+                out_dict = self.analyzer.process_array(data)
+                print(out_dict)
+                self.meas_result = MeasResult(out_dict['sph_left'], out_dict['cyl_left'], out_dict['angle_left'], out_dict['left_eye_d'], 
+                                            out_dict['sph_right'], out_dict['cyl_right'], out_dict['angle_right'], out_dict['right_eye_d'], 
+                                            out_dict['interocular_dist'])
+                self.send_meas_result()
+            except Exception as e:
+                print("AI error: ", e)
+                msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_MEAS_RESULT_FAILED, 0, 0)
+                self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_GUI])
 
     def recv_process(self):
         while self.is_alive:

@@ -9,6 +9,13 @@ typedef struct _eye_frame_position
 	float height;
 } EyeFramePos;
 
+typedef struct _eye_circle_position
+{
+	unsigned short horiz; // in pixels
+	unsigned short vert; // in pixels
+	float radius; // in pixels
+} EyeCirclePos;
+
 typedef struct _AI_stream_result
 {
 	unsigned int id;
@@ -22,12 +29,22 @@ typedef struct _AI_stream_result
 	EyeFramePos eye_right;
 } AIStreamResult;
 
+typedef struct _eye_skew_coords 
+{
+	float x;
+	float y;
+} EyeSkewCoords;
+
 typedef struct _eye_meas_parameters
 {
 	float sphere;
 	float cylinder;
 	float angle;
 	float diameter;
+	EyeCirclePos position;
+	//unsigned short eye_width;
+	//unsigned short eye_height;
+	//unsigned int n_skew;
 } EyeMeasParameters;
 
 typedef struct _AI_eye_meas_result
@@ -35,6 +52,16 @@ typedef struct _AI_eye_meas_result
 	EyeMeasParameters left;
 	EyeMeasParameters right;
 	float interocular;
+	unsigned int frame4circles;
 } AIEyeMeasResult;
+
+// typedef enum 
+// {
+// 	LEFT_PUPIL_BLKID = 0,
+// 	RIGHT_PUPIL_BLKID,
+// 	LEFT_SHEW_BLKID,
+// 	RIGHT_SKEW_BLKID,
+// 	_AI_MEAS_RESULT_N_BLOCKS
+// } AIEyeLargeResultsBlockId;
 
 #endif //_AI_TYPES_H_
