@@ -21,11 +21,7 @@ CONFIG += retro-style
 SOURCES += \
     ../ipc/shmem_alloc.cpp \
     ../ipc/udsunicomm.cpp \
-    dateedit_clickable.cpp \
-    dateedit_keyboard.cpp \
     imagebuttons.cpp \
-    inputdatedialog.cpp \
-    lineedit_clickable.cpp \
     lineedit_keyboard.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -34,11 +30,7 @@ SOURCES += \
 HEADERS += \
     ../ipc/shmem_alloc.h \
     ../ipc/udsunicomm.h \
-    dateedit_clickable.h \
-    dateedit_keyboard.h \
     imagebuttons.h \
-    inputdatedialog.h \
-    lineedit_clickable.h \
     lineedit_keyboard.h \
     mainwindow.h \
     udsunisocket.h

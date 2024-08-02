@@ -688,6 +688,7 @@ QFontDatabase base;
 //    QRectF vb_rect = QGuiApplication::inputMethod()->inputItemRectangle();
 //    vb_rect.setHeight(screenHeight/3.);
 //    QGuiApplication::inputMethod()->setInputItemRectangle(vb_rect);
+    qDebug() << Q_FUNC_INFO << "end";
 }
 
 MainWindow::~MainWindow()
@@ -711,6 +712,21 @@ MainWindow::~MainWindow()
 //    qDebug() << connect(d_toolbar, SIGNAL(sig_pwrTriggered()), SLOT(slot_pwr()));
 //    qDebug() << connect(d_toolbar, SIGNAL(sig_measureTriggered()), SLOT(slot_measure()));
 //}
+
+QString MainWindow::savingPath()
+{
+    qDebug() << Q_FUNC_INFO;
+    QFile file("settings.conf");
+    QString path;
+    if(file.open(QIODevice::ReadOnly)){
+        QTextStream in(&file);        
+        in >> path;
+        qDebug()<<"saving path:"<<path;
+        file.close();
+    }
+    qDebug() << Q_FUNC_INFO << "end";
+    return path;
+}
 
 void MainWindow::slot_diseaseTextChanged()
 {
@@ -784,6 +800,7 @@ void MainWindow::slot_showMeasImg(uint num)
         d_l_snapshot.setPixmap(pix);
         //d_l_snapshot.adjustSize();
     }
+    qDebug() << Q_FUNC_INFO << "end";
 }
 
 void MainWindow::initNetwork()
@@ -899,7 +916,8 @@ void MainWindow::slot_readUds(UdsUniPack pack)
         //d_isMeasurStarted = false;
         QString file_measure_str = d_le_id->text().append('_').append(QDateTime::currentDateTime().toString("yyyy_MM_dd_hh_mm_ss")).append(".bin");
         qDebug() << "file_measure: " << file_measure_str;
-        d_file_measure.setFileName(file_measure_str);
+        QString filepath = QString("%1/%2").arg(savingPath()).arg(file_measure_str);
+        d_file_measure.setFileName(filepath);
         if(d_file_measure.open(QIODevice::WriteOnly | QIODevice::Append))
         {
             foreach (Snapshot_params shot, d_vec_snapshots) {
@@ -918,7 +936,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
             d_measReviewButs->hide(false);
             d_measReviewButs->setImageCount(d_vec_snapshots.size());
         }
-        d_vec_snapshots.clear();
+        //d_vec_snapshots.clear(); //don't clear! it is used by d_measReviewButs
         qDebug() << "UDSUNI_TITLE_MEAS_SHOOT_DONE end";
     }
         break;
@@ -991,7 +1009,7 @@ QPixmap MainWindow::snapshot(const Snapshot_params &snapshotParams)
     int bytesPerLine = snapshotParams.frame_width;
     qDebug() << "snapshotParams.frame_width" << snapshotParams.frame_width;
     qDebug() << "snapshotParams.frame_height" << snapshotParams.frame_height;
-    QImage snapshot_img((uchar*)snapshotParams.buf.c_str(), snapshotParams.frame_width, snapshotParams.frame_height, bytesPerLine, QImage::Format_Grayscale8 /*QImage::Format_Indexed8, QImageCleanupFunction cleanupFunction = nullptr, void *cleanupInfo = nullptr*/);
+    QImage snapshot_img((uchar*)snapshotParams.buf.c_str(), snapshotParams.frame_width, snapshotParams.frame_height, bytesPerLine, QImage::Format_Grayscale8 /*QImage::Format_Alpha8 QImage::Format_Indexed8, QImageCleanupFunction cleanupFunction = nullptr, void *cleanupInfo = nullptr*/);
     qDebug() << "snapshot_img.size()" << snapshot_img.size();
     qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
     QPixmap pix = QPixmap::fromImage(snapshot_img.scaled(d_l_snapshot.size(), Qt::KeepAspectRatio, Qt::FastTransformation));

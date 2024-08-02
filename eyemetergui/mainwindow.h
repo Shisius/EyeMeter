@@ -112,6 +112,7 @@ class MainWindow : public QMainWindow
     //void createMenus();
     //void createToolBar();
     void setPhotoScreen();
+    QString savingPath();
     void initNetwork();
     //QVBoxLayout resultInfoLayout();
     void measFinished(const QString &res);

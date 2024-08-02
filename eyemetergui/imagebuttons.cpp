@@ -12,12 +12,26 @@ ImageButtons::ImageButtons(QWidget *parent) :
 //                             " border-radius: 10px;"
 //                              "border-color: beige;");
     d_but_prev->setIcon(QIcon(":/img/prev.png"));
+    d_but_prev->setStyleSheet(//"color: grey;"
+                              //"border-image: url(:/img/close.png) 50 50 50 50;"
+                              "border-top: transparent;"
+                              "border-bottom: transparent;"
+                              "border-right: transparent;"
+                              "border-left: transparent;"
+                              );
     //d_but_prev->setStyleSheet("border: none");
     d_but_prev->setIconSize(QSize(shortSide, longSide));
     connect(d_but_prev, SIGNAL(clicked()), SLOT(slot_imagePrev()));
 
     d_but_next = new QPushButton(parent);
     d_but_next->setIcon(QIcon(":/img/next.png"));
+    d_but_next->setStyleSheet(//"color: grey;"
+                              //"border-image: url(:/img/close.png) 50 50 50 50;"
+                              "border-top: transparent;"
+                              "border-bottom: transparent;"
+                              "border-right: transparent;"
+                              "border-left: transparent;"
+                              );
     //d_but_next->setStyleSheet("border: none");
     d_but_next->setIconSize(QSize(shortSide, longSide));
     connect(d_but_next, SIGNAL(clicked()), SLOT(slot_imageNext()));
@@ -111,6 +125,7 @@ void ImageButtons::slot_imagePrev()
         d_but_prev->setDisabled(true);
     if(d_imageNum < d_imageCount-1)
         d_but_next->setEnabled(true);
+    qDebug()<<Q_FUNC_INFO << "end";
     emit showMeasImg_clicked(d_imageNum);
     //emit imagePrev_clicked(d_imageNum);
 }
@@ -124,6 +139,7 @@ void ImageButtons::slot_imageNext()
         d_but_next->setDisabled(true);
     if(d_imageNum < d_imageCount-1)
         d_but_prev->setEnabled(true);
+    qDebug()<<Q_FUNC_INFO << "end";
     emit showMeasImg_clicked(d_imageNum);
     //emit imageNext_clicked(d_imageNum);
 }

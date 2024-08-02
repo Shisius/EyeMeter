@@ -29,8 +29,21 @@ int main(int argc, char *argv[])
     }
 #ifdef DEBUG2FILE
     QDir curdir = QDir::current();
-    curdir.mkdir("logs");
-    m_logFile.reset(new QFile(QString("logs/log_%1.txt").arg(QDateTime::currentDateTime().toString("yyyy_MM_dd_hh_mm_ss"))));
+    QString path("logs");
+    curdir.mkdir(path);
+//    QFile file("settings.conf");
+//    QString path;
+//    if(file.open(QIODevice::ReadOnly)){
+//        QTextStream in(&file);
+
+//        in >> path;
+
+//        qDebug()<<path;
+//        file.close();
+//       }
+
+    m_logFile.reset(new QFile(QString("%1/log_%2.txt").arg(path).arg(QDateTime::currentDateTime().toString("yyyy_MM_dd_hh_mm_ss"))));
+    //m_logFile.reset(new QFile(QString("logs/log_%1.txt").arg(QDateTime::currentDateTime().toString("yyyy_MM_dd_hh_mm_ss"))));
 //    // Открываем файл логирования
     m_logFile.data()->open(QFile::Append | QFile::Text);
     m_logFile.data()->write("test text");
