@@ -2,6 +2,7 @@
 #define _COMM_TYPES_H_
 
 #define FRAME_SHBUF_NAME "/shframe"
+#define MEAS_RESULT_SHBUF_NAME "/shmeasres"
 
 typedef struct _udsunimsg
 {
@@ -36,6 +37,7 @@ typedef enum
 	UDSUNI_TITLE_MEAS_SHOOT_DONE = 0x24,
 	UDSUNI_TITLE_MEAS_RESULT = 0x26,
 	UDSUNI_TITLE_MEAS_STOP = 0x2A,
+	UDSUNI_TITLE_MEAS_RESULT_FAILED = 0x2E,
 	UDSUNI_TITLE_MEAS_FAILED = 0x2F,
 
 	UDSUNI_TITLE_FRAME_READY = 0x30,

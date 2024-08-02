@@ -129,13 +129,12 @@ unsigned int ShmemBlockAllocator::check_free()
 	return n_free;
 }
 
-ShmemBlockReader::ShmemBlockReader(unsigned int unit_size, unsigned int n_units, std::string name) :
-				  d_unit_size(unit_size), d_n_units(n_units), d_name(name)
+ShmemReader::ShmemReader(unsigned int size, std::string name) : d_size(size), d_name(name)
 {
 	;
 }
 
-int ShmemBlockReader::setup()
+int ShmemReader::setup()
 {
 	// Open
 	int d_handle = shm_open(d_name.c_str(), O_RDWR, 0);
@@ -144,7 +143,7 @@ int ShmemBlockReader::setup()
       return -1;
     }
     // mmap
-    d_mmap_ptr = mmap(nullptr, d_n_units *d_unit_size, PROT_READ | PROT_WRITE, MAP_SHARED, d_handle, 0);
+    d_mmap_ptr = mmap(nullptr, d_size, PROT_READ | PROT_WRITE, MAP_SHARED, d_handle, 0);
 	if(d_mmap_ptr == MAP_FAILED){             
         perror("ShmemBlockReader::mmap");
         return -1;
@@ -155,11 +154,17 @@ int ShmemBlockReader::setup()
     return 0;
 }
 
-ShmemBlockReader::~ShmemBlockReader()
+ShmemReader::~ShmemReader()
 {
-	if(munmap((void*)(d_mmap_ptr), d_n_units *d_unit_size)){
+	if(munmap((void*)(d_mmap_ptr), d_size)){
         perror("ShmemBlockReader::munmap");
     }
+}
+
+ShmemBlockReader::ShmemBlockReader(unsigned int unit_size, unsigned int n_units, std::string name) : ShmemReader(unit_size*n_units, name),
+				  d_unit_size(unit_size), d_n_units(n_units)
+{
+	;
 }
 
 int ShmemBlockReader::get_block(ShmemBlock & block)
