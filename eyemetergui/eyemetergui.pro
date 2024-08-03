@@ -19,6 +19,7 @@ CONFIG += retro-style
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    ../ipc/eye_shmem.cpp \
     ../ipc/shmem_alloc.cpp \
     ../ipc/udsunicomm.cpp \
     imagebuttons.cpp \
@@ -28,6 +29,7 @@ SOURCES += \
     udsunisocket.cpp
 
 HEADERS += \
+    ../ipc/eye_shmem.h \
     ../ipc/shmem_alloc.h \
     ../ipc/udsunicomm.h \
     imagebuttons.h \
@@ -47,7 +49,7 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-#DEFINES += TEST_snapshot
+DEFINES += TEST_snapshot
 #DEFINES += NEWVISION
 DEFINES += DEBUG2FILE
 RESOURCES += \
