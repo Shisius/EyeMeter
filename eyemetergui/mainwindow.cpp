@@ -9,13 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     qDebug() << Q_FUNC_INFO;
 
-    const QString STR_COLD_DARK_COLOR = "#528c83";
-    const QString STR_COLD_LIGHT_COLOR = "#c4e5d4";
-    const QString STR_WARM_DARK_COLOR = "#e5a977";
-    const QString STR_WARM_LIGHT_COLOR = "#fce6ac";
-    const QString STR_MOSTDARK_COLOR = "#3e687e";
-    const QString STR_MOSTLIGHT_COLOR = "#fffefe";
-    const QString STR_LIGHT_COLOR2 = "#dddde2";
+
     QString str_dark_color_focusText = STR_MOSTDARK_COLOR;
     QString str_light_color_label = STR_MOSTLIGHT_COLOR;
     QString str_dark_color_label = STR_COLD_DARK_COLOR;    
@@ -365,6 +359,7 @@ MainWindow::MainWindow(QWidget *parent)
     layout_data_and_results->addWidget(frame_dataResults_total);    
     layout_card->addLayout(layout_data_and_results);
     layout_data_and_results->addStretch();
+#ifdef TEST_snapshot
         AIEyeMeasResult measResult;
         measResult.left.sphere = 1.3;
         measResult.left.cylinder = 2.3;
@@ -389,7 +384,7 @@ MainWindow::MainWindow(QWidget *parent)
         d_l_refractionRight->setText(measResRightt_str);
 
 
-
+#endif
     QVBoxLayout *layout_results = new QVBoxLayout;
     QHBoxLayout *layout_eyesResults = new QHBoxLayout;
 
@@ -420,8 +415,22 @@ MainWindow::MainWindow(QWidget *parent)
     //d_l_picLeftDataResults->setAlignment()
     //d_l_picLeftDataResults->setStyleSheet("border: 1px solid black ;"/*"background-color: black; color: white;"*/);
     int graphSide = (screenWidth - 2*eyeSide) / 5.;
-    d_l_pic_FixLeft->setPicture(fixation(graphSide, str_color_grid));
-    d_l_pic_FixRight->setPicture(fixation(graphSide, str_color_grid));
+    d_pic_fixGrid = fixation_grid(graphSide, str_color_grid);
+    d_l_pic_FixLeft->setPicture(d_pic_fixGrid);
+    d_l_pic_FixRight->setPicture(d_pic_fixGrid);
+#ifdef TEST_snapshot
+    std::vector<EyeSkewCoords> left(5);
+    std::vector<EyeSkewCoords> right(5);
+
+    for (size_t i = 0; i < 5; i++) {
+        left[i].x = i*5;
+        left[i].y = i*4;
+        right[i].x = i*2;
+        right[i].y = i*3;
+    }
+    d_l_pic_FixLeft->setPicture(fixation_result(d_pic_fixGrid, left, STR_WARM_DARK_COLOR));
+    d_l_pic_FixRight->setPicture(fixation_result(d_pic_fixGrid, right, STR_WARM_DARK_COLOR));
+#endif
     d_l_pic_FixLeft->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
 
 
@@ -688,6 +697,9 @@ QFontDatabase base;
 //    QRectF vb_rect = QGuiApplication::inputMethod()->inputItemRectangle();
 //    vb_rect.setHeight(screenHeight/3.);
 //    QGuiApplication::inputMethod()->setInputItemRectangle(vb_rect);
+    d_measResultShmemReader = std::make_unique<MeasResultShmemReader>();
+    if(d_measResultShmemReader->setup() < 0)
+        d_measResultShmemReader.reset();
     qDebug() << Q_FUNC_INFO << "end";
 }
 
@@ -785,7 +797,7 @@ void MainWindow::slot_measure()
 //    qDebug() << "file_measure: " << file_measure_str;
 //    d_file_measure.setFileName(file_measure_str);
     d_vec_snapshots.clear();
-    d_vec_snapshots.reserve(CONST_MEASURE_SHOTS_COUNT);
+    //d_vec_snapshots.reserve(CONST_MEASURE_SHOTS_COUNT);
     if(d_measReviewButs != nullptr)
         d_measReviewButs->hide(true);
     d_isMeasurStarted = false;
@@ -893,6 +905,8 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 d_snapshotParams.frame_width = settings.stream.frame_width;
                 d_snapshotParams.size = settings.stream.frame_size;
                 d_snapshotParams.buf.resize(d_snapshotParams.size);
+                d_measShotsCount = settings.n_led_pos * settings.n_repeat;
+                d_vec_snapshots.reserve(d_measShotsCount);
 //                if(!d_file_measure.isOpen())
 //                    d_file_measure.open(QIODevice::WriteOnly | QIODevice::Append);
 //                if(d_file_measure.isOpen())
@@ -956,49 +970,39 @@ void MainWindow::slot_readUds(UdsUniPack pack)
         AIEyeMeasResult measResult;
         pack.fetch_data(measResult);
 
-//#ifdef NEWVISION
         QString measResLeft_str = QString("%1   %2   %3º   %4")
-                .arg(measResult.left.sphere)   //2
-                .arg(measResult.left.cylinder) //3
-                .arg(measResult.left.angle)    //4
-                .arg(measResult.left.diameter); //5
-        QString measResRightt_str = QString("%1   %2   %3º   %4")
-                .arg(measResult.right.sphere)   //6
-                .arg(measResult.right.cylinder) //7
-                .arg(measResult.right.angle)    //8
-                .arg(measResult.right.diameter); //9
+                .arg(measResult.left.sphere)    //1
+                .arg(measResult.left.cylinder)  //2
+                .arg(measResult.left.angle)     //3
+                .arg(measResult.left.diameter); //4
+        QString measResRight_str = QString("%1   %2   %3º   %4")
+                .arg(measResult.right.sphere)    //1
+                .arg(measResult.right.cylinder)  //2
+                .arg(measResult.right.angle)     //3
+                .arg(measResult.right.diameter); //4
 
         d_l_refractionLeft->setText(measResLeft_str);
-        d_l_refractionRight->setText(measResRightt_str);
+        d_l_refractionRight->setText(measResRight_str);
 
         d_l_diameterLeft ->setText(QString::number(measResult.left.diameter));
         d_l_diameterRight->setText(QString::number(measResult.right.diameter));
 
         d_l_interocularRes->setText(QString::number(measResult.interocular));
-//#else
-//                QString measRes_str = QString("%1:   %2   %3   %4º   %5        %6   %7   %8º   %9\n%10:   %11")
-//                        .arg(CONST_REFRACTION_STR)     //1
-//                        .arg(measResult.left.sphere)   //2
-//                        .arg(measResult.left.cylinder) //3
-//                        .arg(measResult.left.angle)    //4
-//                        .arg(measResult.left.diameter) //5
-//                        .arg(measResult.right.sphere)   //6
-//                        .arg(measResult.right.cylinder) //7
-//                        .arg(measResult.right.angle)    //8
-//                        .arg(measResult.right.diameter) //9
-//                        .arg(CONST_INTEROCULAR_STR)     //10
-//                        .arg(measResult.interocular);
-//        //        d_l_measRes.setStyleSheet("font: 20px "
-//        //                      /*"color: black;"*/);
-//                d_l_measRes.setText(measRes_str);
-//#endif
+
+        if(d_measResultShmemReader != nullptr)
+        {
+            std::vector<EyeSkewCoords> left;
+            std::vector<EyeSkewCoords> right;
+            d_measResultShmemReader->get_skew(left, right, d_measShotsCount);
+            d_l_pic_FixLeft->setPicture(fixation_result(d_pic_fixGrid, left, STR_WARM_DARK_COLOR));
+            d_l_pic_FixRight->setPicture(fixation_result(d_pic_fixGrid, right, STR_WARM_DARK_COLOR));
+        }
     }
         break;
     default:
         break;
     }
     pack.clear_data();
-
 
     qDebug()<<Q_FUNC_INFO << "end";
 }
@@ -1035,7 +1039,7 @@ void MainWindow::setPhotoScreen()
 
 }
 //#ifdef NEWVISION
-QPicture MainWindow::fixation(int side, QColor grid, QColor dot)
+QPicture MainWindow::fixation_grid(int side, QColor grid)
 {
     qDebug() << Q_FUNC_INFO;
     QPainter painter;
@@ -1081,6 +1085,26 @@ QPicture MainWindow::fixation(int side, QColor grid, QColor dot)
         //painter.setPen(QPen(MTD::labelColor));
         painter.drawText(textBgRect,QString::number(k*10));
     }
+    painter.end();
+    return pic;
+}
+
+QPicture MainWindow::fixation_result(const QPicture &grid, std::vector<EyeSkewCoords> skew_vec, QColor dots_color)
+{
+    qDebug() << Q_FUNC_INFO;
+    QPainter painter;
+    QPicture pic;
+    painter.begin(&pic);
+    painter.drawPicture(0,0, grid);
+    size_t s = skew_vec.size();
+    QPointF left_arr[s];
+    float k = grid.height()/60.;
+    for (size_t i = 0; i < s; i++) {
+        left_arr[i] = QPointF(skew_vec.at(i).x *k, skew_vec.at(i).y *k);
+    }
+    painter.setPen(QPen(dots_color, 7, Qt::SolidLine, Qt::RoundCap));
+    painter.drawPoints(left_arr,s);
+    painter.end();
     return pic;
 }
 
