@@ -22,7 +22,7 @@ class UdsUniCommAI:
         self.other_socks = {}
         self.is_alive = False
         self.shframe = shared_memory.SharedMemory(name=FRAME_SHBUF_NAME)
-        self.shmeasres = shared_memory.SharedMemory(name=MEAS_RESULT_SHBUF_NAME, create=True, size=MEAS_RESULT_SHBUF_SIZE)
+        self.shmeasres = shared_memory.SharedMemory(name=MEAS_RESULT_SHBUF_NAME)
         self.analyzer = bin_analyzer.EyeAnalyzer()
         self.meas_settings = MeasSettings()
         self.meas_result = MeasResult(0,0,0,0,0,0,0,0,0)
@@ -31,7 +31,6 @@ class UdsUniCommAI:
         self.is_alive = False
         self.shframe.close()
         self.shmeasres.close()
-        self.shmeasres.unlink()
         self.sock.close()
 
     def read_roles_file(self):
