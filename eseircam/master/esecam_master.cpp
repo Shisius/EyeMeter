@@ -120,6 +120,9 @@ int EseCamMaster::setup()
 	d_shmem = std::make_unique<ShmemBlockAllocator>(d_stream_settings.frame_size, d_stream_settings.frame_queue_depth, FRAME_SHBUF_NAME);
 	if (d_shmem->setup() < 0) return -1;
 
+	d_shmeasres = std::make_unique<ShmemBlockAllocator>(MEAS_RESULT_SHBUF_SIZE, 1, MEAS_RESULT_SHBUF_NAME);
+	if (d_shmeasres->setup() < 0) return -1;
+
 	d_is_alive.store(true);
 	d_comm_thread = std::thread(&EseCamMaster::comm_process, this);
 	return 0;
