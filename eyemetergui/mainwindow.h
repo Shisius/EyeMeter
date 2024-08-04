@@ -83,14 +83,15 @@ class MainWindow : public QMainWindow
     UdsUniSocket *d_udsUniSocket = nullptr;
     unique_ptr<ShmemBlockReader> d_shmemBlockReader;
     unique_ptr<MeasResultShmemReader> d_measResultShmemReader;
-    struct Snapshot_params{
+    struct Image_params{
         unsigned int size;
         unsigned int frame_width;
         unsigned int frame_height;
         std::string buf;
-    } d_snapshotParams;
+    } ;
+    Image_params d_snapshotParams;
     uint d_measShotsCount;
-    QVector<Snapshot_params> d_vec_snapshots;
+    QVector<Image_params> d_vec_snapshots;
     //QFrame d_mainFrame;
     QVBoxLayout mainWinLayout;
     QHBoxLayout tb_layout;
@@ -102,6 +103,9 @@ class MainWindow : public QMainWindow
     ImageButtons *d_measReviewButs = nullptr;
     bool d_isMeasurStarted = false;
     QLabel d_l_measRes;
+
+    SharedPupilImage d_leftPupil;
+    SharedPupilImage d_rightPupil;
 
     const QString CONST_REFRACTION_STR = "Рефракция";
     const QString CONST_INTEROCULAR_STR = "Межзрачковое расстояние";
@@ -137,7 +141,8 @@ private slots:
     void slot_showMeasImg(uint);
     //void slot_readUds(const UdsUniPack &pack);
     void slot_readUds(UdsUniPack pack);
-    QPixmap snapshot(const Snapshot_params &);
+    QPixmap image(const Image_params &, QSize size);
+    //QPixmap pupil_pixmap(const SharedPupilImage &);
     QPicture fixation_grid(int side, QColor grid = Qt::gray);
     QPicture fixation_result(const QPicture & grid, std::vector<EyeSkewCoords> skew_vec, QColor dots_color = Qt::red);
 protected:
