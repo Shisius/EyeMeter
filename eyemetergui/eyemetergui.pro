@@ -49,7 +49,7 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-DEFINES += TEST_snapshot
+#DEFINES += TEST_snapshot
 #DEFINES += NEWVISION
 DEFINES += DEBUG2FILE
 RESOURCES += \
