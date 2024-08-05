@@ -78,7 +78,7 @@ class UdsUniCommAI:
     
     def share_pupils(self, left_pupil, right_pupil):
         lp_data = np.ndarray([SHARED_PUPIL_IMAGE_WIDTH, SHARED_PUPIL_IMAGE_HEIGHT], dtype=np.uint8, buffer=self.shmeasres.buf)
-        lp.data.fill(0)
+        lp_data.fill(0)
         rp_data = np.ndarray([SHARED_PUPIL_IMAGE_WIDTH, SHARED_PUPIL_IMAGE_HEIGHT], dtype=np.uint8, buffer=self.shmeasres.buf[SHARED_PUPIL_IMAGE_SIZE:])
         rp_data.fill(0)
         lp_data += -lp_data + left_pupil
