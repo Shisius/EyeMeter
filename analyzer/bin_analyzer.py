@@ -141,7 +141,8 @@ class EyeAnalyzer:
                                            size=(256, 256), mode='bilinear')[0][0].numpy()
                 result_dict['left_pupil'] = left_pupil
                 result_dict['right_pupil'] = right_pupil
-            except:
+            except Exception as e:
+                print(f'An error during pupil getting: {e}')
                 pass
             try:
                 left_skew = [d1['left']['flick_pos_rel'] for d in info_storage  for d1 in d['processed_eyes']]
