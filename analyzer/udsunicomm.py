@@ -100,6 +100,7 @@ class UdsUniCommAI:
                 self.send_meas_result()
             except Exception as e:
                 print("AI error: ", e)
+                print("\n")
                 msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_MEAS_RESULT_FAILED, 0, 0)
                 self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_GUI])
 
