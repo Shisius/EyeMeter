@@ -93,16 +93,17 @@ class UdsUniCommAI:
                 self.meas_result = MeasResult(out_dict['sph_left'], out_dict['cyl_left'], out_dict['angle_left'], out_dict['left_eye_d'], 
                                             out_dict['sph_right'], out_dict['cyl_right'], out_dict['angle_right'], out_dict['right_eye_d'], 
                                             out_dict['interocular_dist'])
-                self.meas_result.add_circle(out_dict['left_x'], out_dict['left_y'], out_dict['left_r'], 
-                    out_dict['right_x'], out_dict['right_y'], out_dict['right_r'], out_dict['n_frame'])
+                self.meas_result.add_circle(out_dict['eye_positions']['left_x'], out_dict['eye_positions']['left_y'], out_dict['eye_positions']['left_r'], 
+                    out_dict['eye_positions']['right_x'], out_dict['eye_positions']['right_y'], out_dict['eye_positions']['right_r'], out_dict['eye_positions']['n_frame'])
                 self.share_skew(out_dict['left_skew'], out_dict['right_skew'])
                 self.share_pupils(out_dict['left_pupil'], out_dict['right_pupil'])
                 self.send_meas_result()
             except Exception as e:
                 print("AI error: ", e)
-                print("\n")
+                # print("\n")
                 msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_MEAS_RESULT_FAILED, 0, 0)
                 self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_GUI])
+        print("\n")
 
     def recv_process(self):
         while self.is_alive:
