@@ -205,6 +205,8 @@ void EseCamMaster::meas_routine()
 	printf("EseCamMaster:: meas started\n");
 	bool meas_failed = false;
 
+	rgb_blink(true);
+
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	if ((d_shmem->check_free() < d_stream_settings.frame_queue_depth)) {
 		printf("EseCamMaster:: waiting shmem %d\n", d_shmem->check_free());
@@ -267,6 +269,8 @@ void EseCamMaster::meas_routine()
 	if (!d_in_meas.load()) meas_failed = true;
 	stop_stream();
 	// d_in_meas.store(false);
+
+	rgb_blink(false);
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
@@ -338,6 +342,36 @@ int EseCamMaster::set_led_pwr(UdsUniPack & pack)
 		}
 	}
 	return -1;
+}
+
+int EseCamMaster::rgb_blink(bool turn_on)
+{
+#ifdef LED_SERIAL
+	unsigned char cmd;
+	if (turn_on) {
+		cmd = LED_BYTE_CMD_BLINK_ON;
+	} else {
+		cmd = LED_BYTE_CMD_BLINK_OFF;
+	}
+
+	if (d_serial->write_from((char*)&cmd, 1) > 0) {
+		printf("EseCamMaster:: led send cmd %d\n", cmd);
+	} else {
+		printf("EseCamMaster:: led send cmd %d failed!!!\n", cmd);
+		return -1;
+	}
+
+	unsigned char ans = 0;
+	if (d_serial->read_to((char*)&ans, 1) <= 0) {
+		printf("EseCamMaster::led control no answer\n");
+		return -1;
+	}
+	if (ans != LED_BYTE_ANS_OK) {
+		printf("EseCamMaster::led control failed with ans %x for cmd %x\n", ans, cmd);
+		return -1;
+	}
+#endif
+	return 0;
 }
 
 int EseCamMaster::led_control(unsigned short led_state)
