@@ -3,6 +3,7 @@ from tqdm import tqdm
 from get_pupil import PupilDetect
 import numpy as np
 import torch
+from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from refraction_utils import estimate_coeffs
 from dataset import CustomTestVectorDataset
@@ -83,6 +84,26 @@ class EyeAnalyzer:
         ll = ((arr_form[:, 1, 2] - arr_form[:, 1, 0]).mean() + (arr_form[:, 1, 3] - arr_form[:, 1, 1]).mean()) / 2
         return round(ll * self.pix2mm, 2), round(rr * self.pix2mm, 2)
 
+    def get_eye_positions(self, nn_boxes_list):
+        num = nn_boxes_list[-1][0]
+        right = nn_boxes_list[-1][1]
+        left = nn_boxes_list[-1][2]
+        left_x = int((left[2] + left[0])/2)
+        left_y =int((left[3] + left[1]) / 2)
+        right_x = int((right[2] + right[0]) / 2)
+        right_y =int((right[3] + right[1]) / 2)
+        right_r = int(((right[2] - right[0] + right[3] - right[1]) / 4).round())
+        left_r = int(((left[2] - left[0] + left[3] - left[1]) / 4).round())
+
+        return {'n_frame': num,
+              'left_x': left_x,
+              'left_y': left_y,
+              'left_r': left_r,
+              'right_x': right_x,
+              'right_y': right_y,
+              'right_r': right_r
+                              }
+
     def process_array(self, img_array):
         result_dict = {}
         #assert len(img_array) == self.num_imgs, f'NDArray should have {self.num_imgs} elements'
@@ -111,6 +132,12 @@ class EyeAnalyzer:
                                          'subset': 'val'})
                 except:
                     pass
+            left_pupil = info_storage[-1]['processed_eyes'][-1]['left']['flickless_pupil']
+            left_pupil = F.interpolate(torch.tensor(left_pupil[None, None, :, :]),
+                                       size=(256, 256), mode='bilinear')[0][0].numpy()
+            right_pupil = info_storage[-1]['processed_eyes'][-1]['left']['flickless_pupil']
+            right_pupil = F.interpolate(torch.tensor(right_pupil[None, None, :, :]),
+                                       size=(256, 256), mode='bilinear')[0][0].numpy()
             left_skew = [d1['left']['flick_pos_rel'] for d in info_storage  for d1 in d['processed_eyes']]
             right_skew = [d1['right']['flick_pos_rel'] for d in info_storage  for d1 in d['processed_eyes']]
             val_dataset = CustomTestVectorDataset(info_storage)
@@ -130,13 +157,15 @@ class EyeAnalyzer:
             result_dict['angle_right'] = round(right[2] / 30) * 30
             result_dict['left_skew'] = left_skew
             result_dict['right_skew'] = right_skew
+            result_dict['right_pupil'] = right_pupil
+            result_dict['left_pupil'] = left_pupil
         except:
             pass
         result_dict['interocular_dist'] = self.get_interocular_dist(tmp)
         l, r = self.get_eye_diameter(tmp)
         result_dict['right_eye_d'] = r
         result_dict['left_eye_d'] = l
-
+        result_dict['eye_positions'] = self.get_eye_positions(tmp)
         return result_dict
 
 

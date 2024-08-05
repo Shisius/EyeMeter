@@ -25,10 +25,18 @@
 #define N_LEDS 6
 #define TAG "IR_LED_CTL"
 #define TRIGGER_PIN 15
+#define GREEN_LED_PIN 40
 
 static int LED_GPIOS[N_LEDS] = {33,16,37,39,18,35}; //{39, 37, 35, 33, 18, 16};
 
 static int LED_CHANNELS[N_LEDS] = {LEDC_CHANNEL_0, LEDC_CHANNEL_1, LEDC_CHANNEL_2, LEDC_CHANNEL_3, LEDC_CHANNEL_4, LEDC_CHANNEL_5};
+
+typedef struct _led_state
+{
+	uint8_t rgb_blink;
+} LedState;
+
+static LedState d_state;
 
 static inline int ir_set_duty(int num, float duty)
 {
@@ -61,6 +69,12 @@ static inline int usb_process_rx_buf(uint8_t * buf, size_t * size)
 			result = ir_set_duty_all(0.0);
 		} else if (cmd == LED_BYTE_CMD_ALL) {
 			result = ir_set_duty_all(0.16);
+		} else if (cmd == LED_BYTE_CMD_BLINK_OFF) {
+			d_state.rgb_blink = 0;
+			result = 0;
+		} else if (cmd == LED_BYTE_CMD_BLINK_ON) {
+			d_state.rgb_blink = 1;
+			result = 0;
 		} else if (cmd == LED_BYTE_CMD_TRIG) {
 			gpio_set_level((gpio_num_t)TRIGGER_PIN, 1);
 			usleep(10);

@@ -70,6 +70,7 @@ protected:
 	
 	int set_led_pwr(UdsUniPack & pack);
 	int led_control(unsigned short led_state);
+	int rgb_blink(bool turn_on);
 
 	int set_trigger(bool enable, bool hard);
 	int get_frame_soft_trigger();

@@ -62,8 +62,32 @@ void tinyusb_cdc_rx_callback(int itf, cdcacm_event_t *event)
 
 //static void init_usb()
 
+static void led_task(void * data)
+{
+    LedState * state = (LedState *)(data);
+    while (1) {
+        for (int i_blink = 0; i_blink < 3; i_blink++) {
+            if (state->rgb_blink) {
+                gpio_set_level((gpio_num_t)GREEN_LED_PIN, 1);
+            }
+            vTaskDelay( pdMS_TO_TICKS(100));
+            gpio_set_level((gpio_num_t)GREEN_LED_PIN, 1);
+            vTaskDelay( pdMS_TO_TICKS(100));
+        }
+        vTaskDelay( pdMS_TO_TICKS(1000));
+    }
+    vTaskDelete(NULL);
+}
+
 void app_main(void)
 {
+    // esp_err_t ret = nvs_flash_init();
+    // if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    //     ESP_ERROR_CHECK(nvs_flash_erase());
+    //     ret = nvs_flash_init();
+    // }
+    // ESP_ERROR_CHECK( ret );
+
     // USB Init
     ESP_LOGI(TAG, "USB initialization");
     const tinyusb_config_t tusb_cfg = {
@@ -98,8 +122,21 @@ void app_main(void)
     // set the gpios as per gpio_conf
     ESP_ERROR_CHECK(gpio_config(&gpio_conf));
 
+    gpio_config_t gpio_conf_green = {
+        // config gpios
+        .pin_bit_mask = (1ULL << GREEN_LED_PIN),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_ENABLE,
+        .intr_type = GPIO_INTR_DISABLE,
+    };
+    // set the gpios as per gpio_conf
+    ESP_ERROR_CHECK(gpio_config(&gpio_conf_green));
+
     // Set the LEDC peripheral configuration
     ir_led_init();
+
+    xTaskCreate(led_task, "ledtask", 2048, &d_state, configMAX_PRIORITIES - 1, NULL);
     //
     // for (int i_led = 0; i_led < N_LEDS; i_led++) {
     //     ir_set_duty(i_led, 0.1*i_led);
