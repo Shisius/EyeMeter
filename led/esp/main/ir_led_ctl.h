@@ -26,6 +26,7 @@
 #define TAG "IR_LED_CTL"
 #define TRIGGER_PIN 15
 #define GREEN_LED_PIN 40
+#define GREEN_LED_CHANNEL LEDC_CHANNEL_6
 
 static int LED_GPIOS[N_LEDS] = {33,16,37,39,18,35}; //{39, 37, 35, 33, 18, 16};
 
