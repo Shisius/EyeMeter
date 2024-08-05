@@ -699,8 +699,10 @@ QFontDatabase base;
 //    vb_rect.setHeight(screenHeight/3.);
 //    QGuiApplication::inputMethod()->setInputItemRectangle(vb_rect);
     d_measResultShmemReader = std::make_unique<MeasResultShmemReader>();
-    if(d_measResultShmemReader->setup() < 0)
+    if(d_measResultShmemReader->setup() < 0){
+        qDebug() << "MeasResultShmemReader setup fail";
         d_measResultShmemReader.reset();
+    }
     qDebug() << Q_FUNC_INFO << "end";
 }
 
@@ -824,12 +826,6 @@ void MainWindow::initNetwork()
     if(!d_udsUniSocket->isValid())
         return;
     qDebug() << connect(d_udsUniSocket, SIGNAL(readyRead(UdsUniPack)), SLOT(slot_readUds(UdsUniPack)));
-//    if(d_toolbar != nullptr)
-//    {
-//        d_toolbar->setStartEnabled(true);
-//        d_toolbar->setPwrEnabled(true);
-//        d_toolbar->setMeasureEnabled(true);
-//    }
 }
 
 void MainWindow::slot_readUds(UdsUniPack pack)
@@ -883,13 +879,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 d_l_snapshot.setFixedSize(d_l_snapshot.size());
                 if(d_isMeasurStarted)
                     d_vec_snapshots.push_back(d_snapshotParams);
-//                if(d_file_measure.isOpen())
-//                {
-//                    d_file_measure.write(d_snapshotParams.buf.data(),d_snapshotParams.size);
-//                    d_file_measure.flush();
-//                }
                 d_udsUniSocket->send(UDSUNI_TITLE_FRAME_FREE, frame.id, EYEMETER_ROLE_CAM);
-
             }
         }
         break;
@@ -908,21 +898,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 d_snapshotParams.buf.resize(d_snapshotParams.size);
                 d_measShotsCount = settings.n_led_pos * settings.n_repeat;
                 d_vec_snapshots.reserve(d_measShotsCount);
-//                if(!d_file_measure.isOpen())
-//                    d_file_measure.open(QIODevice::WriteOnly | QIODevice::Append);
-//                if(d_file_measure.isOpen())
-//                {
-//                    ;
-//                }
-//                qDebug() << "SharedFrame::id " <<frame.id;
-//                ShmemBlock block;
-//                block.id = frame.id;
-//                d_shmemBlockReader->get_block(block);
-//                memcpy(d_snapshotParams.buf.data(), block.ptr, block.size);
-//                QPixmap pix = snapshot();
-//                d_l_snapshot.setPixmap(pix);
-//                d_udsUniSocket->send(UDSUNI_TITLE_FRAME_FREE, frame.id, EYEMETER_ROLE_CAM);
-            //}
+//                d_udsUniSocket->send(UDSUNI_TITLE_FRAME_FREE, frame.id, EYEMETER_ROLE_CAM);           
         }
         break;
     case UDSUNI_TITLE_MEAS_SHOOT_DONE:
@@ -941,10 +917,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
         }        
         d_file_measure.flush();
         d_file_measure.close();
-//        /*int ret = */QMessageBox::information(this, tr("Измерения завершены."),
-//                                               tr("СНЯТО."),
-//                                               QMessageBox::Ok,
-//                                               QMessageBox::Ok);
+
         measFinished(tr("СНЯТО"));
         if(d_measReviewButs != nullptr)
         {
@@ -962,12 +935,6 @@ void MainWindow::slot_readUds(UdsUniPack pack)
     case UDSUNI_TITLE_MEAS_FAILED:
         qDebug() << "UDSUNI_TITLE_MEAS_FAILED";
         measFinished(tr("Ошибка"));
-//        d_isMeasurStarted = false;
-//        d_file_measure.close();
-//        /*int ret = */QMessageBox::information(this, tr("Измерения завершены."),
-//                                               tr("Ошибка."),
-//                                               QMessageBox::Ok,
-//                                               QMessageBox::Ok);
         break;
     case UDSUNI_TITLE_MEAS_RESULT:
     {
@@ -996,12 +963,13 @@ void MainWindow::slot_readUds(UdsUniPack pack)
 
         if(d_measResultShmemReader != nullptr)
         {
+            /*SKEW*/
             std::vector<EyeSkewCoords> leftSkew;
             std::vector<EyeSkewCoords> rightSkew;
             d_measResultShmemReader->get_skew(leftSkew, rightSkew, d_measShotsCount);
             d_l_pic_FixLeft->setPicture(fixation_result(d_pic_fixGrid, leftSkew, STR_WARM_DARK_COLOR));
             d_l_pic_FixRight->setPicture(fixation_result(d_pic_fixGrid, rightSkew, STR_WARM_DARK_COLOR));
-
+            /*PUPILS*/
             d_measResultShmemReader->get_pupils(d_leftPupil, d_rightPupil);
             Image_params pupilImageParams_left;
             pupilImageParams_left.frame_height = d_leftPupil.height;
@@ -1023,6 +991,8 @@ void MainWindow::slot_readUds(UdsUniPack pack)
             memcpy(pupilImageParams_right.buf.data(), d_rightPupil.data_ptr, d_rightPupil.size);
             QPixmap pix_right = image(pupilImageParams_right, d_l_rightEye->size());
             d_l_rightEye->setPixmap(pix_right);
+            /*OCULARS*/
+
         }
     }
         break;
@@ -1160,6 +1130,44 @@ QPicture MainWindow::fixation_result(const QPicture &grid, std::vector<EyeSkewCo
     painter.setPen(QPen(dots_color, 7, Qt::SolidLine, Qt::RoundCap));
     painter.drawPoints(left_arr,s);
     painter.end();
+    return pic;
+}
+
+QPixmap MainWindow::ocular_pixmap(const QPixmap & frame, const EyeCirclePos &left, const EyeCirclePos &right)
+{
+    qDebug() << Q_FUNC_INFO;
+    QPixmap pic = frame;
+    QPainter painter;
+    painter.begin(&pic);
+    //painter.drawLine(0,)
+    painter.drawEllipse(QPoint(left.horiz,left.vert),static_cast<int>(left.radius),static_cast<int>(left.radius));
+    painter.drawEllipse(QPoint(right.horiz,left.vert),static_cast<int>(right.radius),static_cast<int>(right.radius));
+    QRect rect;
+    unsigned short midline = static_cast<unsigned short>(round((left.vert + right.vert) / 2.));
+    if( midline * (d_l_eyes->width()*2) <= (d_l_snapshot.width()*d_l_eyes->height()) )
+    {
+        if(midline*2 <= frame.height())
+        {
+            rect.setTop(0);
+            rect.setBottom(frame.width() * d_l_eyes->height() / d_l_eyes->width());
+        }
+        else
+        {
+            rect.setTop(frame.height()-(frame.width() * d_l_eyes->height() / d_l_eyes->width()));
+            rect.setBottom(frame.height());
+        }
+    }
+    else
+    {
+        rect.setTop(midline - (d_l_snapshot.width()*d_l_eyes->height())/(2*d_l_eyes->width()));
+        rect.setBottom(midline+ (d_l_snapshot.width()*d_l_eyes->height())/(2*d_l_eyes->width()));
+    }
+    rect.setLeft(0);
+    rect.setLeft(frame.width());
+    pic = frame.copy(rect);
+
+
+    //d_l_eyes->setPixmap(pic.scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
     return pic;
 }
 

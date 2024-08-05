@@ -128,6 +128,10 @@ class MainWindow : public QMainWindow
     void initNetwork();
     //QVBoxLayout resultInfoLayout();
     void measFinished(const QString &res);
+    QPixmap image(const Image_params &, QSize size);
+    QPixmap ocular_pixmap(const QPixmap &frame, const EyeCirclePos &left, const EyeCirclePos &right);
+    QPicture fixation_grid(int side, QColor grid = Qt::gray);
+    QPicture fixation_result(const QPicture & grid, std::vector<EyeSkewCoords> skew_vec, QColor dots_color = Qt::red);
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -141,10 +145,7 @@ private slots:
     void slot_showMeasImg(uint);
     //void slot_readUds(const UdsUniPack &pack);
     void slot_readUds(UdsUniPack pack);
-    QPixmap image(const Image_params &, QSize size);
-    //QPixmap pupil_pixmap(const SharedPupilImage &);
-    QPicture fixation_grid(int side, QColor grid = Qt::gray);
-    QPicture fixation_result(const QPicture & grid, std::vector<EyeSkewCoords> skew_vec, QColor dots_color = Qt::red);
+
 protected:
     void resizeEvent(QResizeEvent* event) override;
     //bool event(QEvent*) override;
