@@ -81,7 +81,7 @@ static void led_task(void * data)
         for (int i_blink = 0; i_blink < 4; i_blink++) {
             if (state->rgb_blink) {
                 // Set duty to 10%
-                ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, GREEN_LED_CHANNEL, (unsigned int)(round(0.02 * (float)(1 << 10)))));
+                ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, GREEN_LED_CHANNEL, (unsigned int)(round(0.001 * (float)(1 << 10)))));
                 // Update duty to apply the new value
                 ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, GREEN_LED_CHANNEL));
             }

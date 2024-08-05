@@ -96,7 +96,10 @@ class UdsUniCommAI:
                 self.meas_result.add_circle(out_dict['eye_positions']['left_x'], out_dict['eye_positions']['left_y'], out_dict['eye_positions']['left_r'], 
                     out_dict['eye_positions']['right_x'], out_dict['eye_positions']['right_y'], out_dict['eye_positions']['right_r'], out_dict['eye_positions']['n_frame'])
                 self.share_skew(out_dict['left_skew'], out_dict['right_skew'])
-                self.share_pupils(out_dict['left_pupil'], out_dict['right_pupil'])
+                try:
+                    self.share_pupils(out_dict['left_pupil'], out_dict['right_pupil'])
+                except Exception as e:
+                    print("Share pupils error: ", e)
                 self.send_meas_result()
             except Exception as e:
                 print("AI error: ", e)
