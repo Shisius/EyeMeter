@@ -777,6 +777,10 @@ void MainWindow::slot_start()
        //memcpy(d_snapshotParams.buf, &buf, d_snapshotParams.size);
        QPixmap pix = image(d_snapshotParams, d_l_snapshot.size());
        d_l_snapshot.setPixmap(pix);
+       EyeCirclePos left {300,400,20};
+       EyeCirclePos right {500,410,20};
+       d_l_eyes->setPixmap(ocular_pixmap(pix, left, right)
+               .scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
        //d_l_snapshot.adjustSize();
 #endif
 }
@@ -992,6 +996,11 @@ void MainWindow::slot_readUds(UdsUniPack pack)
             QPixmap pix_right = image(pupilImageParams_right, d_l_rightEye->size());
             d_l_rightEye->setPixmap(pix_right);
             /*OCULARS*/
+            if(d_vec_snapshots.size() > static_cast<int>(measResult.frame4circles))
+            {
+                d_l_eyes->setPixmap(ocular_pixmap(image( d_vec_snapshots.at(measResult.frame4circles), d_l_snapshot.size()), measResult.left.position, measResult.right.position)
+                        .scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
+            }
 
         }
     }
@@ -1136,39 +1145,57 @@ QPicture MainWindow::fixation_result(const QPicture &grid, std::vector<EyeSkewCo
 QPixmap MainWindow::ocular_pixmap(const QPixmap & frame, const EyeCirclePos &left, const EyeCirclePos &right)
 {
     qDebug() << Q_FUNC_INFO;
-    QPixmap pic = frame;
+    unsigned short midline = static_cast<unsigned short>(round((left.vert + right.vert) / 2.));
+    if(left.vert < left.radius * 2 || left.horiz < left.radius * 2
+            || right.horiz < right.radius * 2 || right.vert < right.radius * 2)
+       return QPixmap();
+    QPixmap pix(frame);
     QPainter painter;
-    painter.begin(&pic);
-    //painter.drawLine(0,)
+    painter.begin(&pix);
+    painter.setPen(QPen(QColor(STR_COLD_DARK_COLOR), 2));
     painter.drawEllipse(QPoint(left.horiz,left.vert),static_cast<int>(left.radius),static_cast<int>(left.radius));
     painter.drawEllipse(QPoint(right.horiz,left.vert),static_cast<int>(right.radius),static_cast<int>(right.radius));
+    painter.drawLine(QPoint(left.horiz + left.radius,left.vert),QPoint(right.horiz - right.radius,left.vert));
+    painter.end();
+    qDebug() << "ocular_pixmap" << 1;
     QRect rect;
-    unsigned short midline = static_cast<unsigned short>(round((left.vert + right.vert) / 2.));
-    if( midline * (d_l_eyes->width()*2) <= (d_l_snapshot.width()*d_l_eyes->height()) )
+
+    qDebug() << "frame.size()" << frame.size();
+    qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
+    qDebug() << "d_l_eyes.size()" << d_l_eyes->size();
+
+    if( midline * (d_l_eyes->width()*2) <= (frame.width()*d_l_eyes->height()) )
     {
+        qDebug() << "ocular_pixmap" << 2;
         if(midline*2 <= frame.height())
         {
+            qDebug() << "ocular_pixmap" << 3;
             rect.setTop(0);
             rect.setBottom(frame.width() * d_l_eyes->height() / d_l_eyes->width());
+            qDebug() << "Bottom" << frame.width() * d_l_eyes->height() / d_l_eyes->width();
         }
         else
         {
+            qDebug() << "ocular_pixmap" << 4;
             rect.setTop(frame.height()-(frame.width() * d_l_eyes->height() / d_l_eyes->width()));
             rect.setBottom(frame.height());
         }
     }
     else
     {
-        rect.setTop(midline - (d_l_snapshot.width()*d_l_eyes->height())/(2*d_l_eyes->width()));
-        rect.setBottom(midline+ (d_l_snapshot.width()*d_l_eyes->height())/(2*d_l_eyes->width()));
+        qDebug() << "ocular_pixmap" << 5;
+        rect.setTop(midline - (frame.width()*d_l_eyes->height())/(2*d_l_eyes->width()));
+        rect.setBottom(midline+ (frame.width()*d_l_eyes->height())/(2*d_l_eyes->width()));
     }
+    qDebug() << "ocular_pixmap" << 6;
     rect.setLeft(0);
-    rect.setLeft(frame.width());
-    pic = frame.copy(rect);
-
-
+    rect.setRight(frame.width());
+    pix = pix.copy(rect);
+    qDebug() << "rect.size()" << rect.size();
+    qDebug() << "pix.size()" << pix.size();
+    qDebug() << "ocular_pixmap end";
     //d_l_eyes->setPixmap(pic.scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
-    return pic;
+    return pix;
 }
 
 void MainWindow::setStyle2list(const QList<QLabel *> &list, const QString &style, Qt::Alignment al, const QFont &f)
