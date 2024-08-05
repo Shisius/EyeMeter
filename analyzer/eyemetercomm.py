@@ -99,7 +99,7 @@ class MeasResult:
 		self.interocular = io
 		self.frame4circles = 0
 
-	def add_cirlce(self, lh, lv, lr, rh, rv, rr, fc):
+	def add_circle(self, lh, lv, lr, rh, rv, rr, fc):
 		self.left.position.horiz = lh
 		self.left.position.vert = lv
 		self.left.position.radius = lr
