@@ -78,10 +78,10 @@ static void led_task(void * data)
 {
     LedState * state = (LedState *)(data);
     while (1) {
-        for (int i_blink = 0; i_blink < 3; i_blink++) {
+        for (int i_blink = 0; i_blink < 4; i_blink++) {
             if (state->rgb_blink) {
                 // Set duty to 10%
-                ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, GREEN_LED_CHANNEL, (unsigned int)(round(0.1 * (float)(1 << 10)))));
+                ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, GREEN_LED_CHANNEL, (unsigned int)(round(0.02 * (float)(1 << 10)))));
                 // Update duty to apply the new value
                 ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, GREEN_LED_CHANNEL));
             }
@@ -92,7 +92,7 @@ static void led_task(void * data)
             ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, GREEN_LED_CHANNEL));
             vTaskDelay( pdMS_TO_TICKS(100));
         }
-        vTaskDelay( pdMS_TO_TICKS(1000));
+        vTaskDelay( pdMS_TO_TICKS(500));
     }
     vTaskDelete(NULL);
 }
