@@ -19,26 +19,20 @@ CONFIG += retro-style
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    ../ipc/eye_shmem.cpp \
     ../ipc/shmem_alloc.cpp \
     ../ipc/udsunicomm.cpp \
-    dateedit_clickable.cpp \
-    dateedit_keyboard.cpp \
     imagebuttons.cpp \
-    inputdatedialog.cpp \
-    lineedit_clickable.cpp \
     lineedit_keyboard.cpp \
     main.cpp \
     mainwindow.cpp \
     udsunisocket.cpp
 
 HEADERS += \
+    ../ipc/eye_shmem.h \
     ../ipc/shmem_alloc.h \
     ../ipc/udsunicomm.h \
-    dateedit_clickable.h \
-    dateedit_keyboard.h \
     imagebuttons.h \
-    inputdatedialog.h \
-    lineedit_clickable.h \
     lineedit_keyboard.h \
     mainwindow.h \
     udsunisocket.h

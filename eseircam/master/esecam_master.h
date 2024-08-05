@@ -7,6 +7,7 @@
 #include "led_types.h"
 #include "esecam_print.h"
 #include "shmem_alloc.h"
+#include "eye_shmem.h"
 #include "udsunicomm.h"
 #include "serial_comm.h"
 #include "gpio_tools.h"
@@ -42,6 +43,7 @@ protected:
 	MeasureSettings d_meas_settings;
 
 	std::unique_ptr<ShmemBlockAllocator> d_shmem;
+	std::unique_ptr<ShmemBlockAllocator> d_shmeasres;
 	std::unique_ptr<UdsUniComm> d_uds;
 #ifdef LED_SERIAL
 	std::unique_ptr<SerialComm> d_serial;
@@ -68,6 +70,7 @@ protected:
 	
 	int set_led_pwr(UdsUniPack & pack);
 	int led_control(unsigned short led_state);
+	int rgb_blink(bool turn_on);
 
 	int set_trigger(bool enable, bool hard);
 	int get_frame_soft_trigger();

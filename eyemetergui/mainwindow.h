@@ -6,7 +6,7 @@
 #include <QFile>
 //#include "emtoolbar.h"
 #include "udsunisocket.h"
-#include "shmem_alloc.h"
+#include "eye_shmem.h"
 #include "imagebuttons.h"
 #include <QLayout>
 #include "lineedit_keyboard.h"
@@ -18,6 +18,13 @@
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+    const QString STR_COLD_DARK_COLOR = "#528c83";
+    const QString STR_COLD_LIGHT_COLOR = "#c4e5d4";
+    const QString STR_WARM_DARK_COLOR = "#e5a977";
+    const QString STR_WARM_LIGHT_COLOR = "#fce6ac";
+    const QString STR_MOSTDARK_COLOR = "#3e687e";
+    const QString STR_MOSTLIGHT_COLOR = "#fffefe";
+    const QString STR_LIGHT_COLOR2 = "#dddde2";
 //#ifdef NEWVISION
 
     //QScopedPointer<QFile>   d_ptr_logFile;
@@ -57,7 +64,8 @@ class MainWindow : public QMainWindow
     QLabel *d_l_interocularRes;
     QLabel *d_l_pic_FixLeft;
     QLabel *d_l_pic_FixRight;
-    QPicture fixation(int side, QColor grid = Qt::gray, QColor dot = Qt::red);
+    QPicture d_pic_fixGrid;
+
     QPushButton *d_pb_shot;
     void setStyle2list(const QList<QLabel*> & list, const QString &style = "", Qt::Alignment = Qt::AlignLeft, const QFont &f = QFont());
     void setStyle2list(const QList<QLineEdit*> & list, const QPalette & p, const QString &style = "", Qt::Alignment = Qt::AlignLeft, const QFont &f = QFont());
@@ -74,15 +82,16 @@ class MainWindow : public QMainWindow
     QPushButton d_but_close;
     UdsUniSocket *d_udsUniSocket = nullptr;
     unique_ptr<ShmemBlockReader> d_shmemBlockReader;
-    struct Snapshot_params{
+    unique_ptr<MeasResultShmemReader> d_measResultShmemReader;
+    struct Image_params{
         unsigned int size;
         unsigned int frame_width;
         unsigned int frame_height;
-        //uchar *buf;
         std::string buf;
-    } d_snapshotParams;
-    const uint CONST_MEASURE_SHOTS_COUNT = 80;
-    QVector<Snapshot_params> d_vec_snapshots;
+    } ;
+    Image_params d_snapshotParams;
+    uint d_measShotsCount;
+    QVector<Image_params> d_vec_snapshots;
     //QFrame d_mainFrame;
     QVBoxLayout mainWinLayout;
     QHBoxLayout tb_layout;
@@ -94,6 +103,9 @@ class MainWindow : public QMainWindow
     ImageButtons *d_measReviewButs = nullptr;
     bool d_isMeasurStarted = false;
     QLabel d_l_measRes;
+
+    SharedPupilImage d_leftPupil;
+    SharedPupilImage d_rightPupil;
 
     const QString CONST_REFRACTION_STR = "Рефракция";
     const QString CONST_INTEROCULAR_STR = "Межзрачковое расстояние";
@@ -112,9 +124,14 @@ class MainWindow : public QMainWindow
     //void createMenus();
     //void createToolBar();
     void setPhotoScreen();
+    QString savingPath();
     void initNetwork();
     //QVBoxLayout resultInfoLayout();
     void measFinished(const QString &res);
+    QPixmap image(const Image_params &, QSize size);
+    QPixmap ocular_pixmap(const QPixmap &frame, const EyeCirclePos &left, const EyeCirclePos &right);
+    QPicture fixation_grid(int side, QColor grid = Qt::gray);
+    QPicture fixation_result(const QPicture & grid, std::vector<EyeSkewCoords> skew_vec, QColor dots_color = Qt::red);
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -128,7 +145,7 @@ private slots:
     void slot_showMeasImg(uint);
     //void slot_readUds(const UdsUniPack &pack);
     void slot_readUds(UdsUniPack pack);
-    QPixmap snapshot(const Snapshot_params &);
+
 protected:
     void resizeEvent(QResizeEvent* event) override;
     //bool event(QEvent*) override;

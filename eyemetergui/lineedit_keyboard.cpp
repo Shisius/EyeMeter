@@ -39,7 +39,12 @@ bool LineEdit_Keyboard::event(QEvent* e) {
         _lastDiff = diff;
         const auto g = parentWidget()->frameGeometry();
         parentWidget()->move(g.x(), g.y() - qAbs(_lastDiff));
+        qDebug() << "g.x()" << g.x();
+        qDebug() << "g.y()" << g.y();
+        qDebug() << "qAbs(_lastDiff)" << qAbs(_lastDiff);
+        qDebug() << "g.y() - qAbs(_lastDiff)" << g.y() - qAbs(_lastDiff);
         //d_l_duplicate->show();
+        qDebug() << Q_FUNC_INFO << "move main widget end";
     }
     /* roll back */
     if (!keyboard_visible && _moved) {
@@ -47,7 +52,12 @@ bool LineEdit_Keyboard::event(QEvent* e) {
         _moved = false;
         const auto g = parentWidget()->frameGeometry();
         parentWidget()->move(g.x(), g.y() + qAbs(_lastDiff));
+        qDebug() << "g.x()" << g.x();
+        qDebug() << "g.y()" << g.y();
+        qDebug() << "qAbs(_lastDiff)" << qAbs(_lastDiff);
+        qDebug() << "g.y() + qAbs(_lastDiff)" << g.y() + qAbs(_lastDiff);
         //d_le_duplicate->hide();
+        qDebug() << Q_FUNC_INFO << "roll back end";
     }
     return /*QLineEdit QPlainTextEdit*/QTextEdit::event(e);
 }

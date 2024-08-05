@@ -63,25 +63,44 @@ protected:
 /**
  * Read shmem.
  */
-class ShmemBlockReader
+class ShmemReader
 {
 public:
 
-	ShmemBlockReader(unsigned int unit_size, unsigned int n_units, std::string name);
-	~ShmemBlockReader();
+	ShmemReader(unsigned int size, std::string name);
+	~ShmemReader();
 
 	int setup();
-
-	int get_block(ShmemBlock & block);
 
 protected:
 
 	int d_handle;
 	volatile void * d_mmap_ptr;
 
+	unsigned int d_size;
+	std::string d_name;
+
+};
+
+class ShmemBlockReader : public ShmemReader
+{
+public:
+
+	ShmemBlockReader(unsigned int unit_size, unsigned int n_units, std::string name);
+	//~ShmemBlockReader();
+
+	// int setup();
+
+	int get_block(ShmemBlock & block);
+
+protected:
+
+	//int d_handle;
+	//volatile void * d_mmap_ptr;
+
 	unsigned int d_unit_size;
 	unsigned int d_n_units;
-	std::string d_name;
+	//std::string d_name;
 
 };
 

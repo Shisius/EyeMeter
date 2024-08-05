@@ -9,13 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     qDebug() << Q_FUNC_INFO;
 
-    const QString STR_COLD_DARK_COLOR = "#528c83";
-    const QString STR_COLD_LIGHT_COLOR = "#c4e5d4";
-    const QString STR_WARM_DARK_COLOR = "#e5a977";
-    const QString STR_WARM_LIGHT_COLOR = "#fce6ac";
-    const QString STR_MOSTDARK_COLOR = "#3e687e";
-    const QString STR_MOSTLIGHT_COLOR = "#fffefe";
-    const QString STR_LIGHT_COLOR2 = "#dddde2";
+
     QString str_dark_color_focusText = STR_MOSTDARK_COLOR;
     QString str_light_color_label = STR_MOSTLIGHT_COLOR;
     QString str_dark_color_label = STR_COLD_DARK_COLOR;    
@@ -349,6 +343,7 @@ MainWindow::MainWindow(QWidget *parent)
     l_interocular->setStyleSheet(str_labelStyle_resultHeader);
     layout_digitsDataResults->addWidget(l_interocular);
     d_l_interocularRes = new QLabel;
+    d_l_interocularRes->setAlignment(Qt::AlignHCenter);
     d_l_interocularRes->setStyleSheet(str_labelStyle_resultData);
     layout_digitsDataResults->addWidget(d_l_interocularRes);
     QFrame *line3_res = new QFrame;
@@ -365,6 +360,7 @@ MainWindow::MainWindow(QWidget *parent)
     layout_data_and_results->addWidget(frame_dataResults_total);    
     layout_card->addLayout(layout_data_and_results);
     layout_data_and_results->addStretch();
+#ifdef TEST_snapshot
         AIEyeMeasResult measResult;
         measResult.left.sphere = 1.3;
         measResult.left.cylinder = 2.3;
@@ -389,7 +385,7 @@ MainWindow::MainWindow(QWidget *parent)
         d_l_refractionRight->setText(measResRightt_str);
 
 
-
+#endif
     QVBoxLayout *layout_results = new QVBoxLayout;
     QHBoxLayout *layout_eyesResults = new QHBoxLayout;
 
@@ -420,8 +416,22 @@ MainWindow::MainWindow(QWidget *parent)
     //d_l_picLeftDataResults->setAlignment()
     //d_l_picLeftDataResults->setStyleSheet("border: 1px solid black ;"/*"background-color: black; color: white;"*/);
     int graphSide = (screenWidth - 2*eyeSide) / 5.;
-    d_l_pic_FixLeft->setPicture(fixation(graphSide, str_color_grid));
-    d_l_pic_FixRight->setPicture(fixation(graphSide, str_color_grid));
+    d_pic_fixGrid = fixation_grid(graphSide, str_color_grid);
+    d_l_pic_FixLeft->setPicture(d_pic_fixGrid);
+    d_l_pic_FixRight->setPicture(d_pic_fixGrid);
+#ifdef TEST_snapshot
+    std::vector<EyeSkewCoords> left(5);
+    std::vector<EyeSkewCoords> right(5);
+
+    for (size_t i = 0; i < 5; i++) {
+        left[i].x = i*5;
+        left[i].y = i*4;
+        right[i].x = i*2;
+        right[i].y = i*3;
+    }
+    d_l_pic_FixLeft->setPicture(fixation_result(d_pic_fixGrid, left, STR_WARM_DARK_COLOR));
+    d_l_pic_FixRight->setPicture(fixation_result(d_pic_fixGrid, right, STR_WARM_DARK_COLOR));
+#endif
     d_l_pic_FixLeft->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
 
 
@@ -688,6 +698,12 @@ QFontDatabase base;
 //    QRectF vb_rect = QGuiApplication::inputMethod()->inputItemRectangle();
 //    vb_rect.setHeight(screenHeight/3.);
 //    QGuiApplication::inputMethod()->setInputItemRectangle(vb_rect);
+    d_measResultShmemReader = std::make_unique<MeasResultShmemReader>();
+    if(d_measResultShmemReader->setup() < 0){
+        qDebug() << "MeasResultShmemReader setup fail";
+        d_measResultShmemReader.reset();
+    }
+    qDebug() << Q_FUNC_INFO << "end";
 }
 
 MainWindow::~MainWindow()
@@ -711,6 +727,21 @@ MainWindow::~MainWindow()
 //    qDebug() << connect(d_toolbar, SIGNAL(sig_pwrTriggered()), SLOT(slot_pwr()));
 //    qDebug() << connect(d_toolbar, SIGNAL(sig_measureTriggered()), SLOT(slot_measure()));
 //}
+
+QString MainWindow::savingPath()
+{
+    qDebug() << Q_FUNC_INFO;
+    QFile file("settings.conf");
+    QString path;
+    if(file.open(QIODevice::ReadOnly)){
+        QTextStream in(&file);        
+        in >> path;
+        qDebug()<<"saving path:"<<path;
+        file.close();
+    }
+    qDebug() << Q_FUNC_INFO << "end";
+    return path;
+}
 
 void MainWindow::slot_diseaseTextChanged()
 {
@@ -744,7 +775,7 @@ void MainWindow::slot_start()
        fclose(f);
        qDebug() << Q_FUNC_INFO << "file_end";
        //memcpy(d_snapshotParams.buf, &buf, d_snapshotParams.size);
-       QPixmap pix = snapshot(d_snapshotParams);
+       QPixmap pix = image(d_snapshotParams, d_l_snapshot.size());
        d_l_snapshot.setPixmap(pix);
        //d_l_snapshot.adjustSize();
 #endif
@@ -769,7 +800,7 @@ void MainWindow::slot_measure()
 //    qDebug() << "file_measure: " << file_measure_str;
 //    d_file_measure.setFileName(file_measure_str);
     d_vec_snapshots.clear();
-    d_vec_snapshots.reserve(CONST_MEASURE_SHOTS_COUNT);
+    //d_vec_snapshots.reserve(CONST_MEASURE_SHOTS_COUNT);
     if(d_measReviewButs != nullptr)
         d_measReviewButs->hide(true);
     d_isMeasurStarted = false;
@@ -780,10 +811,11 @@ void MainWindow::slot_showMeasImg(uint num)
     qDebug() << Q_FUNC_INFO;
     if(d_vec_snapshots.size()>static_cast<int>(num))
     {
-        QPixmap pix = snapshot( d_vec_snapshots.at(num));
+        QPixmap pix = image( d_vec_snapshots.at(num), d_l_snapshot.size());
         d_l_snapshot.setPixmap(pix);
         //d_l_snapshot.adjustSize();
     }
+    qDebug() << Q_FUNC_INFO << "end";
 }
 
 void MainWindow::initNetwork()
@@ -794,12 +826,6 @@ void MainWindow::initNetwork()
     if(!d_udsUniSocket->isValid())
         return;
     qDebug() << connect(d_udsUniSocket, SIGNAL(readyRead(UdsUniPack)), SLOT(slot_readUds(UdsUniPack)));
-//    if(d_toolbar != nullptr)
-//    {
-//        d_toolbar->setStartEnabled(true);
-//        d_toolbar->setPwrEnabled(true);
-//        d_toolbar->setMeasureEnabled(true);
-//    }
 }
 
 void MainWindow::slot_readUds(UdsUniPack pack)
@@ -846,20 +872,14 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 memcpy(d_snapshotParams.buf.data(), block.ptr, block.size);
                 //qDebug() << "UDSUNI_TITLE_FRAME_READY 2";
                 qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
-                QPixmap pix = snapshot(d_snapshotParams);
+                QPixmap pix = image(d_snapshotParams, d_l_snapshot.size());
                 //qDebug() << "UDSUNI_TITLE_FRAME_READY 3";
                 d_l_snapshot.setPixmap(pix);
                 qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
                 d_l_snapshot.setFixedSize(d_l_snapshot.size());
                 if(d_isMeasurStarted)
                     d_vec_snapshots.push_back(d_snapshotParams);
-//                if(d_file_measure.isOpen())
-//                {
-//                    d_file_measure.write(d_snapshotParams.buf.data(),d_snapshotParams.size);
-//                    d_file_measure.flush();
-//                }
                 d_udsUniSocket->send(UDSUNI_TITLE_FRAME_FREE, frame.id, EYEMETER_ROLE_CAM);
-
             }
         }
         break;
@@ -876,21 +896,9 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 d_snapshotParams.frame_width = settings.stream.frame_width;
                 d_snapshotParams.size = settings.stream.frame_size;
                 d_snapshotParams.buf.resize(d_snapshotParams.size);
-//                if(!d_file_measure.isOpen())
-//                    d_file_measure.open(QIODevice::WriteOnly | QIODevice::Append);
-//                if(d_file_measure.isOpen())
-//                {
-//                    ;
-//                }
-//                qDebug() << "SharedFrame::id " <<frame.id;
-//                ShmemBlock block;
-//                block.id = frame.id;
-//                d_shmemBlockReader->get_block(block);
-//                memcpy(d_snapshotParams.buf.data(), block.ptr, block.size);
-//                QPixmap pix = snapshot();
-//                d_l_snapshot.setPixmap(pix);
-//                d_udsUniSocket->send(UDSUNI_TITLE_FRAME_FREE, frame.id, EYEMETER_ROLE_CAM);
-            //}
+                d_measShotsCount = settings.n_led_pos * settings.n_repeat;
+                d_vec_snapshots.reserve(d_measShotsCount);
+//                d_udsUniSocket->send(UDSUNI_TITLE_FRAME_FREE, frame.id, EYEMETER_ROLE_CAM);           
         }
         break;
     case UDSUNI_TITLE_MEAS_SHOOT_DONE:
@@ -899,38 +907,34 @@ void MainWindow::slot_readUds(UdsUniPack pack)
         //d_isMeasurStarted = false;
         QString file_measure_str = d_le_id->text().append('_').append(QDateTime::currentDateTime().toString("yyyy_MM_dd_hh_mm_ss")).append(".bin");
         qDebug() << "file_measure: " << file_measure_str;
-        d_file_measure.setFileName(file_measure_str);
+        QString filepath = QString("%1/%2").arg(savingPath()).arg(file_measure_str);
+        d_file_measure.setFileName(filepath);
         if(d_file_measure.open(QIODevice::WriteOnly | QIODevice::Append))
         {
-            foreach (Snapshot_params shot, d_vec_snapshots) {
+            foreach (Image_params shot, d_vec_snapshots) {
                 d_file_measure.write(shot.buf.data(),shot.size);
             }
         }        
         d_file_measure.flush();
         d_file_measure.close();
-//        /*int ret = */QMessageBox::information(this, tr("Измерения завершены."),
-//                                               tr("СНЯТО."),
-//                                               QMessageBox::Ok,
-//                                               QMessageBox::Ok);
-        measFinished(tr("СНЯТО."));
+
+        measFinished(tr("СНЯТО"));
         if(d_measReviewButs != nullptr)
         {
             d_measReviewButs->hide(false);
             d_measReviewButs->setImageCount(d_vec_snapshots.size());
         }
-        d_vec_snapshots.clear();
+        //d_vec_snapshots.clear(); //don't clear! it is used by d_measReviewButs
         qDebug() << "UDSUNI_TITLE_MEAS_SHOOT_DONE end";
     }
         break;
+    case UDSUNI_TITLE_MEAS_RESULT_FAILED:
+        qDebug() << "UDSUNI_TITLE_MEAS_RESULT_FAILED";
+        measFinished(tr("Ошибка измерения"));
+        break;
     case UDSUNI_TITLE_MEAS_FAILED:
         qDebug() << "UDSUNI_TITLE_MEAS_FAILED";
-        measFinished(tr("Ошибка."));
-//        d_isMeasurStarted = false;
-//        d_file_measure.close();
-//        /*int ret = */QMessageBox::information(this, tr("Измерения завершены."),
-//                                               tr("Ошибка."),
-//                                               QMessageBox::Ok,
-//                                               QMessageBox::Ok);
+        measFinished(tr("Ошибка"));
         break;
     case UDSUNI_TITLE_MEAS_RESULT:
     {
@@ -938,42 +942,58 @@ void MainWindow::slot_readUds(UdsUniPack pack)
         AIEyeMeasResult measResult;
         pack.fetch_data(measResult);
 
-//#ifdef NEWVISION
         QString measResLeft_str = QString("%1   %2   %3º   %4")
-                .arg(measResult.left.sphere)   //2
-                .arg(measResult.left.cylinder) //3
-                .arg(measResult.left.angle)    //4
-                .arg(measResult.left.diameter); //5
-        QString measResRightt_str = QString("%1   %2   %3º   %4")
-                .arg(measResult.right.sphere)   //6
-                .arg(measResult.right.cylinder) //7
-                .arg(measResult.right.angle)    //8
-                .arg(measResult.right.diameter); //9
+                .arg(measResult.left.sphere)    //1
+                .arg(measResult.left.cylinder)  //2
+                .arg(measResult.left.angle)     //3
+                .arg(measResult.left.diameter); //4
+        QString measResRight_str = QString("%1   %2   %3º   %4")
+                .arg(measResult.right.sphere)    //1
+                .arg(measResult.right.cylinder)  //2
+                .arg(measResult.right.angle)     //3
+                .arg(measResult.right.diameter); //4
 
         d_l_refractionLeft->setText(measResLeft_str);
-        d_l_refractionRight->setText(measResRightt_str);
+        d_l_refractionRight->setText(measResRight_str);
 
         d_l_diameterLeft ->setText(QString::number(measResult.left.diameter));
         d_l_diameterRight->setText(QString::number(measResult.right.diameter));
 
         d_l_interocularRes->setText(QString::number(measResult.interocular));
-//#else
-//                QString measRes_str = QString("%1:   %2   %3   %4º   %5        %6   %7   %8º   %9\n%10:   %11")
-//                        .arg(CONST_REFRACTION_STR)     //1
-//                        .arg(measResult.left.sphere)   //2
-//                        .arg(measResult.left.cylinder) //3
-//                        .arg(measResult.left.angle)    //4
-//                        .arg(measResult.left.diameter) //5
-//                        .arg(measResult.right.sphere)   //6
-//                        .arg(measResult.right.cylinder) //7
-//                        .arg(measResult.right.angle)    //8
-//                        .arg(measResult.right.diameter) //9
-//                        .arg(CONST_INTEROCULAR_STR)     //10
-//                        .arg(measResult.interocular);
-//        //        d_l_measRes.setStyleSheet("font: 20px "
-//        //                      /*"color: black;"*/);
-//                d_l_measRes.setText(measRes_str);
-//#endif
+
+        if(d_measResultShmemReader != nullptr)
+        {
+            /*SKEW*/
+            std::vector<EyeSkewCoords> leftSkew;
+            std::vector<EyeSkewCoords> rightSkew;
+            d_measResultShmemReader->get_skew(leftSkew, rightSkew, d_measShotsCount);
+            d_l_pic_FixLeft->setPicture(fixation_result(d_pic_fixGrid, leftSkew, STR_WARM_DARK_COLOR));
+            d_l_pic_FixRight->setPicture(fixation_result(d_pic_fixGrid, rightSkew, STR_WARM_DARK_COLOR));
+            /*PUPILS*/
+            d_measResultShmemReader->get_pupils(d_leftPupil, d_rightPupil);
+            Image_params pupilImageParams_left;
+            pupilImageParams_left.frame_height = d_leftPupil.height;
+            pupilImageParams_left.frame_width = d_leftPupil.width;
+            pupilImageParams_left.size = d_leftPupil.size;
+            pupilImageParams_left.buf.resize(pupilImageParams_left.size);
+            if(d_leftPupil.data_ptr == nullptr || d_leftPupil.size == 0)
+                break;
+            memcpy(pupilImageParams_left.buf.data(), d_leftPupil.data_ptr, d_leftPupil.size);
+            QPixmap pix_left = image(pupilImageParams_left, d_l_leftEye->size());
+            d_l_leftEye->setPixmap(pix_left);
+            Image_params pupilImageParams_right;
+            pupilImageParams_right.frame_height = d_rightPupil.height;
+            pupilImageParams_right.frame_width = d_rightPupil.width;
+            pupilImageParams_right.size = d_rightPupil.size;
+            pupilImageParams_right.buf.resize(pupilImageParams_right.size);
+            if(d_rightPupil.data_ptr == nullptr || d_rightPupil.size == 0)
+                break;
+            memcpy(pupilImageParams_right.buf.data(), d_rightPupil.data_ptr, d_rightPupil.size);
+            QPixmap pix_right = image(pupilImageParams_right, d_l_rightEye->size());
+            d_l_rightEye->setPixmap(pix_right);
+            /*OCULARS*/
+
+        }
     }
         break;
     default:
@@ -981,22 +1001,49 @@ void MainWindow::slot_readUds(UdsUniPack pack)
     }
     pack.clear_data();
 
-
     qDebug()<<Q_FUNC_INFO << "end";
 }
 
-QPixmap MainWindow::snapshot(const Snapshot_params &snapshotParams)
+QPixmap MainWindow::image(const Image_params &snapshotParams, QSize size)
 {
     qDebug() << Q_FUNC_INFO;
     int bytesPerLine = snapshotParams.frame_width;
     qDebug() << "snapshotParams.frame_width" << snapshotParams.frame_width;
     qDebug() << "snapshotParams.frame_height" << snapshotParams.frame_height;
-    QImage snapshot_img((uchar*)snapshotParams.buf.c_str(), snapshotParams.frame_width, snapshotParams.frame_height, bytesPerLine, QImage::Format_Grayscale8 /*QImage::Format_Indexed8, QImageCleanupFunction cleanupFunction = nullptr, void *cleanupInfo = nullptr*/);
+    QImage snapshot_img((uchar*)snapshotParams.buf.c_str(), snapshotParams.frame_width, snapshotParams.frame_height, bytesPerLine, QImage::Format_Grayscale8 /*QImage::Format_Alpha8 QImage::Format_Indexed8, QImageCleanupFunction cleanupFunction = nullptr, void *cleanupInfo = nullptr*/);
     qDebug() << "snapshot_img.size()" << snapshot_img.size();
-    qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
-    QPixmap pix = QPixmap::fromImage(snapshot_img.scaled(d_l_snapshot.size(), Qt::KeepAspectRatio, Qt::FastTransformation));
+    //qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
+    QPixmap pix = QPixmap::fromImage(snapshot_img.scaled(size, Qt::KeepAspectRatio, Qt::FastTransformation));
     qDebug() << "pix_snapshot.size()" << pix.size();
-    qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
+    //qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
+//    QPainter painter;
+//    painter.begin(&pix);
+//    painter.setPen(QPen(QColor(STR_COLD_DARK_COLOR), 5));
+//    QPoint points1[4];
+//    points1[0] = QPoint(50,150);
+//    points1[1] = QPoint(50,50);
+//    points1[2] = QPoint(50,50);
+//    points1[3] = QPoint(150,50);
+//    QPoint points2[4];
+//    points2[0] = QPoint(pix.width()-50,150);
+//    points2[1] = QPoint(pix.width()-50,50);
+//    points2[2] = QPoint(pix.width()-50,50);
+//    points2[3] = QPoint(pix.width()-150,50);
+//    QPoint points3[4];
+//    points3[0] = QPoint(50,pix.height()-150);
+//    points3[1] = QPoint(50,pix.height()-50);
+//    points3[2] = QPoint(50,pix.height()-50);
+//    points3[3] = QPoint(150,pix.height()-50);
+//    QPoint points4[4];
+//    points4[0] = QPoint(pix.width()-50,pix.height()-150);
+//    points4[1] = QPoint(pix.width()-50,pix.height()-50);
+//    points4[2] = QPoint(pix.width()-50,pix.height()-50);
+//    points4[3] = QPoint(pix.width()-150,pix.height()-50);
+//    painter.drawLines(points1,2);
+//    painter.drawLines(points2,2);
+//    painter.drawLines(points3,2);
+//    painter.drawLines(points4,2);
+//    painter.end();
     return pix;
 }
 
@@ -1017,7 +1064,7 @@ void MainWindow::setPhotoScreen()
 
 }
 //#ifdef NEWVISION
-QPicture MainWindow::fixation(int side, QColor grid, QColor dot)
+QPicture MainWindow::fixation_grid(int side, QColor grid)
 {
     qDebug() << Q_FUNC_INFO;
     QPainter painter;
@@ -1063,6 +1110,64 @@ QPicture MainWindow::fixation(int side, QColor grid, QColor dot)
         //painter.setPen(QPen(MTD::labelColor));
         painter.drawText(textBgRect,QString::number(k*10));
     }
+    painter.end();
+    return pic;
+}
+
+QPicture MainWindow::fixation_result(const QPicture &grid, std::vector<EyeSkewCoords> skew_vec, QColor dots_color)
+{
+    qDebug() << Q_FUNC_INFO;
+    QPainter painter;
+    QPicture pic;
+    painter.begin(&pic);
+    painter.drawPicture(0,0, grid);
+    size_t s = skew_vec.size();
+    QPointF left_arr[s];
+    float k = grid.height()/60.;
+    for (size_t i = 0; i < s; i++) {
+        left_arr[i] = QPointF(skew_vec.at(i).x *k, skew_vec.at(i).y *k);
+    }
+    painter.setPen(QPen(dots_color, 7, Qt::SolidLine, Qt::RoundCap));
+    painter.drawPoints(left_arr,s);
+    painter.end();
+    return pic;
+}
+
+QPixmap MainWindow::ocular_pixmap(const QPixmap & frame, const EyeCirclePos &left, const EyeCirclePos &right)
+{
+    qDebug() << Q_FUNC_INFO;
+    QPixmap pic = frame;
+    QPainter painter;
+    painter.begin(&pic);
+    //painter.drawLine(0,)
+    painter.drawEllipse(QPoint(left.horiz,left.vert),static_cast<int>(left.radius),static_cast<int>(left.radius));
+    painter.drawEllipse(QPoint(right.horiz,left.vert),static_cast<int>(right.radius),static_cast<int>(right.radius));
+    QRect rect;
+    unsigned short midline = static_cast<unsigned short>(round((left.vert + right.vert) / 2.));
+    if( midline * (d_l_eyes->width()*2) <= (d_l_snapshot.width()*d_l_eyes->height()) )
+    {
+        if(midline*2 <= frame.height())
+        {
+            rect.setTop(0);
+            rect.setBottom(frame.width() * d_l_eyes->height() / d_l_eyes->width());
+        }
+        else
+        {
+            rect.setTop(frame.height()-(frame.width() * d_l_eyes->height() / d_l_eyes->width()));
+            rect.setBottom(frame.height());
+        }
+    }
+    else
+    {
+        rect.setTop(midline - (d_l_snapshot.width()*d_l_eyes->height())/(2*d_l_eyes->width()));
+        rect.setBottom(midline+ (d_l_snapshot.width()*d_l_eyes->height())/(2*d_l_eyes->width()));
+    }
+    rect.setLeft(0);
+    rect.setLeft(frame.width());
+    pic = frame.copy(rect);
+
+
+    //d_l_eyes->setPixmap(pic.scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
     return pic;
 }
 
