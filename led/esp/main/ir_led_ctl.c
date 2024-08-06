@@ -33,6 +33,18 @@ static void ir_led_init(void)
         };
         ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
     }
+
+    // Prepare and then apply the LEDC PWM channel configuration
+    ledc_channel_config_t ledc_channel = {
+        .speed_mode     = LEDC_MODE,
+        .channel        = GREEN_LED_CHANNEL,
+        .timer_sel      = LEDC_TIMER,
+        .intr_type      = LEDC_INTR_DISABLE,
+        .gpio_num       = GREEN_LED_PIN,
+        .duty           = 0, // Set duty to 0%
+        .hpoint         = 0
+    };
+    ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
 }
 
 static uint8_t usb_buf[CONFIG_TINYUSB_CDC_RX_BUFSIZE + 1];
@@ -66,15 +78,21 @@ static void led_task(void * data)
 {
     LedState * state = (LedState *)(data);
     while (1) {
-        for (int i_blink = 0; i_blink < 3; i_blink++) {
+        for (int i_blink = 0; i_blink < 4; i_blink++) {
             if (state->rgb_blink) {
-                gpio_set_level((gpio_num_t)GREEN_LED_PIN, 1);
+                // Set duty to 10%
+                ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, GREEN_LED_CHANNEL, (unsigned int)(round(0.001 * (float)(1 << 10)))));
+                // Update duty to apply the new value
+                ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, GREEN_LED_CHANNEL));
             }
             vTaskDelay( pdMS_TO_TICKS(100));
-            gpio_set_level((gpio_num_t)GREEN_LED_PIN, 1);
+            // Set duty to 10%
+            ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, GREEN_LED_CHANNEL, 0));
+            // Update duty to apply the new value
+            ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, GREEN_LED_CHANNEL));
             vTaskDelay( pdMS_TO_TICKS(100));
         }
-        vTaskDelay( pdMS_TO_TICKS(1000));
+        vTaskDelay( pdMS_TO_TICKS(500));
     }
     vTaskDelete(NULL);
 }
@@ -122,16 +140,16 @@ void app_main(void)
     // set the gpios as per gpio_conf
     ESP_ERROR_CHECK(gpio_config(&gpio_conf));
 
-    gpio_config_t gpio_conf_green = {
-        // config gpios
-        .pin_bit_mask = (1ULL << GREEN_LED_PIN),
-        .mode = GPIO_MODE_OUTPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
-        .pull_down_en = GPIO_PULLDOWN_ENABLE,
-        .intr_type = GPIO_INTR_DISABLE,
-    };
-    // set the gpios as per gpio_conf
-    ESP_ERROR_CHECK(gpio_config(&gpio_conf_green));
+    // gpio_config_t gpio_conf_green = {
+    //     // config gpios
+    //     .pin_bit_mask = (1ULL << GREEN_LED_PIN),
+    //     .mode = GPIO_MODE_OUTPUT,
+    //     .pull_up_en = GPIO_PULLUP_DISABLE,
+    //     .pull_down_en = GPIO_PULLDOWN_ENABLE,
+    //     .intr_type = GPIO_INTR_DISABLE,
+    // };
+    // // set the gpios as per gpio_conf
+    // ESP_ERROR_CHECK(gpio_config(&gpio_conf_green));
 
     // Set the LEDC peripheral configuration
     ir_led_init();

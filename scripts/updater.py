@@ -33,6 +33,8 @@ def rebuild_esecamd():
 	runcmd(cmd, os.getcwd() + '/../eseircam/daemon/TargetBuild/')
 
 def rebuild_gui():
+	cmd = '/bin/make clean'
+	runcmd(cmd, os.getcwd() + '/../build-eyemetergui-Desktop-Release/')
 	cmd = '/usr/lib/qt5/bin/qmake ../eyemetergui/'
 	if runcmd(cmd, os.getcwd() + '/../build-eyemetergui-Desktop-Release/') == 0:
 		cmd = '/bin/make -j4'

@@ -75,6 +75,14 @@ class UdsUniCommAI:
             self.shmeasres.buf[SHARED_PUPIL_IMAGE_SIZE*2 + i*4*2:SHARED_PUPIL_IMAGE_SIZE*2 + i*4*2 + 8] = struct.pack('2f', skew_left[i][0], skew_left[i][1])
         for i in range(len(skew_right)):
             self.shmeasres.buf[SHARED_PUPIL_IMAGE_SIZE*2 + max_n_skew*4*2 + i*4*2:SHARED_PUPIL_IMAGE_SIZE*2 + max_n_skew*4*2 + i*4*2 + 8] = struct.pack('2f', skew_right[i][0], skew_right[i][1])
+    
+    def share_pupils(self, left_pupil, right_pupil):
+        lp_data = np.ndarray([SHARED_PUPIL_IMAGE_WIDTH, SHARED_PUPIL_IMAGE_HEIGHT], dtype=np.uint8, buffer=self.shmeasres.buf)
+        lp_data.fill(0)
+        rp_data = np.ndarray([SHARED_PUPIL_IMAGE_WIDTH, SHARED_PUPIL_IMAGE_HEIGHT], dtype=np.uint8, buffer=self.shmeasres.buf[SHARED_PUPIL_IMAGE_SIZE:])
+        rp_data.fill(0)
+        lp_data += -lp_data + left_pupil
+        rp_data += -rp_data + right_pupil
 
     def meas_shoot_done(self):
         print("UdsUniCommAI: shoot done!")
@@ -87,11 +95,20 @@ class UdsUniCommAI:
                 self.meas_result = MeasResult(out_dict['sph_left'], out_dict['cyl_left'], out_dict['angle_left'], out_dict['left_eye_d'], 
                                             out_dict['sph_right'], out_dict['cyl_right'], out_dict['angle_right'], out_dict['right_eye_d'], 
                                             out_dict['interocular_dist'])
+                self.meas_result.add_circle(out_dict['eye_positions']['left_x'], out_dict['eye_positions']['left_y'], out_dict['eye_positions']['left_r'], 
+                    out_dict['eye_positions']['right_x'], out_dict['eye_positions']['right_y'], out_dict['eye_positions']['right_r'], out_dict['eye_positions']['n_frame'])
+                self.share_skew(out_dict['left_skew'], out_dict['right_skew'])
+                try:
+                    self.share_pupils(out_dict['left_pupil'], out_dict['right_pupil'])
+                except Exception as e:
+                    print("Share pupils error: ", e)
                 self.send_meas_result()
             except Exception as e:
                 print("AI error: ", e)
+                # print("\n")
                 msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_MEAS_RESULT_FAILED, 0, 0)
                 self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_GUI])
+        print("\n")
 
     def recv_process(self):
         while self.is_alive:
