@@ -140,11 +140,11 @@ class EyeAnalyzer:
                     pass
             try:
                 left_pupil = info_storage[-1]['processed_eyes'][-1]['left']['flickless_pupil']
-                left_pupil = F.interpolate(torch.tensor(left_pupil[None, None, :, :]),
-                                           size=(256, 256), mode='bilinear')[0][0].numpy()
+                left_pupil = F.interpolate(torch.tensor(left_pupil[None, None, :, :]).float(),
+                                           size=(256, 256), mode='bilinear')[0][0].numpy().astype(np.uint8)
                 right_pupil = info_storage[-1]['processed_eyes'][-1]['right']['flickless_pupil']
-                right_pupil = F.interpolate(torch.tensor(right_pupil[None, None, :, :]),
-                                           size=(256, 256), mode='bilinear')[0][0].numpy()
+                right_pupil = F.interpolate(torch.tensor(right_pupil[None, None, :, :]).float(),
+                                           size=(256, 256), mode='bilinear')[0][0].numpy().astype(np.uint8)
                 result_dict['left_pupil'] = left_pupil
                 result_dict['right_pupil'] = right_pupil
             except Exception as e:

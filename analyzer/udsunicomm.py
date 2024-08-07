@@ -77,10 +77,12 @@ class UdsUniCommAI:
             self.shmeasres.buf[SHARED_PUPIL_IMAGE_SIZE*2 + max_n_skew*4*2 + i*4*2:SHARED_PUPIL_IMAGE_SIZE*2 + max_n_skew*4*2 + i*4*2 + 8] = struct.pack('2f', skew_right[i][0], skew_right[i][1])
     
     def share_pupils(self, left_pupil, right_pupil):
-        lp_data = np.zeros([SHARED_PUPIL_IMAGE_WIDTH, SHARED_PUPIL_IMAGE_HEIGHT], dtype=np.uint8, buffer=self.shmeasres.buf)
-        rp_data = np.zeros([SHARED_PUPIL_IMAGE_WIDTH, SHARED_PUPIL_IMAGE_HEIGHT], dtype=np.uint8, buffer=self.shmeasres.buf[SHARED_PUPIL_IMAGE_SIZE:])
-        lp_data += lp_data + left_pupil
-        rp_data += rp_data + right_pupil
+        lp_data = np.ndarray([SHARED_PUPIL_IMAGE_WIDTH, SHARED_PUPIL_IMAGE_HEIGHT], dtype=np.uint8, buffer=self.shmeasres.buf)
+        lp_data.fill(0)
+        rp_data = np.ndarray([SHARED_PUPIL_IMAGE_WIDTH, SHARED_PUPIL_IMAGE_HEIGHT], dtype=np.uint8, buffer=self.shmeasres.buf[SHARED_PUPIL_IMAGE_SIZE:])
+        rp_data.fill(0)
+        lp_data += -lp_data + left_pupil
+        rp_data += -rp_data + right_pupil
 
     def meas_shoot_done(self):
         print("UdsUniCommAI: shoot done!")
