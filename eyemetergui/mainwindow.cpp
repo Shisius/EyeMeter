@@ -996,10 +996,17 @@ void MainWindow::slot_readUds(UdsUniPack pack)
             QPixmap pix_right = image(pupilImageParams_right, d_l_rightEye->size());
             d_l_rightEye->setPixmap(pix_right);
             /*OCULARS*/
+            qDebug() << "d_vec_snapshots.size()" << d_vec_snapshots.size();
+            qDebug() << "measResult.frame4circles" << measResult.frame4circles;
             if(d_vec_snapshots.size() > static_cast<int>(measResult.frame4circles))
             {
+                qDebug() << "d_vec_snapshots.size() > static_cast<int>(measResult.frame4circles)";
                 d_l_eyes->setPixmap(ocular_pixmap(image( d_vec_snapshots.at(measResult.frame4circles), d_l_snapshot.size()), measResult.left.position, measResult.right.position)
                         .scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
+            }
+            else
+            {
+                qDebug() << "d_vec_snapshots.size() <= static_cast<int>(measResult.frame4circles)";
             }
 
         }
@@ -1013,13 +1020,13 @@ void MainWindow::slot_readUds(UdsUniPack pack)
     qDebug()<<Q_FUNC_INFO << "end";
 }
 
-QPixmap MainWindow::image(const Image_params &snapshotParams, QSize size)
+QPixmap MainWindow::image(const Image_params &imgParams, QSize size)
 {
     qDebug() << Q_FUNC_INFO;
-    int bytesPerLine = snapshotParams.frame_width;
-    qDebug() << "snapshotParams.frame_width" << snapshotParams.frame_width;
-    qDebug() << "snapshotParams.frame_height" << snapshotParams.frame_height;
-    QImage snapshot_img((uchar*)snapshotParams.buf.c_str(), snapshotParams.frame_width, snapshotParams.frame_height, bytesPerLine, QImage::Format_Grayscale8 /*QImage::Format_Alpha8 QImage::Format_Indexed8, QImageCleanupFunction cleanupFunction = nullptr, void *cleanupInfo = nullptr*/);
+    int bytesPerLine = imgParams.frame_width;
+    qDebug() << "imgParams.frame_width" << imgParams.frame_width;
+    qDebug() << "imgParams.frame_height" << imgParams.frame_height;
+    QImage snapshot_img((uchar*)imgParams.buf.c_str(), imgParams.frame_width, imgParams.frame_height, bytesPerLine, QImage::Format_Grayscale8 /*QImage::Format_Alpha8 QImage::Format_Indexed8, QImageCleanupFunction cleanupFunction = nullptr, void *cleanupInfo = nullptr*/);
     qDebug() << "snapshot_img.size()" << snapshot_img.size();
     //qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
     QPixmap pix = QPixmap::fromImage(snapshot_img.scaled(size, Qt::KeepAspectRatio, Qt::FastTransformation));
