@@ -9,7 +9,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     qDebug() << Q_FUNC_INFO;
 
-
     QString str_dark_color_focusText = STR_MOSTDARK_COLOR;
     QString str_light_color_label = STR_MOSTLIGHT_COLOR;
     QString str_dark_color_label = STR_COLD_DARK_COLOR;    
@@ -26,21 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
     QString str_color_notActiveTab_text = STR_WARM_DARK_COLOR;
     QString str_color_grid = STR_COLD_DARK_COLOR;
     QString str_color_dot = STR_WARM_DARK_COLOR;
-//    QString str_dark_color_focusText = STR_MOSTDARK_COLOR;
-//    QString str_light_color_label = STR_MOSTLIGHT_COLOR;
-//    QString str_dark_color_label = STR_COLD_DARK_COLOR;
-//    QString str_color_but = STR_COLD_DARK_COLOR;
-//    QString str_color_pressedBut = STR_COLD_LIGHT_COLOR;
-//    QString str_mostlight_color_bg = STR_MOSTLIGHT_COLOR;
-//    QString str_light_color_bg = STR_LIGHT_COLOR2;
-//    QString str_dark_color_bg = STR_COLD_DARK_COLOR;
-//    QString str_color_line = STR_COLD_DARK_COLOR;
-//    QString str_color_activeTab_bg = STR_COLD_DARK_COLOR;
-//    QString str_color_activeTab_text = STR_MOSTLIGHT_COLOR;
-//    QString str_color_notActiveTab_bg = STR_MOSTLIGHT_COLOR;
-//    QString str_color_notActiveTab_text = STR_COLD_DARK_COLOR;
-//    QString str_color_grid = STR_COLD_DARK_COLOR;
-//    QString str_color_dot = STR_COLD_LIGHT_COLOR;
+
     /*STYLES*/
     QString str_labelStyle_title = QString("background-color: transparent;"
                                            "color: %1;"
@@ -48,6 +33,121 @@ MainWindow::MainWindow(QWidget *parent)
                                            .arg(str_light_color_label);
     QString str_lineStyle = QString("background-color: %1; ")
                                     .arg(str_color_line);
+    QPalette palette_lineedit;
+    palette_lineedit.setColor(QPalette::PlaceholderText,Qt::gray);
+    palette_lineedit.setColor(QPalette::Text,QColor(str_dark_color_focusText));
+    QString str_lineeditStyle = "border-style: none ; font: bold 12px; text-align: center;";
+    QFont font_lineedit("Ubuntu Thin");
+    Qt::Alignment align_lineedit = Qt::AlignLeft;
+    QString str_dateEditButtonStyle = QString("QDateEdit"
+                                              "{"
+                                              "font: bold 12px; "
+                                              "height: 15px;"
+                                              "padding : 2px;"
+                                              "color: %1;"
+                                              //"image: url(:/img/down_butt.png);"
+                                              "}"
+                                              "QDateEdit::up-button {"
+                                              "subcontrol-origin: border;"
+                                              "subcontrol-position: top right;" /* position at the top right corner */
+
+                                              "width: 30px;" /* 16 + 2*1px border-width = 15px padding + 3px parent border */
+                                              "height:10px;"
+                                              "border-image: url(:/img/up_butt.png) 1;"
+                                              "border-width: 1px;}"
+                                              "QDateEdit::down-button {"
+                                              "subcontrol-origin: border;"
+                                              "subcontrol-position: bottom right;" /* position at the top right corner */
+
+                                              "width: 30px;" /* 16 + 2*1px border-width = 15px padding + 3px parent border */
+                                              "height:10px;"
+                                              "border-image: url(:/img/down_butt.png) 1;"
+                                              "border-width: 1px;"
+                                          "}"
+                                              ).arg(str_dark_color_focusText);
+    QString str_labelStyle = "color: gray; font: italic 12px";
+    Qt::Alignment align_label = Qt::AlignLeft;
+    QString str_butStyle = QString("QPushButton { background-color: %1; font: bold 15px;color: %3; border-radius: 1px;}"
+                                   "QPushButton:pressed { background-color: %2; font: bold 20px;color: %3; border-radius: 1px;}")
+                                   .arg(str_color_but)
+                                   .arg(str_color_pressedBut)
+                                   .arg(str_light_color_label);
+
+    QString str_labelStyle_pic = QString("border-style: none ; color: %1").arg(str_dark_color_label);
+    QString str_labelStyle_resultHeader = QString("border-style: none ; font: 15px; color: %1").arg(str_dark_color_label);
+    QString str_labelStyle_resultData = QString("border-style: none ; font: 15px; color: %1").arg(str_dark_color_focusText);
+    //    QString str_dateEditStyle = QString("border-style: none ;"
+    //                                        "font: bold 15px; "
+    //                                        //"padding-right: 15px;" /* make room for the arrows */
+    //                                        "color: %1;"
+    //                                        "height: 30px;")
+    //                                        .arg(str_dark_color_focusText);
+    //    setStyleSheet("QDateEdit{"
+    //                  "font: bold 20px;}"
+    //                  "QDateEdit::up-button {"
+    //                  "border-width: 1px;"
+    //                  //"width: 10px;"
+    //                  //"height: 10px;};"
+    //                  );
+    //    QString str_dateEditButtonStyle = QString("QDateEdit::up-button { "
+    //                                              "width:27px; "
+    //                                              "height:21px;"
+    //                                              //"background-color: %1; "
+    //                                              //"bottom: 0px;}"
+    //                                              //"QDateEdit::up-arrow {"
+    //                                              //"image: url(:/img/up_arr.png);"
+    //                                              //"background-color: %2"
+    //                                              //"width:20px; "
+    //                                              //"height:20px;}"
+    //                                              "QDateEdit::down-button { "
+    //                                              "width:27px; "
+    //                                              "height:21px;"
+    //                                              //"background-color: %1; "
+    //                                              //"top: 0px;}"
+    //                                              //"QDateEdit::down-arrow {"
+    //                                              //"image: url(:/img/down_arr.png);"
+    //                                              //"width:20px; "
+    //                                              //"height:20px;}"
+    //                                              )
+    //            .arg(STR_WARM_DARK_COLOR);
+    //    QString str_dateEditButtonStyle = QString("QDateEdit"
+    //                                              "{"
+    //                                              "height: 43px;"
+    //                                              "padding : 5px;"
+    //                                              //"image: url(:/img/down_butt.png);"
+    //                                              "}"
+    ////                                              "QDateEdit::up-button "
+    ////                                              "{ "
+    ////                                              "background-color : lightgreen; "
+    ////                                              "}"
+    //                                              "QDateEdit::up-arrow"
+    //                                              "{"
+    //                                              "image: url(:/img/close.png);"
+
+    //                                              //"border : 2px solid black;"
+    //                                              //"background-color : lightgreen;"
+    //                                              "}"
+    //                                              "QDateEdit::down-arrow"
+    //                                              "{"
+    //                                              //"border : 2px solid black;"
+    //                                              //"background-color : red;"
+    //                                              "image: url(:/img/down_butt.png);"
+    //                                              "width:10px; "
+    //                                              "height:10px;"
+    //                                              "}"
+    //                               )/*.arg(STR_WARM_DARK_COLOR)*/ ;
+                //.arg(STR_MOSTLIGHT_COLOR);
+    //        image: url(:/new/myapp/cbarrowdn.png);
+    //        width:50px;
+    //        height:15px;
+    //        subcontrol-position: right top;
+    //        subcontrol-origin:margin;
+    //        background-color: white;
+    //        border-style: solid;
+    //        border-width: 4px;
+    //        border-color: rgb(100,100,100);
+    //       spacing: 5px;
+    //    }
     d_tab_central = new QTabWidget();
     d_tab_central->tabBar()->setExpanding(true);    
     setCentralWidget(d_tab_central);
@@ -114,106 +214,8 @@ MainWindow::MainWindow(QWidget *parent)
     /*birth date*/
     d_de_birthDate = new QDateEdit;
     d_de_birthDate->setInputMethodHints( Qt::ImhDigitsOnly);    
-    d_de_birthDate->setButtonSymbols(QAbstractSpinBox::UpDownArrows);
-//    QString str_dateEditStyle = QString("border-style: none ;"
-//                                        "font: bold 15px; "
-//                                        //"padding-right: 15px;" /* make room for the arrows */
-//                                        "color: %1;"
-//                                        "height: 30px;")
-//                                        .arg(str_dark_color_focusText);
-//    setStyleSheet("QDateEdit{"
-//                  "font: bold 20px;}"
-//                  "QDateEdit::up-button {"
-//                  "border-width: 1px;"
-//                  //"width: 10px;"
-//                  //"height: 10px;};"
-//                  );
-//    QString str_dateEditButtonStyle = QString("QDateEdit::up-button { "
-//                                              "width:27px; "
-//                                              "height:21px;"
-//                                              //"background-color: %1; "
-//                                              //"bottom: 0px;}"
-//                                              //"QDateEdit::up-arrow {"
-//                                              //"image: url(:/img/up_arr.png);"
-//                                              //"background-color: %2"
-//                                              //"width:20px; "
-//                                              //"height:20px;}"
-//                                              "QDateEdit::down-button { "
-//                                              "width:27px; "
-//                                              "height:21px;"
-//                                              //"background-color: %1; "
-//                                              //"top: 0px;}"
-//                                              //"QDateEdit::down-arrow {"
-//                                              //"image: url(:/img/down_arr.png);"
-//                                              //"width:20px; "
-//                                              //"height:20px;}"
-//                                              )
-//            .arg(STR_WARM_DARK_COLOR);
-//    QString str_dateEditButtonStyle = QString("QDateEdit"
-//                                              "{"
-//                                              "height: 43px;"
-//                                              "padding : 5px;"
-//                                              //"image: url(:/img/down_butt.png);"
-//                                              "}"
-////                                              "QDateEdit::up-button "
-////                                              "{ "
-////                                              "background-color : lightgreen; "
-////                                              "}"
-//                                              "QDateEdit::up-arrow"
-//                                              "{"
-//                                              "image: url(:/img/close.png);"
-
-//                                              //"border : 2px solid black;"
-//                                              //"background-color : lightgreen;"
-//                                              "}"
-//                                              "QDateEdit::down-arrow"
-//                                              "{"
-//                                              //"border : 2px solid black;"
-//                                              //"background-color : red;"
-//                                              "image: url(:/img/down_butt.png);"
-//                                              "width:10px; "
-//                                              "height:10px;"
-//                                              "}"
-//                               )/*.arg(STR_WARM_DARK_COLOR)*/ ;
-            //.arg(STR_MOSTLIGHT_COLOR);
-    QString str_dateEditButtonStyle = QString("QDateEdit"
-                                              "{"
-                                              "font: bold 12px; "
-                                              "height: 15px;"
-                                              "padding : 2px;"
-                                              "color: %1;"
-                                              //"image: url(:/img/down_butt.png);"
-                                              "}"
-                                              "QDateEdit::up-button {"
-                                              "subcontrol-origin: border;"
-                                              "subcontrol-position: top right;" /* position at the top right corner */
-
-                                              "width: 30px;" /* 16 + 2*1px border-width = 15px padding + 3px parent border */
-                                              "height:10px;"
-                                              "border-image: url(:/img/up_butt.png) 1;"
-                                              "border-width: 1px;}"
-                                              "QDateEdit::down-button {"
-                                              "subcontrol-origin: border;"
-                                              "subcontrol-position: bottom right;" /* position at the top right corner */
-
-                                              "width: 30px;" /* 16 + 2*1px border-width = 15px padding + 3px parent border */
-                                              "height:10px;"
-                                              "border-image: url(:/img/down_butt.png) 1;"
-                                              "border-width: 1px;"
-                                          "}"
-                                              ).arg(str_dark_color_focusText);
-    setStyleSheet(str_dateEditButtonStyle);
-    //        image: url(:/new/myapp/cbarrowdn.png);
-    //        width:50px;
-    //        height:15px;
-    //        subcontrol-position: right top;
-    //        subcontrol-origin:margin;
-    //        background-color: white;
-    //        border-style: solid;
-    //        border-width: 4px;
-    //        border-color: rgb(100,100,100);
-    //       spacing: 5px;
-    //    }
+    d_de_birthDate->setButtonSymbols(QAbstractSpinBox::UpDownArrows);    
+    setStyleSheet(str_dateEditButtonStyle);    
     //d_de_birthDate->setStyleSheet(str_dateEditStyle);
     layout_data->addWidget(d_de_birthDate);
     QFrame *line4 = new QFrame;
@@ -234,21 +236,15 @@ MainWindow::MainWindow(QWidget *parent)
     layout_data->addWidget(line5);
     QLabel *l_id = new QLabel(tr("ID"));
     list_labels_caption << l_id;
-    layout_data->addWidget(l_id);
-
-    QPalette p;
-    p.setColor(QPalette::PlaceholderText,Qt::gray);
-    p.setColor(QPalette::Text,QColor(str_dark_color_focusText));
-    QString str_lineeditStyle = "border-style: none ; font: bold 12px; text-align: center;";
-    QFont font_lineedit("Ubuntu Thin");
-    setStyle2list(list_lineedits_enterText, p, str_lineeditStyle, Qt::AlignLeft/*HCenter*/, font_lineedit);
+    layout_data->addWidget(l_id);    
+    setStyle2list(list_lineedits_enterText, palette_lineedit, str_lineeditStyle, align_lineedit, font_lineedit);
     //layout_data->addSpacing(5);
     layout_data->addStretch();
     /*diseases*/
     d_pte_disease = new LineEdit_Keyboard();
     d_pte_disease->setPlaceholderText(tr("Введите сопутствующие заболевания"));
     d_pte_disease->setStyleSheet(str_lineeditStyle);
-    d_pte_disease->setPalette(p);
+    d_pte_disease->setPalette(palette_lineedit);
     d_pte_disease->setFont(font_lineedit);    
     layout_data->addWidget(d_pte_disease);
     QFrame *line6 = new QFrame;
@@ -257,11 +253,8 @@ MainWindow::MainWindow(QWidget *parent)
     QLabel *l_disease = new QLabel(tr("Cопутствующие заболевания"));
     list_labels_caption << l_disease;
     layout_data->addWidget(l_disease);
-    //layout_data->addSpacing(5);
-
-    QString str_labelStyle = "color: gray; font: italic 12px";
-    setStyle2list(list_labels_caption, str_labelStyle, Qt::AlignLeft);
-
+    //layout_data->addSpacing(5);    
+    setStyle2list(list_labels_caption, str_labelStyle, align_label);
     frame_data->setLayout(layout_data);
     layout_data_total->addWidget(frame_data);
     //layout_data_total->addStretch();
@@ -269,12 +262,7 @@ MainWindow::MainWindow(QWidget *parent)
     layout_data_and_results->addWidget(frame_data_total);
     layout_data_and_results->addStretch();
     /*PushButton START*/
-    d_pb_start = new QPushButton (tr("Начать сеанс"));
-    QString str_butStyle = QString("QPushButton { background-color: %1; font: bold 15px;color: %3; border-radius: 1px;}"
-                                   "QPushButton:pressed { background-color: %2; font: bold 20px;color: %3; border-radius: 1px;}")
-                                   .arg(str_color_but)
-                                   .arg(str_color_pressedBut)
-                                   .arg(str_light_color_label);
+    d_pb_start = new QPushButton (tr("Начать сеанс"));    
     d_pb_start->setStyleSheet(str_butStyle);
     d_pb_start->setFixedSize(300,40);
     //d_pb_start->setMinimumSize(120,30);
@@ -294,15 +282,12 @@ MainWindow::MainWindow(QWidget *parent)
     QFrame *frame_dataResults = new QFrame;
     QHBoxLayout *layout_dataResults = new QHBoxLayout;
     d_l_pic_FixLeft = new QLabel;
-    d_l_pic_FixRight = new QLabel;
-    QString str_labelStyle_pic = QString("border-style: none ; color: %1").arg(str_dark_color_label);
+    d_l_pic_FixRight = new QLabel;    
     d_l_pic_FixLeft->setStyleSheet(str_labelStyle_pic);
     d_l_pic_FixRight->setStyleSheet(str_labelStyle_pic);
     d_l_pic_FixRight->setAlignment(Qt::AlignRight);
     QVBoxLayout *layout_digitsDataResults = new QVBoxLayout;
     QLabel *l_refraction = new QLabel(tr("Рефракция, dpt"));
-    QString str_labelStyle_resultHeader = QString("border-style: none ; font: 15px; color: %1").arg(str_dark_color_label);
-    QString str_labelStyle_resultData = QString("border-style: none ; font: 15px; color: %1").arg(str_dark_color_focusText);
     l_refraction->setStyleSheet(str_labelStyle_resultHeader);
     l_refraction->setAlignment(Qt::AlignHCenter);
     layout_digitsDataResults->addWidget(l_refraction);
@@ -319,8 +304,7 @@ MainWindow::MainWindow(QWidget *parent)
     QFrame *line1_res = new QFrame;
     decorateLine(line1_res, str_lineStyle);
     layout_digitsDataResults->addWidget(line1_res);
-    QLabel *l_diameter = new QLabel(tr("Диаметр зрачка, мм"));
-    //l_diameter->setStyleSheet("color: gray; font: italic 10px");
+    QLabel *l_diameter = new QLabel(tr("Диаметр зрачка, мм"));    
     l_diameter->setAlignment(Qt::AlignHCenter);
     l_diameter->setStyleSheet(str_labelStyle_resultHeader);
     layout_digitsDataResults->addWidget(l_diameter);
@@ -338,7 +322,6 @@ MainWindow::MainWindow(QWidget *parent)
     decorateLine(line2_res, str_lineStyle);
     layout_digitsDataResults->addWidget(line2_res);
     QLabel *l_interocular = new QLabel(tr("Межзрачковое расстояние, мм"));
-    //l_interocular->setStyleSheet("color: gray; font: italic 10px");
     l_interocular->setAlignment(Qt::AlignHCenter);
     l_interocular->setStyleSheet(str_labelStyle_resultHeader);
     layout_digitsDataResults->addWidget(l_interocular);
@@ -777,8 +760,8 @@ void MainWindow::slot_start()
        //memcpy(d_snapshotParams.buf, &buf, d_snapshotParams.size);
        QPixmap pix = image(d_snapshotParams, d_l_snapshot.size());
        d_l_snapshot.setPixmap(pix);
-       EyeCirclePos left {300,400,20};
-       EyeCirclePos right {500,410,20};
+       EyeCirclePos left {300,500,20};
+       EyeCirclePos right {500,510,20};
        d_l_eyes->setPixmap(ocular_pixmap(pix, left, right)
                .scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
        //d_l_snapshot.adjustSize();
@@ -1152,7 +1135,11 @@ QPicture MainWindow::fixation_result(const QPicture &grid, std::vector<EyeSkewCo
 QPixmap MainWindow::ocular_pixmap(const QPixmap & frame, const EyeCirclePos &left, const EyeCirclePos &right)
 {
     qDebug() << Q_FUNC_INFO;
-    unsigned short midline = static_cast<unsigned short>(round((left.vert + right.vert) / 2.));
+    //unsigned short midline = static_cast<unsigned short>(round((left.vert + right.vert) / 2.));
+    int midline = static_cast<int>(round((left.vert + right.vert) / 2.));
+    qDebug() << "midline" << midline;
+    midline = (midline <= frame.height()) ? midline : (frame.height()-midline);
+    qDebug() << "midline" << midline;
     if(left.vert < left.radius * 2 || left.horiz < left.radius * 2
             || right.horiz < right.radius * 2 || right.vert < right.radius * 2)
        return QPixmap();
