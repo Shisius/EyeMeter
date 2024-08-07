@@ -10,7 +10,7 @@ from dataset import CustomTestVectorDataset
 from net import RefractionNet
 import platform
 #import pickle
-#from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 # from src.neural_refraction.train import eval_list
 #from scipy.optimize import curve_fit
 
@@ -130,6 +130,12 @@ class EyeAnalyzer:
                     info_storage.append({'processed_eyes': zer_res,
                                          'metadata': part,
                                          'subset': 'val'})
+                    for z in zer_res:
+                        plt.subplot(121)
+                        plt.imshow(z['left']['flickless_pupil'])
+                        plt.subplot(122)
+                        plt.imshow(z['right']['flickless_pupil'])
+                        plt.show()
                 except:
                     pass
             try:

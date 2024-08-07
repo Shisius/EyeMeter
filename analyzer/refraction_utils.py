@@ -78,6 +78,14 @@ def process_pupil(pup_1_l, rel2deg=60):
             'flick_pos_rel': flick_pos_rel,}
 
 
+def get_eye_box(one_eye_b, anoth_eye_b):
+    pos_l = (int(anoth_eye_b[1]), int(anoth_eye_b[3]), int(anoth_eye_b[0]), int(anoth_eye_b[2]))
+    pos_r = (int(one_eye_b[1]), int(one_eye_b[3]), int(one_eye_b[0]), int(one_eye_b[2]))
+    if pos_l[2] < pos_r[2]:
+        pos_l, pos_r = pos_r, pos_l
+    return pos_l, pos_r
+
+
 def get_eye_mask(one_eye_m, anoth_eye_m):
     mask_1_r_x, mask_1_r_y = one_eye_m[:, 0], one_eye_m[:, 1]
     mask_1_l_x, mask_1_l_y = anoth_eye_m[:, 0], anoth_eye_m[:, 1]
@@ -107,9 +115,10 @@ def speed_estimation(start, end):
 
 def estimate_coeffs(a, part):
     # outs = pd.model(img)
-
-    start_coord = get_eye_mask(part['start_mask_left'], part['start_mask_right'])
-    end_coord = get_eye_mask(part['end_mask_left'], part['end_mask_right'])
+    start_coord = get_eye_box(part['start_box_left'], part['start_box_right'])
+    end_coord = get_eye_box(part['end_box_left'], part['end_box_right'])
+    # start_coord = get_eye_mask(part['start_mask_left'], part['start_mask_right'])
+    # end_coord = get_eye_mask(part['end_mask_left'], part['end_mask_right'])
     speed_l, speed_r = speed_estimation(start_coord, end_coord)
     result_lst = []
     num_frames = part['end_frame'] - part['start_frame']
