@@ -760,8 +760,8 @@ void MainWindow::slot_start()
        //memcpy(d_snapshotParams.buf, &buf, d_snapshotParams.size);
        QPixmap pix = image(d_snapshotParams, d_l_snapshot.size());
        d_l_snapshot.setPixmap(pix);
-       EyeCirclePos left {500,700,20};
-       EyeCirclePos right {300,710,20};
+       EyeCirclePos left {1263,626,31};
+       EyeCirclePos right {672,688,28};
        d_l_eyes->setPixmap(ocular_pixmap(pix, left, right)
                .scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
        //d_l_snapshot.adjustSize();
@@ -1136,13 +1136,26 @@ QPixmap MainWindow::ocular_pixmap(const QPixmap & frame, const EyeCirclePos &lef
 {
     qDebug() << Q_FUNC_INFO;
     //unsigned short midline = static_cast<unsigned short>(round((left.vert + right.vert) / 2.));
+    qDebug() << "left.horiz" << left.horiz;
+    qDebug() << "left.vert" << left.vert;
+    qDebug() << "left.radius" << left.radius;
+    qDebug() << "right.horiz" << right.horiz;
+    qDebug() << "right.vert" << right.vert;
+    qDebug() << "right.radius" << right.radius;
     int midline = static_cast<int>(round((left.vert + right.vert) / 2.));
     qDebug() << "midline" << midline;
-    midline = (midline <= (frame.height()-midline)) ? midline : (frame.height()-midline);
-    qDebug() << "midline" << midline;
-    if(left.vert < left.radius * 2 || left.horiz < left.radius * 2
-            || right.horiz < right.radius * 2 || right.vert < right.radius * 2)
+    //midline = (midline <= (frame.height()-midline)) ? midline : (frame.height()-midline);
+    //qDebug() << "midline" << midline;
+    if(left.vert < left.radius
+            || right.vert < right.radius
+            || (frame.height()-left.vert) < left.radius
+            || (frame.height()-right.vert) < right.radius
+            || left.horiz < left.radius
+            || (frame.width()-left.horiz) < left.radius
+            || right.horiz < right.radius
+            || (frame.width()-right.horiz) < right.radius)
        return QPixmap();
+
     QPixmap pix(frame);
     QPainter painter;
     painter.begin(&pix);
@@ -1161,7 +1174,7 @@ QPixmap MainWindow::ocular_pixmap(const QPixmap & frame, const EyeCirclePos &lef
     qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
     qDebug() << "d_l_eyes.size()" << d_l_eyes->size();
 
-    if( midline * (d_l_eyes->width()*2) <= (frame.width()*d_l_eyes->height()) )
+    if( ((midline <= (frame.height()-midline)) ? midline : (frame.height()-midline)) * (d_l_eyes->width()*2) <= (frame.width()*d_l_eyes->height()) )
     {
         qDebug() << "ocular_pixmap" << 2;
         if(midline*2 <= frame.height())
