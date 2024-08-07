@@ -1000,8 +1000,13 @@ void MainWindow::slot_readUds(UdsUniPack pack)
             qDebug() << "measResult.frame4circles" << measResult.frame4circles;
             if(d_vec_snapshots.size() > static_cast<int>(measResult.frame4circles))
             {
+                qDebug() << "d_vec_snapshots.size() > static_cast<int>(measResult.frame4circles)";
                 d_l_eyes->setPixmap(ocular_pixmap(image( d_vec_snapshots.at(measResult.frame4circles), d_l_snapshot.size()), measResult.left.position, measResult.right.position)
                         .scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
+            }
+            else
+            {
+                qDebug() << "d_vec_snapshots.size() <= static_cast<int>(measResult.frame4circles)";
             }
 
         }
