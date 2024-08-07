@@ -96,11 +96,11 @@ class EyeAnalyzer:
         left_r = int(((left[2] - left[0] + left[3] - left[1]) / 4).round())
 
         return {'n_frame': num,
-              'left_x': left_y,
-              'left_y': left_x,
+              'left_x': left_x,
+              'left_y': left_y,
               'left_r': left_r,
-              'right_x': right_y,
-              'right_y': right_x,
+              'right_x': right_x,
+              'right_y': right_y,
               'right_r': right_r
                               }
 
