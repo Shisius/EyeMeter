@@ -109,5 +109,5 @@ class MeasResult:
 		self.frame4circles = fc
 
 	def pack(self):
-		return self.left.pack() + self.right.pack() + struct.pack('2f', self.interocular, self.frame4circles)
+		return self.left.pack() + self.right.pack() + struct.pack('fI', self.interocular, self.frame4circles)
 	
