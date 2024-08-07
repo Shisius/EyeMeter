@@ -760,8 +760,8 @@ void MainWindow::slot_start()
        //memcpy(d_snapshotParams.buf, &buf, d_snapshotParams.size);
        QPixmap pix = image(d_snapshotParams, d_l_snapshot.size());
        d_l_snapshot.setPixmap(pix);
-       EyeCirclePos left {300,700,20};
-       EyeCirclePos right {500,710,20};
+       EyeCirclePos left {500,700,20};
+       EyeCirclePos right {300,710,20};
        d_l_eyes->setPixmap(ocular_pixmap(pix, left, right)
                .scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
        //d_l_snapshot.adjustSize();
@@ -1149,7 +1149,10 @@ QPixmap MainWindow::ocular_pixmap(const QPixmap & frame, const EyeCirclePos &lef
     painter.setPen(QPen(QColor(STR_COLD_DARK_COLOR), 2));
     painter.drawEllipse(QPoint(left.horiz,left.vert),static_cast<int>(left.radius),static_cast<int>(left.radius));
     painter.drawEllipse(QPoint(right.horiz,left.vert),static_cast<int>(right.radius),static_cast<int>(right.radius));
-    painter.drawLine(QPoint(left.horiz + left.radius,left.vert),QPoint(right.horiz - right.radius,left.vert));
+    if(left.horiz < right.horiz)
+        painter.drawLine(QPoint(left.horiz + left.radius,left.vert),QPoint(right.horiz - right.radius,left.vert));
+    else
+        painter.drawLine(QPoint(right.horiz + right.radius,left.vert),QPoint(left.horiz - left.radius,left.vert));
     painter.end();
     qDebug() << "ocular_pixmap" << 1;
     QRect rect;
