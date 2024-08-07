@@ -18,8 +18,8 @@ from matplotlib import pyplot as plt
 class EyeAnalyzer:
     def __init__(self, num_imgs=40, path_to_chck='.\\weights\\only_wab.pt',
                  cfg_root='.\\weights\\my_yolo8n-seg.yaml',
-                 ref_weights_path='.\\weights\\weights.pt'):
-
+                 ref_weights_path='.\\weights\\weights.pt', verbose=False):
+        self.verbose = verbose
         self.pd = PupilDetect(path_to_chck=self.adj_os(path_to_chck), conf=0.5, cfg_root=self.adj_os(cfg_root))
         self.num_imgs = num_imgs
         self.pix2mm = 0.09267
@@ -130,12 +130,13 @@ class EyeAnalyzer:
                     info_storage.append({'processed_eyes': zer_res,
                                          'metadata': part,
                                          'subset': 'val'})
-                    for z in zer_res:
-                        plt.subplot(121)
-                        plt.imshow(z['left']['flickless_pupil'])
-                        plt.subplot(122)
-                        plt.imshow(z['right']['flickless_pupil'])
-                        plt.show()
+                    if self.verbose:
+                        for z in zer_res:
+                            plt.subplot(121)
+                            plt.imshow(z['left']['flickless_pupil'])
+                            plt.subplot(122)
+                            plt.imshow(z['right']['flickless_pupil'])
+                            plt.show()
                 except:
                     pass
             try:
