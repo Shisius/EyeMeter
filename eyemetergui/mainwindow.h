@@ -92,6 +92,7 @@ class MainWindow : public QMainWindow
     Image_params d_snapshotParams;
     uint d_measShotsCount;
     QVector<Image_params> d_vec_snapshots;
+    //double d_kscale;
     //QFrame d_mainFrame;
     QVBoxLayout mainWinLayout;
     QHBoxLayout tb_layout;
@@ -129,7 +130,8 @@ class MainWindow : public QMainWindow
     //QVBoxLayout resultInfoLayout();
     void measFinished(const QString &res);
     QPixmap image(const Image_params &, QSize size);
-    QPixmap ocular_pixmap(const QPixmap &frame, const EyeCirclePos &left, const EyeCirclePos &right);
+    //QPixmap ocular_pixmap(const Image_params & params, const EyeCirclePos &left, const EyeCirclePos &right, double scale);
+    QPixmap ocular_pixmap(const Image_params & params, const EyeCirclePos &left, const EyeCirclePos &right);
     QPicture fixation_grid(int side, QColor grid = Qt::gray);
     QPicture fixation_result(const QPicture & grid, std::vector<EyeSkewCoords> skew_vec, QColor dots_color = Qt::red);
 public:
