@@ -48,10 +48,10 @@ class EyeAnalyzer:
             with torch.inference_mode():
                 result = self.pd.model.predict([np.random.randint(0, 255, (416, 640))[:, :, None].repeat(3, axis=-1)],
                                                save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
-        if not self.pd.reinit_succ:
-            print('Try to save model')
-            self.pd.save_model()
-            print('Model successfuly saved')
+        # if not self.pd.reinit_succ:
+        #     print('Try to save model')
+        #     self.pd.save_model()
+        #     print('Model successfuly saved')
 
         print('Pre run finished')
 
