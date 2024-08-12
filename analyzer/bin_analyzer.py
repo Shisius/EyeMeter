@@ -51,6 +51,7 @@ class EyeAnalyzer:
         if not self.pd.reinit_succ:
             print('Try to save model')
             self.pd.save_model()
+            print('Model successfuly saved')
 
         print('Pre run finished')
 
