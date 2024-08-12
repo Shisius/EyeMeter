@@ -162,8 +162,8 @@ class EyeAnalyzer:
             try:
                 left_skew = [d1['left']['flick_pos_rel'] for d in info_storage for d1 in d['processed_eyes']]
                 right_skew = [d1['right']['flick_pos_rel'] for d in info_storage for d1 in d['processed_eyes']]
-                result_dict['left_skew'] = right_skew
-                result_dict['right_skew'] = left_skew
+                result_dict['left_skew'] = left_skew
+                result_dict['right_skew'] = right_skew
             except Exception as e:
                 print(f'An error during skew getting: {e}')
             val_dataset = CustomTestVectorDataset(info_storage)
