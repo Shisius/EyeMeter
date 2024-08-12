@@ -145,8 +145,8 @@ class EyeAnalyzer:
                             plt.subplot(122)
                             plt.imshow(z['right']['flickless_pupil'])
                             plt.show()
-                except:
-                    pass
+                except Exception as e:
+                    print(f'An error during Zernike getting: {e}')
             try:
                 left_pupil = info_storage[-1]['processed_eyes'][-1]['left']['flickless_pupil']
                 left_pupil = F.interpolate(torch.tensor(left_pupil[None, None, :, :]).float(),
@@ -158,14 +158,14 @@ class EyeAnalyzer:
                 result_dict['right_pupil'] = right_pupil
             except Exception as e:
                 print(f'An error during pupil getting: {e}')
-                pass
+
             try:
                 left_skew = [d1['left']['flick_pos_rel'] for d in info_storage for d1 in d['processed_eyes']]
                 right_skew = [d1['right']['flick_pos_rel'] for d in info_storage for d1 in d['processed_eyes']]
                 result_dict['left_skew'] = left_skew
                 result_dict['right_skew'] = right_skew
-            except:
-                pass
+            except Exception as e:
+                print(f'An error during skew getting: {e}')
             val_dataset = CustomTestVectorDataset(info_storage)
             dataloader = DataLoader(val_dataset, batch_size=128, shuffle=False)
             out_lst = []
