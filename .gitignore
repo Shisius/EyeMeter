@@ -15,4 +15,5 @@ _deps
 *.pyc
 *.pt
 *.pth
+*.idea
 /test/

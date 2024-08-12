@@ -1,5 +1,6 @@
 from ultralytics import YOLO
 import cv2
+import os
 from matplotlib import pyplot as plt
 import torch
 import numpy as np
@@ -30,17 +31,28 @@ class PupilDetect:
     def __init__(self, path_to_chck='D:\\Projects\\eye_blinks\\medicoptic\\src\\yolo_v8\\'
                                     'model_train\\runs\segment\\train16\weights\\last.pt',
                         cfg_root='.\\my_yolo8n-seg.yaml',
+                        load_model_path=',',
                         conf=0.5,
                         imgsz=640):
+        # if os.path.isfile(load_model_path):
+        #     self.model = torch.load(load_model_path)
+        #     print('Model was successfully reintialized')
+        #     self.reinit_succ = True
+        # else:
         self.model = YOLO(cfg_root)  # build a new model from YAML
         wab = torch.load(path_to_chck)
         wab = OrderedDict([(k.replace('model.', 'model.model.'), v) for k, v in wab.items()])
         self.model.load_state_dict(wab)
+            # self.reinit_succ = False
         # self.model.model = self.model.model.eval()
         # self.model.fuse()
         # self.model = YOLO(path_to_chck)  # load a custom model
         self.conf = conf
         self.imgsz = imgsz
+    #     self.load_model_path = load_model_path
+    #
+    # def save_model(self):
+    #     torch.save(self.model, self.load_model_path)
 
     def get_flickless_pupil(self, im_path, remove_flick=True):
         gap = 7
