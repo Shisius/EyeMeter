@@ -29,9 +29,9 @@ class EyeAnalyzer:
         self.pix2mm = 0.09267
         input_sz = 28
         num_cls = 3
-        hidden_sz = 128
-        do_rate = 0.1
-        num_layers = 10
+        hidden_sz = 1024
+        do_rate = 0.3
+        num_layers = 4
 
         self.ref_net = RefractionNet(input_sz,
                                      num_cls,
