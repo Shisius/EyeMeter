@@ -87,7 +87,7 @@ def process_pupil(pup_1_l, rel2deg=60):
     bilin = F.interpolate(torch.tensor([[c1, c3], [c2, c4]])[None, None],
                           size=(int(y2 - y1), int(x2 - x1)), mode='bilinear')[0][0].numpy()
     pupil[y1:y2, x1:x2] = bilin + np.random.randn(y2 - y1, x2 - x1) * pupil[y1:y1 + gap, x1:x1 + gap].std()
-    pupil = F.interpolate(torch.tensor(pupil[None, None, :, :]), size=(33, 33), mode='bilinear')[0][0].numpy()
+    pupil = F.interpolate(torch.tensor(pupil[None, None, :, :]).float(), size=(33, 33), mode='bilinear')[0][0].numpy()
     # pupil[(pupil.mean() * 0.85 < pupil) * (pupil > pupil.mean() * 1.15)] = pupil.mean()
     pupil = pick_filter(pupil)
     res = get_zernicke_from_image(pupil, offset=0)
