@@ -402,19 +402,21 @@ MainWindow::MainWindow(QWidget *parent)
     d_pic_fixGrid = fixation_grid(graphSide, str_color_grid);
     d_l_pic_FixLeft->setPicture(d_pic_fixGrid);
     d_l_pic_FixRight->setPicture(d_pic_fixGrid);
-#ifdef TEST_snapshot
-    std::vector<EyeSkewCoords> left(5);
-    std::vector<EyeSkewCoords> right(5);
+//#ifdef TEST_snapshot
+//    std::vector<EyeSkewCoords> left(5);
+//    std::vector<EyeSkewCoords> right(5);
 
-    for (size_t i = 0; i < 5; i++) {
-        left[i].x = i*5;
-        left[i].y = i*4;
-        right[i].x = i*2;
-        right[i].y = i*3;
-    }
-    d_l_pic_FixLeft->setPicture(fixation_result(d_pic_fixGrid, left, STR_WARM_DARK_COLOR));
-    d_l_pic_FixRight->setPicture(fixation_result(d_pic_fixGrid, right, STR_WARM_DARK_COLOR));
-#endif
+//    for (size_t i = 0; i < 5; i++) {
+//        left[i].x = i*5;
+//        left[i].y = i*4;
+//        right[i].x = i*2;
+//        right[i].y = i*3;
+//    }
+//    d_l_pic_FixLeft->setFixedSize(d_pic_fixGrid.width(), d_pic_fixGrid.height());
+//    d_l_pic_FixRight->setFixedSize(d_pic_fixGrid.width(), d_pic_fixGrid.height());
+//    d_l_pic_FixLeft->setPicture(fixation_result(d_pic_fixGrid, left, STR_WARM_DARK_COLOR));
+//    d_l_pic_FixRight->setPicture(fixation_result(d_pic_fixGrid, right, STR_WARM_DARK_COLOR));
+//#endif
     d_l_pic_FixLeft->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
 
 
@@ -769,6 +771,19 @@ void MainWindow::slot_start()
        d_l_eyes->setPixmap(ocular_pixmap(d_snapshotParams, left, right)
                .scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
        //d_l_snapshot.adjustSize();
+       std::vector<EyeSkewCoords> leftSkew(5);
+       std::vector<EyeSkewCoords> rightSkew(5);
+
+       for (size_t i = 0; i < 5; i++) {
+           leftSkew[i].x = i*5;
+           leftSkew[i].y = i*4;
+           rightSkew[i].x = i*2;
+           rightSkew[i].y = i*3;
+       }
+       d_l_pic_FixLeft->setFixedSize(d_pic_fixGrid.width(), d_pic_fixGrid.height());
+       d_l_pic_FixRight->setFixedSize(d_pic_fixGrid.width(), d_pic_fixGrid.height());
+       d_l_pic_FixLeft->setPicture(fixation_result(d_pic_fixGrid, leftSkew, STR_WARM_DARK_COLOR));
+       d_l_pic_FixRight->setPicture(fixation_result(d_pic_fixGrid, rightSkew, STR_WARM_DARK_COLOR));
 #endif
 }
 
