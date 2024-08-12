@@ -142,7 +142,7 @@ def estimate_coeffs(a, part):
     speed_l, speed_r = speed_estimation(start_coord, end_coord)
     result_lst = []
     num_frames = part['end_frame'] - part['start_frame']
-    for idx, r in enumerate(range(part['start_frame'] + 1, part['end_frame'], 1)):
+    for idx, r in enumerate(range(part['start_frame'], part['end_frame'] + 1, 1)):
         img_1 = a[r]
 
         x_min_l, x_max_l = start_coord[0][0] + speed_l[0] / num_frames * (idx + 1), \
