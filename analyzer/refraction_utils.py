@@ -13,6 +13,25 @@ import matplotlib.pyplot as plt
 # from src.components.software.primitive_detection.hough_detector.pupil_finder import contour_finder, fit_circle, \
 #     circles_find
 
+def pick_filter(img, lt_c=0.8, gt_c=1.25):
+    img = torch.tensor(img).float()
+    kernel_h = torch.tensor([[1, 1, 1], [0, 0, 0], [1, 1, 1]]) / 6
+    kernel_v = torch.tensor([[1, 0, 1], [1, 0, 1], [1, 0, 1]]) / 6
+    img_h = F.conv2d(img[None, None, :, :], kernel_h[None, None, :, :], stride=1, padding=1)[0, 0]
+    img_h[-1, :] = img.mean()
+    img_h[0, :] = img.mean()
+    img_h[:, -1] = img.mean()
+    img_h[:, 0] = img.mean()
+    img_v = F.conv2d(img[None, None, :, :], kernel_v[None, None, :, :], stride=1, padding=1)[0, 0]
+    img_v[-1, :] = img.mean()
+    img_v[0, :] = img.mean()
+    img_v[:, -1] = img.mean()
+    img_v[:, 0] = img.mean()
+    img_hv = (img_h + img_v) / 2
+    img[img > gt_c * img.mean()] = img_hv[img > gt_c * img.mean()]
+    img[img < lt_c * img.mean()] = img_hv[img < lt_c * img.mean()]
+    return img.numpy().astype(np.uint8)
+
 
 def get_zernicke_from_image(gray_img, radial_order=6, rad_cut=1.0, norm=False, offset=0):
     L, K = gray_img.shape[0], gray_img.shape[1]
@@ -58,18 +77,19 @@ def process_pupil(pup_1_l, rel2deg=60):
     if y1 + gap >= pup_1_l.shape[0]:
         return None
     # remove_flick = True
-    if True:
-        pupil = np.array(pup_1_l)
-        c1 = pupil[y1:y1 + gap, x1:x1 + gap].mean()
-        c2 = pupil[y2 - gap:y2, x1:x1 + gap].mean()
-        c3 = pupil[y1:y1 + gap, x2 - gap:x2].mean()
-        c4 = pupil[y2 - gap:y2, x2 - gap:x2].mean()
-        #c1 = c2 = c3 = c4 = np.array([c1, c2, c3, c4]).mean()
-        bilin = F.interpolate(torch.tensor([[c1, c3], [c2, c4]])[None, None],
-                              size=(int(y2 - y1), int(x2 - x1)), mode='bilinear')[0][0].numpy()
-        pupil[y1:y2, x1:x2] = bilin + np.random.randn(y2 - y1, x2 - x1) * pupil[y1:y1 + gap, x1:x1 + gap].std()
-        # plt.imshow(pupil)
-        # plt.show()
+
+    pupil = np.array(pup_1_l)
+    c1 = pupil[y1:y1 + gap, x1:x1 + gap].mean()
+    c2 = pupil[y2 - gap:y2, x1:x1 + gap].mean()
+    c3 = pupil[y1:y1 + gap, x2 - gap:x2].mean()
+    c4 = pupil[y2 - gap:y2, x2 - gap:x2].mean()
+    #c1 = c2 = c3 = c4 = np.array([c1, c2, c3, c4]).mean()
+    bilin = F.interpolate(torch.tensor([[c1, c3], [c2, c4]])[None, None],
+                          size=(int(y2 - y1), int(x2 - x1)), mode='bilinear')[0][0].numpy()
+    pupil[y1:y2, x1:x2] = bilin + np.random.randn(y2 - y1, x2 - x1) * pupil[y1:y1 + gap, x1:x1 + gap].std()
+    pupil = F.interpolate(torch.tensor(pupil[None, None, :, :]), size=(33, 33), mode='bilinear')[0][0].numpy()
+    # pupil[(pupil.mean() * 0.85 < pupil) * (pupil > pupil.mean() * 1.15)] = pupil.mean()
+    pupil = pick_filter(pupil)
     res = get_zernicke_from_image(pupil, offset=0)
     return {'flickless_pupil': pupil,
             'zernicke_c': res[2].astype(np.float32),

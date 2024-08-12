@@ -25,7 +25,7 @@ class RefractionNet(nn.Module):
     def __init__(self, input_sz, num_cls, hidden_sz=256, do_rate=0.3, num_layers=2):
         super().__init__()
         self.fc1 = nn.Sequential(
-            nn.Linear(input_sz * 3 + 16 + 2, hidden_sz),
+            nn.Linear(input_sz * 5 + 16 + 2, hidden_sz),
             nn.BatchNorm1d(hidden_sz),
             nn.ReLU()
         )

@@ -25,11 +25,10 @@ class EyeAnalyzer:
         self.pix2mm = 0.09267
         input_sz = 28
         num_cls = 3
-        hidden_sz = 256
+        hidden_sz = 128
         do_rate = 0.1
         num_layers = 10
-        num_ep = 200
-        lr = 2e-3
+
         self.ref_net = RefractionNet(input_sz,
                                 num_cls,
                                 hidden_sz=hidden_sz,
@@ -163,8 +162,10 @@ class EyeAnalyzer:
             out_lst = []
 
             for rotation, Zernicke_coef, eye, pupil_rad, flick_rad in tqdm(dataloader, total=len(dataloader)):
-                out_lst.append([self.ref_net(Zernicke_coef, eye, rotation, pupil_rad, flick_rad).detach().cpu().numpy(),
-                                rotation, eye])
+                with torch.no_grad():
+                    out_lst.append([self.ref_net(Zernicke_coef, eye, rotation,
+                                                 pupil_rad, flick_rad).detach().cpu().numpy(),
+                                    rotation, eye])
             left = out_lst[0][0][out_lst[0][2] == 0].mean(0)
             right = out_lst[0][0][out_lst[0][2] == 1].mean(0)
             result_dict['sph_left'] = round(left[0] / 0.25) * 0.25
@@ -184,7 +185,7 @@ class EyeAnalyzer:
 
 
 if __name__ == '__main__':
-    ea_inst = EyeAnalyzer()
+    ea_inst = EyeAnalyzer(verbose=False)
     fname = 'D:\Projects\eye_blinks\data_24\\12_06_24\\657_2024_06_12_17_23_56.bin'
     #fname = '777_2024_06_12_20_34_55.bin'
 
