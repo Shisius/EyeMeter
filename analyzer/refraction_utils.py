@@ -53,8 +53,8 @@ def get_zernicke_from_image(gray_img, radial_order=6, rad_cut=1.0, norm=False, o
 
 def process_pupil(pup_1_l, rel2deg=60):
     flick_pos = np.unravel_index(np.argmax(pup_1_l), np.array(pup_1_l).shape)
-    flick_pos_rel = (flick_pos[0] / pup_1_l.shape[0] - 0.5) * rel2deg, \
-                    (flick_pos[1] / pup_1_l.shape[1] - 0.5) * rel2deg
+    flick_pos_rel = (flick_pos[1] / pup_1_l.shape[1] - 0.5) * rel2deg, \
+                    (flick_pos[0] / pup_1_l.shape[0] - 0.5) * rel2deg
     gap = 6
     cut_sz = 12
     x1, y1, x2, y2 = flick_pos[1], flick_pos[0], flick_pos[1], flick_pos[0]

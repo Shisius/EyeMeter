@@ -10,6 +10,7 @@ class ResFC(nn.Module):
         self.act = nn.LeakyReLU()
         self.do = nn.Dropout(do_rate)
         self.bn = nn.BatchNorm1d(hidden_sz)
+        self.bn2 = nn.BatchNorm1d(hidden_sz)
 
     def forward(self, x):
         y = x

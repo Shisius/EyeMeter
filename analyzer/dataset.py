@@ -76,7 +76,7 @@ class CustomTestVectorDataset(Dataset):
         Zernicke_coef = torch.cat([torch.tensor(d[eye]['zernicke_c'])
                                    [None, :] for d in data['processed_eyes']]).to(torch.float32)
 
-        pupil_rad = np.array([sz/2 for d in data['processed_eyes'] for sz in torch.tensor(d[eye]['init_pupil']).size()]).mean()
+        pupil_rad = np.array([sz/2 for d in data['processed_eyes'] for sz in torch.tensor(d[eye]['init_pupil']).size()]).mean()*0
         eye = self.eye2idx[eye]
         flick_rad = 0
         return rotation, Zernicke_coef, eye, pupil_rad, flick_rad
