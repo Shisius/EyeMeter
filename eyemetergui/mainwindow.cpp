@@ -333,9 +333,25 @@ MainWindow::MainWindow(QWidget *parent)
     decorateLine(line3_res, str_lineStyle);
     layout_digitsDataResults->addWidget(line3_res);
     layout_digitsDataResults->setAlignment(Qt::AlignCenter);
-    layout_dataResults->addWidget(d_l_pic_FixLeft);
+    QVBoxLayout *layout_fixLeft = new QVBoxLayout;
+    layout_fixLeft->setAlignment(Qt::AlignHCenter);
+    QLabel *l_fixLeft = new QLabel(tr("OD"));
+    l_fixLeft->setAlignment(Qt::AlignHCenter);
+    l_fixLeft->setStyleSheet( str_labelStyle_resultHeader);
+    layout_fixLeft->addWidget(l_fixLeft);
+    layout_fixLeft->addWidget(d_l_pic_FixLeft);
+    layout_dataResults->addLayout(layout_fixLeft);
+    //layout_dataResults->addWidget(d_l_pic_FixLeft);
     layout_dataResults->addLayout(layout_digitsDataResults);
-    layout_dataResults->addWidget(d_l_pic_FixRight);
+    QVBoxLayout *layout_fixRight = new QVBoxLayout;
+    layout_fixRight->setAlignment(Qt::AlignHCenter);
+    QLabel *l_fixRight = new QLabel(tr("OS"));
+    l_fixRight->setAlignment(Qt::AlignHCenter);
+    l_fixRight->setStyleSheet( str_labelStyle_resultHeader);
+    layout_fixRight->addWidget(l_fixRight);
+    layout_fixRight->addWidget(d_l_pic_FixRight);
+    layout_dataResults->addLayout(layout_fixRight);
+    //layout_dataResults->addWidget(d_l_pic_FixRight);
     frame_dataResults->setLayout(layout_dataResults);
     layout_dataResults_total->addWidget(frame_dataResults);
     layout_dataResults_total->addStretch();
@@ -810,6 +826,17 @@ void MainWindow::slot_measure()
     if(d_measReviewButs != nullptr)
         d_measReviewButs->hide(true);
     d_isMeasurStarted = false;
+    /*Clear results*/
+    d_l_pic_FixLeft->setPicture(d_pic_fixGrid);
+    d_l_pic_FixRight->setPicture(d_pic_fixGrid);
+    d_l_refractionLeft->clear();
+    d_l_refractionRight->clear();
+    d_l_diameterLeft->clear();
+    d_l_diameterRight->clear();
+    d_l_interocularRes->clear();
+    d_l_leftEye->clear();
+    d_l_rightEye->clear();
+    d_l_eyes->clear();
 }
 
 void MainWindow::slot_showMeasImg(uint num)
@@ -973,6 +1000,8 @@ void MainWindow::slot_readUds(UdsUniPack pack)
             std::vector<EyeSkewCoords> leftSkew;
             std::vector<EyeSkewCoords> rightSkew;
             d_measResultShmemReader->get_skew(leftSkew, rightSkew, d_measShotsCount);
+            d_l_pic_FixLeft->setFixedSize(d_pic_fixGrid.width(), d_pic_fixGrid.height());
+            d_l_pic_FixRight->setFixedSize(d_pic_fixGrid.width(), d_pic_fixGrid.height());
             d_l_pic_FixLeft->setPicture(fixation_result(d_pic_fixGrid, leftSkew, STR_WARM_DARK_COLOR));
             d_l_pic_FixRight->setPicture(fixation_result(d_pic_fixGrid, rightSkew, STR_WARM_DARK_COLOR));
             /*PUPILS*/
