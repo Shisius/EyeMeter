@@ -21,7 +21,7 @@ class EyeAnalyzer:
     def __init__(self, num_imgs=40, path_to_chck='.\\weights\\only_wab.pt',
                  cfg_root='.\\weights\\my_yolo8n-seg.yaml',
                  ref_weights_path='.\\weights\\weights.pt',
-                 load_model_path='.\\weights\\yolo_eye.pt', verbose=False):
+                 load_model_path='.\\weights\\yolo_eye.pt', verbose=False, reverse=-1):
         self.verbose = verbose
         self.pd = PupilDetect(path_to_chck=self.adj_os(path_to_chck), conf=0.5,
                               cfg_root=self.adj_os(cfg_root), load_model_path=self.adj_os(load_model_path))
@@ -32,7 +32,7 @@ class EyeAnalyzer:
         hidden_sz = 1024
         do_rate = 0.3
         num_layers = 4
-
+        self.reverse = reverse  # -1 if predict shoul be inversed
         self.ref_net = RefractionNet(input_sz,
                                      num_cls,
                                      hidden_sz=hidden_sz,
@@ -84,13 +84,13 @@ class EyeAnalyzer:
                       (arr_form[:, 1, 0] + arr_form[:, 1, 2]) / 2) ** 2 +
                      (((arr_form[:, 0, 1] + arr_form[:, 0, 3]) / 2) -
                       (arr_form[:, 1, 1] + arr_form[:, 1, 3]) / 2) ** 2) ** 0.5).mean()
-        return round(intra_oc * self.pix2mm, 2)
+        return round((intra_oc * self.pix2mm) / 0.2) * 0.2
 
     def get_eye_diameter(self, nn_boxes_list):
         arr_form = np.array([[t[1].detach().cpu().numpy(), t[2].detach().cpu().numpy()] for t in nn_boxes_list])
         rr = ((arr_form[:, 0, 2] - arr_form[:, 0, 0]).mean() + (arr_form[:, 0, 3] - arr_form[:, 0, 1]).mean()) / 2
         ll = ((arr_form[:, 1, 2] - arr_form[:, 1, 0]).mean() + (arr_form[:, 1, 3] - arr_form[:, 1, 1]).mean()) / 2
-        return round(ll * self.pix2mm, 2), round(rr * self.pix2mm, 2)
+        return round(ll * self.pix2mm / 0.2) * 0.2, round(rr * self.pix2mm / 0.2) * 0.2
 
     def get_eye_positions(self, nn_boxes_list):
         num = nn_boxes_list[-1][0]
@@ -177,11 +177,11 @@ class EyeAnalyzer:
                                     rotation, eye])
             left = out_lst[0][0][out_lst[0][2] == 0].mean(0)
             right = out_lst[0][0][out_lst[0][2] == 1].mean(0)
-            result_dict['sph_left'] = round(left[0] / 0.25) * 0.25
-            result_dict['cyl_left'] = round(left[1] / 0.25) * 0.25
+            result_dict['sph_left'] = self.reverse * round(left[0] / 0.25) * 0.25
+            result_dict['cyl_left'] = self.reverse * round(left[1] / 0.25) * 0.25
             result_dict['angle_left'] = round(left[2] / 30) * 30
-            result_dict['sph_right'] = round(right[0] / 0.25) * 0.25
-            result_dict['cyl_right'] = round(right[1] / 0.25) * 0.25
+            result_dict['sph_right'] = self.reverse * round(right[0] / 0.25) * 0.25
+            result_dict['cyl_right'] = self.reverse * round(right[1] / 0.25) * 0.25
             result_dict['angle_right'] = round(right[2] / 30) * 30
         except:
             pass
