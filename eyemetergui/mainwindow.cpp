@@ -1417,8 +1417,8 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/)
     qDebug() << "d_l_eyes"<<d_l_eyes->size();
     qDebug() << "d_l_refractionLeft"<<d_l_refractionLeft->size();
     qDebug() << "d_l_refractionRight"<<d_l_refractionRight->size();
-    qDebug() << "d_l_diameterLeft"<<d_l_diameterLeft->size();
-    qDebug() << "d_l_diameterRight"<<d_l_diameterRight->size();
+//    qDebug() << "d_l_diameterLeft"<<d_l_diameterLeft->size();
+//    qDebug() << "d_l_diameterRight"<<d_l_diameterRight->size();
     qDebug() << "d_l_interocularRes"<<d_l_interocularRes->size();
     qDebug() << "d_l_pic_FixLeft"<<d_l_pic_FixLeft->size();
     qDebug() << "d_l_pic_FixRight"<<d_l_pic_FixRight->size();
