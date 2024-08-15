@@ -841,8 +841,8 @@ void MainWindow::slot_measure()
     d_l_pic_FixRight->setPicture(d_pic_fixGrid);
     d_l_refractionLeft->clear();
     d_l_refractionRight->clear();
-    d_l_diameterLeft->clear();
-    d_l_diameterRight->clear();
+    //d_l_diameterLeft->clear();
+    //d_l_diameterRight->clear();
     d_l_interocularRes->clear();
     d_l_leftEye->clear();
     d_l_rightEye->clear();
@@ -1000,8 +1000,8 @@ void MainWindow::slot_readUds(UdsUniPack pack)
         d_l_refractionLeft->setText(measResLeft_str);
         d_l_refractionRight->setText(measResRight_str);
 
-        d_l_diameterLeft ->setText(QString::number(measResult.left.diameter));
-        d_l_diameterRight->setText(QString::number(measResult.right.diameter));
+        //d_l_diameterLeft ->setText(QString::number(measResult.left.diameter));
+        //d_l_diameterRight->setText(QString::number(measResult.right.diameter));
 
         d_l_interocularRes->setText(QString::number(measResult.interocular));
 
