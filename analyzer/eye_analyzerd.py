@@ -36,6 +36,7 @@ if __name__ == "__main__":
             gui['bg']='#777777'
             gui.update()
             daemon.start()
+            del gui
         elif 'stop' == sys.argv[1]:
             daemon.stop()
         elif 'print' == sys.argv[1]:
