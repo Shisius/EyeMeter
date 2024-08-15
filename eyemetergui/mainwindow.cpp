@@ -785,15 +785,17 @@ void MainWindow::slot_start()
        qDebug() << Q_FUNC_INFO << "file_end";
        //memcpy(d_snapshotParams.buf, &buf, d_snapshotParams.size);
        QPixmap pix = image(d_snapshotParams, d_l_snapshot.size());
-       double kscale = static_cast<double>(pix.width())/d_snapshotParams.frame_width;
-       qDebug() << "kscale" << kscale;
-       qDebug() << "hscale" << static_cast<double>(pix.height())/d_snapshotParams.frame_height;
+       //double kscale = static_cast<double>(pix.width())/d_snapshotParams.frame_width;
+       //qDebug() << "kscale" << kscale;
+       //qDebug() << "hscale" << static_cast<double>(pix.height())/d_snapshotParams.frame_height;
        d_l_snapshot.setPixmap(pix);
        //{'n_frame': 36, 'left_x': 1386, 'left_y': 529, 'left_r': 26, 'right_x': 822, 'right_y': 569, 'right_r': 26}}
        EyeCirclePos left {1386,529,26};
        EyeCirclePos right {822,569,26};
+       d_l_eyes->setFixedSize(d_l_eyes->size());
        d_l_eyes->setPixmap(ocular_pixmap(d_snapshotParams, left, right)
                .scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
+       qDebug() << "d_l_eyes->size()" << d_l_eyes->size();
        //d_l_snapshot.adjustSize();
        std::vector<EyeSkewCoords> leftSkew(5);
        std::vector<EyeSkewCoords> rightSkew(5);
@@ -1043,6 +1045,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 qDebug() << "d_vec_snapshots.size() > static_cast<int>(measResult.frame4circles)";
                 //QPixmap snapshot = image( d_vec_snapshots.at(measResult.frame4circles), d_l_snapshot.size());
                 //double kscale = static_cast<double>(snapshot.width())/d_vec_snapshots.at(measResult.frame4circles).frame_width;
+                d_l_eyes->setFixedSize(d_l_eyes->size());
                 d_l_eyes->setPixmap(ocular_pixmap(d_vec_snapshots.at(measResult.frame4circles), measResult.left.position, measResult.right.position)
                         .scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
             }
