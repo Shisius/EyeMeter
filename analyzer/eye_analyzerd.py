@@ -2,7 +2,7 @@
  
 import sys, time
 from daemon import Daemon
-from tkinter import *
+# from tkinter import *
 # import udsunicomm
 # import bin_analyzer
 
@@ -30,13 +30,13 @@ if __name__ == "__main__":
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
             #daemon.setup()
-            gui = Tk()
-            gui.title('EyeMeter')
-            gui.geometry("500x500")
-            gui['bg']='#777777'
-            gui.update()
-            time.sleep(0.5)
-            gui.destroy()
+            # gui = Tk()
+            # gui.title('EyeMeter')
+            # gui.geometry("500x500")
+            # gui['bg']='#777777'
+            # gui.update()
+            # time.sleep(0.5)
+            # gui.destroy()
             daemon.start()
         elif 'stop' == sys.argv[1]:
             daemon.stop()
