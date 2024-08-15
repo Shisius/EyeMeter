@@ -43,7 +43,7 @@ def rebuild_gui():
 
 if __name__ == "__main__":
 	root = Tk()
-	root.title = 'Updater'
+	root.title('Updater')
 	frame = Frame(root, width=800, height=500)
 	frame.grid(row=0, column=0)
 	text = Text(frame, bg='#444444', width=100)
