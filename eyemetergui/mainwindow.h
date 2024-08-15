@@ -25,11 +25,7 @@ class MainWindow : public QMainWindow
     const QString STR_MOSTDARK_COLOR = "#3e687e";
     const QString STR_MOSTLIGHT_COLOR = "#fffefe";
     const QString STR_LIGHT_COLOR2 = "#dddde2";
-//#ifdef NEWVISION
 
-    //QScopedPointer<QFile>   d_ptr_logFile;
-    //QScopedPointer<QDebug> d_ptr_logDebug;
-    //QDebug logDebug(m_logFile.data());
     QTabWidget* d_tab_central;
     enum class tabWidget
     {
@@ -70,14 +66,9 @@ class MainWindow : public QMainWindow
     void setStyle2list(const QList<QLabel*> & list, const QString &style = "", Qt::Alignment = Qt::AlignLeft, const QFont &f = QFont());
     void setStyle2list(const QList<QLineEdit*> & list, const QPalette & p, const QString &style = "", Qt::Alignment = Qt::AlignLeft, const QFont &f = QFont());
     void decorateLine(QFrame * line, const QString style);
-    //QLabel *d_l_snapshot;
 
-//#else
-
-//#endif
     QLabel d_l_snapshot;
-    //QMenu *d_menu;
-    //EMToolBar *d_toolbar = nullptr;
+
     QToolBar *d_topToolbar = nullptr;
     QPushButton d_but_close;
     UdsUniSocket *d_udsUniSocket = nullptr;
@@ -92,8 +83,7 @@ class MainWindow : public QMainWindow
     Image_params d_snapshotParams;
     uint d_measShotsCount;
     QVector<Image_params> d_vec_snapshots;
-    //double d_kscale;
-    //QFrame d_mainFrame;
+
     QVBoxLayout mainWinLayout;
     QHBoxLayout tb_layout;
     QWidget *d_mainWidget;
@@ -110,27 +100,15 @@ class MainWindow : public QMainWindow
 
     const QString CONST_REFRACTION_STR = "Рефракция";
     const QString CONST_INTEROCULAR_STR = "Межзрачковое расстояние";
-//    enum class MeasureResults
-//    {
-//        sphere,
-//        cylinder,
-//        angle,
-//        diameter,
-//        interocular
-//    };
-//    const QMap<MeasureResults, QString> CONST_MEASURE_RESULTS_STRING_MAP = {
-//        {MeasureResults::sphere, ""}
-//    }
+
     //void createActions();
     //void createMenus();
     //void createToolBar();
     void setPhotoScreen();
     QString savingPath();
     void initNetwork();
-    //QVBoxLayout resultInfoLayout();
     void measFinished(const QString &res);
     QPixmap image(const Image_params &, QSize size);
-    //QPixmap ocular_pixmap(const Image_params & params, const EyeCirclePos &left, const EyeCirclePos &right, double scale);
     QPixmap ocular_pixmap(const Image_params & params, const EyeCirclePos &left, const EyeCirclePos &right);
     QPicture fixation_grid(int side, QColor grid = Qt::gray);
     QPicture fixation_result(const QPicture & grid, std::vector<EyeSkewCoords> skew_vec, QColor dots_color = Qt::red);
@@ -138,12 +116,11 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 private slots:
-    void slot_diseaseTextChanged();
+    //void slot_diseaseTextChanged();
+    void slot_idEditingFinished();
     void slot_start();
     void slot_pwr();
     void slot_measure();
-    //void slot_nextImg(uint);
-    //void slot_prevImg(uint);
     void slot_showMeasImg(uint);
     //void slot_readUds(const UdsUniPack &pack);
     void slot_readUds(UdsUniPack pack);
