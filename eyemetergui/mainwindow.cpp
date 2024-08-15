@@ -230,12 +230,13 @@ MainWindow::MainWindow(QWidget *parent)
     d_le_id = new QLineEdit;
     d_le_id->setPlaceholderText(tr("Введите ID"));
     list_lineedits_enterText << d_le_id;
+    qDebug() << "ID connect" << connect(d_le_id, SIGNAL(editingFinished()), SLOT(slot_idEditingFinished()));
     layout_data->addWidget(d_le_id);
     QFrame *line5 = new QFrame;
     decorateLine(line5, str_lineStyle);
     layout_data->addWidget(line5);
     QLabel *l_id = new QLabel(tr("ID"));
-    list_labels_caption << l_id;
+    list_labels_caption << l_id;    
     layout_data->addWidget(l_id);    
     setStyle2list(list_lineedits_enterText, palette_lineedit, str_lineeditStyle, align_lineedit, font_lineedit);
     //layout_data->addSpacing(5);
@@ -265,6 +266,7 @@ MainWindow::MainWindow(QWidget *parent)
     d_pb_start = new QPushButton (tr("Начать сеанс"));    
     d_pb_start->setStyleSheet(str_butStyle);
     d_pb_start->setFixedSize(300,40);
+    d_pb_start->setDisabled(true);
     //d_pb_start->setMinimumSize(120,30);
     //d_pb_start->setMaximumSize(300,50);
     //d_pb_start->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
@@ -304,23 +306,23 @@ MainWindow::MainWindow(QWidget *parent)
     QFrame *line1_res = new QFrame;
     decorateLine(line1_res, str_lineStyle);
     layout_digitsDataResults->addWidget(line1_res);
-    QLabel *l_diameter = new QLabel(tr("Диаметр зрачка, мм"));    
-    l_diameter->setAlignment(Qt::AlignHCenter);
-    l_diameter->setStyleSheet(str_labelStyle_resultHeader);
-    layout_digitsDataResults->addWidget(l_diameter);
-    QHBoxLayout *layout_diameter = new QHBoxLayout;
-    d_l_diameterLeft = new QLabel;
-    d_l_diameterRight = new QLabel;
-    d_l_diameterRight->setAlignment(Qt::AlignRight);
-    d_l_diameterLeft ->setStyleSheet(str_labelStyle_resultData);
-    d_l_diameterRight->setStyleSheet(str_labelStyle_resultData);
-    layout_diameter->addWidget(d_l_diameterLeft);
-    layout_diameter->addSpacing(30);
-    layout_diameter->addWidget(d_l_diameterRight);
-    layout_digitsDataResults->addLayout(layout_diameter);
-    QFrame *line2_res = new QFrame;
-    decorateLine(line2_res, str_lineStyle);
-    layout_digitsDataResults->addWidget(line2_res);
+//    QLabel *l_diameter = new QLabel(tr("Диаметр зрачка, мм"));
+//    l_diameter->setAlignment(Qt::AlignHCenter);
+//    l_diameter->setStyleSheet(str_labelStyle_resultHeader);
+//    layout_digitsDataResults->addWidget(l_diameter);
+//    QHBoxLayout *layout_diameter = new QHBoxLayout;
+//    d_l_diameterLeft = new QLabel;
+//    d_l_diameterRight = new QLabel;
+//    d_l_diameterRight->setAlignment(Qt::AlignRight);
+//    d_l_diameterLeft ->setStyleSheet(str_labelStyle_resultData);
+//    d_l_diameterRight->setStyleSheet(str_labelStyle_resultData);
+//    layout_diameter->addWidget(d_l_diameterLeft);
+//    layout_diameter->addSpacing(30);
+//    layout_diameter->addWidget(d_l_diameterRight);
+//    layout_digitsDataResults->addLayout(layout_diameter);
+//    QFrame *line2_res = new QFrame;
+//    decorateLine(line2_res, str_lineStyle);
+//    layout_digitsDataResults->addWidget(line2_res);
     QLabel *l_interocular = new QLabel(tr("Межзрачковое расстояние, мм"));
     l_interocular->setAlignment(Qt::AlignHCenter);
     l_interocular->setStyleSheet(str_labelStyle_resultHeader);
@@ -744,11 +746,17 @@ QString MainWindow::savingPath()
     return path;
 }
 
-void MainWindow::slot_diseaseTextChanged()
+//void MainWindow::slot_diseaseTextChanged()
+//{
+//    qDebug() << Q_FUNC_INFO;
+//    QSize size = d_pte_disease->document()->size().toSize();
+//    d_pte_disease->setMaximumHeight( size.height() + 3 );
+//}
+
+void MainWindow::slot_idEditingFinished()
 {
     qDebug() << Q_FUNC_INFO;
-    QSize size = d_pte_disease->document()->size().toSize();
-    d_pte_disease->setMaximumHeight( size.height() + 3 );
+    d_pb_start->setEnabled(true);
 }
 
 void MainWindow::slot_start()
@@ -777,15 +785,17 @@ void MainWindow::slot_start()
        qDebug() << Q_FUNC_INFO << "file_end";
        //memcpy(d_snapshotParams.buf, &buf, d_snapshotParams.size);
        QPixmap pix = image(d_snapshotParams, d_l_snapshot.size());
-       double kscale = static_cast<double>(pix.width())/d_snapshotParams.frame_width;
-       qDebug() << "kscale" << kscale;
-       qDebug() << "hscale" << static_cast<double>(pix.height())/d_snapshotParams.frame_height;
+       //double kscale = static_cast<double>(pix.width())/d_snapshotParams.frame_width;
+       //qDebug() << "kscale" << kscale;
+       //qDebug() << "hscale" << static_cast<double>(pix.height())/d_snapshotParams.frame_height;
        d_l_snapshot.setPixmap(pix);
        //{'n_frame': 36, 'left_x': 1386, 'left_y': 529, 'left_r': 26, 'right_x': 822, 'right_y': 569, 'right_r': 26}}
        EyeCirclePos left {1386,529,26};
        EyeCirclePos right {822,569,26};
+       d_l_eyes->setFixedSize(d_l_eyes->size());
        d_l_eyes->setPixmap(ocular_pixmap(d_snapshotParams, left, right)
                .scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
+       qDebug() << "d_l_eyes->size()" << d_l_eyes->size();
        //d_l_snapshot.adjustSize();
        std::vector<EyeSkewCoords> leftSkew(5);
        std::vector<EyeSkewCoords> rightSkew(5);
@@ -937,6 +947,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
     case UDSUNI_TITLE_MEAS_SHOOT_DONE:
     {
         qDebug() << "UDSUNI_TITLE_MEAS_SHOOT_DONE";
+        d_pb_start->setDisabled(true);
         //d_isMeasurStarted = false;
         QString file_measure_str = d_le_id->text().append('_').append(QDateTime::currentDateTime().toString("yyyy_MM_dd_hh_mm_ss")).append(".bin");
         qDebug() << "file_measure: " << file_measure_str;
@@ -1034,6 +1045,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 qDebug() << "d_vec_snapshots.size() > static_cast<int>(measResult.frame4circles)";
                 //QPixmap snapshot = image( d_vec_snapshots.at(measResult.frame4circles), d_l_snapshot.size());
                 //double kscale = static_cast<double>(snapshot.width())/d_vec_snapshots.at(measResult.frame4circles).frame_width;
+                d_l_eyes->setFixedSize(d_l_eyes->size());
                 d_l_eyes->setPixmap(ocular_pixmap(d_vec_snapshots.at(measResult.frame4circles), measResult.left.position, measResult.right.position)
                         .scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
             }
@@ -1408,8 +1420,8 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/)
     qDebug() << "d_l_eyes"<<d_l_eyes->size();
     qDebug() << "d_l_refractionLeft"<<d_l_refractionLeft->size();
     qDebug() << "d_l_refractionRight"<<d_l_refractionRight->size();
-    qDebug() << "d_l_diameterLeft"<<d_l_diameterLeft->size();
-    qDebug() << "d_l_diameterRight"<<d_l_diameterRight->size();
+//    qDebug() << "d_l_diameterLeft"<<d_l_diameterLeft->size();
+//    qDebug() << "d_l_diameterRight"<<d_l_diameterRight->size();
     qDebug() << "d_l_interocularRes"<<d_l_interocularRes->size();
     qDebug() << "d_l_pic_FixLeft"<<d_l_pic_FixLeft->size();
     qDebug() << "d_l_pic_FixRight"<<d_l_pic_FixRight->size();
