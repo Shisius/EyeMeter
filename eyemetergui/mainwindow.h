@@ -117,7 +117,14 @@ public:
     ~MainWindow();
 private slots:
     //void slot_diseaseTextChanged();
-    void slot_idEditingFinished();
+
+    void slot_idcursorPositionChanged(int oldPos, int newPos);
+//    void slot_idEditingFinished();
+//    void slot_idinputRejected();
+//    void slot_idreturnPressed();
+//    void slot_idselectionChanged();
+//    void slot_idtextChanged(const QString &);
+//    void slot_idtextEdited(const QString &);
     void slot_start();
     void slot_pwr();
     void slot_measure();
