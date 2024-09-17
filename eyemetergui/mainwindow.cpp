@@ -174,6 +174,7 @@ MainWindow::MainWindow(QWidget *parent)
     d_le_firstName = new QLineEdit;    
     list_lineedits_enterText << d_le_firstName;
     d_le_firstName->setPlaceholderText(tr("Введите имя"));
+    layout_data->addSpacing(15);
     layout_data->addWidget(d_le_firstName);
     QFrame *line1 = new QFrame;    
     layout_data->addWidget(line1);
@@ -182,8 +183,8 @@ MainWindow::MainWindow(QWidget *parent)
     decorateLine(line1, str_lineStyle);
     QLabel *l_firstName = new QLabel(tr("Имя"));
     list_labels_caption << l_firstName;
-    layout_data->addWidget(l_firstName);
-    //layout_data->addSpacing(5);
+    //layout_data->addWidget(l_firstName);
+    layout_data->addSpacing(15);
     layout_data->addStretch();
     /*last name*/
     d_le_lastName = new QLineEdit;
@@ -195,8 +196,8 @@ MainWindow::MainWindow(QWidget *parent)
     layout_data->addWidget(line2);
     QLabel *l_lastName = new QLabel(tr("Фамилия"));
     list_labels_caption << l_lastName;    
-    layout_data->addWidget(l_lastName);
-    //layout_data->addSpacing(5);
+    //layout_data->addWidget(l_lastName);
+    layout_data->addSpacing(15);
     layout_data->addStretch();
     /*middle name*/
     d_le_middleName = new QLineEdit;
@@ -208,52 +209,59 @@ MainWindow::MainWindow(QWidget *parent)
     layout_data->addWidget(line3);
     QLabel *l_fatherName = new QLabel(tr("Отчество"));
     list_labels_caption << l_fatherName;    
-    layout_data->addWidget(l_fatherName);
-    //layout_data->addSpacing(5);
+    //layout_data->addWidget(l_fatherName);
+    layout_data->addSpacing(15);
     layout_data->addStretch();
     /*birth date*/
     d_de_birthDate = new QDateEdit;
     d_de_birthDate->setInputMethodHints( Qt::ImhDigitsOnly);    
     d_de_birthDate->setButtonSymbols(QAbstractSpinBox::UpDownArrows);    
-    setStyleSheet(str_dateEditButtonStyle);    
-    //d_de_birthDate->setStyleSheet(str_dateEditStyle);
+    //setStyleSheet(str_dateEditButtonStyle);
+    ////d_de_birthDate->setStyleSheet(str_dateEditStyle);
     layout_data->addWidget(d_de_birthDate);
     QFrame *line4 = new QFrame;
     decorateLine(line4, str_lineStyle);
     layout_data->addWidget(line4);
     QLabel *l_birthDate = new QLabel(tr("Дата Рождения"));
     list_labels_caption << l_birthDate;
-    layout_data->addWidget(l_birthDate);
-    //layout_data->addSpacing(5);
+    //layout_data->addWidget(l_birthDate);
+    layout_data->addSpacing(15);
     layout_data->addStretch();
     /*ID*/
     d_le_id = new QLineEdit;
     d_le_id->setPlaceholderText(tr("Введите ID"));
     list_lineedits_enterText << d_le_id;
-    qDebug() << "ID connect" << connect(d_le_id, SIGNAL(editingFinished()), SLOT(slot_idEditingFinished()));
+    d_le_id->setInputMethodHints( Qt::ImhDigitsOnly);
+    qDebug() << "ID connect" << connect(d_le_id, SIGNAL(cursorPositionChanged(int, int)), SLOT(slot_idcursorPositionChanged(int, int)));
+    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(editingFinished()),                             SLOT(slot_idEditingFinished()));
+    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(inputRejected()),                               SLOT(slot_idinputRejected()));
+    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(returnPressed()),                               SLOT(slot_idreturnPressed()));
+    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(selectionChanged()),                            SLOT(slot_idselectionChanged()));
+    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(textChanged(const QString &)),                  SLOT(slot_idtextChanged(const QString &)));
+    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(textEdited(const QString &)),                   SLOT(slot_idtextEdited(const QString &)));
     layout_data->addWidget(d_le_id);
     QFrame *line5 = new QFrame;
     decorateLine(line5, str_lineStyle);
     layout_data->addWidget(line5);
     QLabel *l_id = new QLabel(tr("ID"));
     list_labels_caption << l_id;    
-    layout_data->addWidget(l_id);    
-    setStyle2list(list_lineedits_enterText, palette_lineedit, str_lineeditStyle, align_lineedit, font_lineedit);
-    //layout_data->addSpacing(5);
+    //layout_data->addWidget(l_id);
+    //setStyle2list(list_lineedits_enterText, palette_lineedit, str_lineeditStyle, align_lineedit, font_lineedit);
+    layout_data->addSpacing(15);
     layout_data->addStretch();
     /*diseases*/
     d_pte_disease = new LineEdit_Keyboard();
     d_pte_disease->setPlaceholderText(tr("Введите сопутствующие заболевания"));
-    d_pte_disease->setStyleSheet(str_lineeditStyle);
-    d_pte_disease->setPalette(palette_lineedit);
-    d_pte_disease->setFont(font_lineedit);    
+    //d_pte_disease->setStyleSheet(str_lineeditStyle);
+    //d_pte_disease->setPalette(palette_lineedit);
+    //d_pte_disease->setFont(font_lineedit);
     layout_data->addWidget(d_pte_disease);
     QFrame *line6 = new QFrame;
     decorateLine(line6, str_lineStyle);
     layout_data->addWidget(line6);
     QLabel *l_disease = new QLabel(tr("Cопутствующие заболевания"));
     list_labels_caption << l_disease;
-    layout_data->addWidget(l_disease);
+    //layout_data->addWidget(l_disease);
     //layout_data->addSpacing(5);    
     setStyle2list(list_labels_caption, str_labelStyle, align_label);
     frame_data->setLayout(layout_data);
@@ -264,7 +272,7 @@ MainWindow::MainWindow(QWidget *parent)
     layout_data_and_results->addStretch();
     /*PushButton START*/
     d_pb_start = new QPushButton (tr("Начать сеанс"));    
-    d_pb_start->setStyleSheet(str_butStyle);
+    //d_pb_start->setStyleSheet(str_butStyle);
     d_pb_start->setFixedSize(300,40);
     d_pb_start->setDisabled(true);
     //d_pb_start->setMinimumSize(120,30);
@@ -299,9 +307,9 @@ MainWindow::MainWindow(QWidget *parent)
     d_l_refractionRight->setAlignment(Qt::AlignRight);
     d_l_refractionLeft->setStyleSheet(str_labelStyle_resultData);
     d_l_refractionRight->setStyleSheet(str_labelStyle_resultData);
-    layout_refraction->addWidget(d_l_refractionLeft);
-    layout_refraction->addSpacing(30);
     layout_refraction->addWidget(d_l_refractionRight);
+    layout_refraction->addSpacing(30);
+    layout_refraction->addWidget(d_l_refractionLeft);
     layout_digitsDataResults->addLayout(layout_refraction);
     QFrame *line1_res = new QFrame;
     decorateLine(line1_res, str_lineStyle);
@@ -337,22 +345,23 @@ MainWindow::MainWindow(QWidget *parent)
     layout_digitsDataResults->setAlignment(Qt::AlignCenter);
     QVBoxLayout *layout_fixLeft = new QVBoxLayout;
     layout_fixLeft->setAlignment(Qt::AlignHCenter);
-    QLabel *l_fixLeft = new QLabel(tr("OD"));
+    QLabel *l_fixLeft = new QLabel(tr("OS"));
     l_fixLeft->setAlignment(Qt::AlignHCenter);
     l_fixLeft->setStyleSheet( str_labelStyle_resultHeader);
     layout_fixLeft->addWidget(l_fixLeft);
     layout_fixLeft->addWidget(d_l_pic_FixLeft);
-    layout_dataResults->addLayout(layout_fixLeft);
-    //layout_dataResults->addWidget(d_l_pic_FixLeft);
-    layout_dataResults->addLayout(layout_digitsDataResults);
+
     QVBoxLayout *layout_fixRight = new QVBoxLayout;
     layout_fixRight->setAlignment(Qt::AlignHCenter);
-    QLabel *l_fixRight = new QLabel(tr("OS"));
+    QLabel *l_fixRight = new QLabel(tr("OD"));
     l_fixRight->setAlignment(Qt::AlignHCenter);
     l_fixRight->setStyleSheet( str_labelStyle_resultHeader);
     layout_fixRight->addWidget(l_fixRight);
     layout_fixRight->addWidget(d_l_pic_FixRight);
     layout_dataResults->addLayout(layout_fixRight);
+    //layout_dataResults->addWidget(d_l_pic_FixLeft);
+    layout_dataResults->addLayout(layout_digitsDataResults);
+    layout_dataResults->addLayout(layout_fixLeft);
     //layout_dataResults->addWidget(d_l_pic_FixRight);
     frame_dataResults->setLayout(layout_dataResults);
     layout_dataResults_total->addWidget(frame_dataResults);
@@ -361,32 +370,7 @@ MainWindow::MainWindow(QWidget *parent)
     layout_data_and_results->addWidget(frame_dataResults_total);    
     layout_card->addLayout(layout_data_and_results);
     layout_data_and_results->addStretch();
-#ifdef TEST_snapshot
-        AIEyeMeasResult measResult;
-        measResult.left.sphere = 1.3;
-        measResult.left.cylinder = 2.3;
-        measResult.left.angle = 3.3;
-        measResult.left.diameter = 4.3;
-        measResult.right.sphere = 5.3;
-        measResult.right.cylinder = 5.3;
-        measResult.right.angle = 6.3;
-        measResult.right.diameter = 7.3;
-        QString measResLeft_str = QString("%1   %2   %3º   %4")
-                .arg(measResult.left.sphere)   //2
-                .arg(measResult.left.cylinder) //3
-                .arg(measResult.left.angle)    //4
-                .arg(measResult.left.diameter); //5
-        QString measResRightt_str = QString("%1   %2   %3º   %4")
-                .arg(measResult.right.sphere)   //6
-                .arg(measResult.right.cylinder) //7
-                .arg(measResult.right.angle)    //8
-                .arg(measResult.right.diameter); //9
 
-        d_l_refractionLeft->setText(measResLeft_str);
-        d_l_refractionRight->setText(measResRightt_str);
-
-
-#endif
     QVBoxLayout *layout_results = new QVBoxLayout;
     QHBoxLayout *layout_eyesResults = new QHBoxLayout;
 
@@ -401,8 +385,9 @@ MainWindow::MainWindow(QWidget *parent)
     d_l_leftEye->setFixedSize(eyeSide,eyeSide);
     d_l_rightEye->setFixedSize(eyeSide,eyeSide);
     qDebug() << "eyeSide"<<eyeSide;
-    layout_eyesResults->addWidget(d_l_leftEye);
+
     layout_eyesResults->addWidget(d_l_rightEye);
+    layout_eyesResults->addWidget(d_l_leftEye);
     layout_results->addLayout(layout_eyesResults);
     d_l_eyes = new QLabel;
     d_l_eyes->setStyleSheet(str_bgStyle_eye);
@@ -753,11 +738,44 @@ QString MainWindow::savingPath()
 //    d_pte_disease->setMaximumHeight( size.height() + 3 );
 //}
 
-void MainWindow::slot_idEditingFinished()
+
+void MainWindow::slot_idcursorPositionChanged(int oldPos, int newPos)
 {
     qDebug() << Q_FUNC_INFO;
-    d_pb_start->setEnabled(true);
+    if(!d_le_id->text().isEmpty()){
+        d_pb_start->setEnabled(true);
+        qDebug() << "d_le_id->text()" << d_le_id->text();
+    }
 }
+//void MainWindow::slot_idEditingFinished()
+//{
+//    qDebug() << Q_FUNC_INFO;
+//    d_pb_start->setEnabled(true);
+//}
+//void MainWindow::slot_idinputRejected()
+//{
+//    qDebug() << Q_FUNC_INFO;
+//}
+//void MainWindow::slot_idreturnPressed()
+//{
+//    qDebug() << Q_FUNC_INFO;
+//    d_pb_start->setEnabled(true);
+//}
+//void MainWindow::slot_idselectionChanged()
+//{
+//    qDebug() << Q_FUNC_INFO;
+//    d_pb_start->setEnabled(true);
+//}
+//void MainWindow::slot_idtextChanged(const QString &)
+//{
+//    qDebug() << Q_FUNC_INFO;
+//    d_pb_start->setEnabled(true);
+//}
+//void MainWindow::slot_idtextEdited(const QString &)
+//{
+//    qDebug() << Q_FUNC_INFO;
+//    d_pb_start->setEnabled(true);
+//}
 
 void MainWindow::slot_start()
 {
@@ -802,14 +820,39 @@ void MainWindow::slot_start()
 
        for (size_t i = 0; i < 5; i++) {
            leftSkew[i].x = i*5;
-           leftSkew[i].y = i*4;
+           leftSkew[i].y = 0;
            rightSkew[i].x = i*2;
-           rightSkew[i].y = i*3;
+           rightSkew[i].y = 10;
        }
        d_l_pic_FixLeft->setFixedSize(d_pic_fixGrid.width(), d_pic_fixGrid.height());
        d_l_pic_FixRight->setFixedSize(d_pic_fixGrid.width(), d_pic_fixGrid.height());
        d_l_pic_FixLeft->setPicture(fixation_result(d_pic_fixGrid, leftSkew, STR_WARM_DARK_COLOR));
        d_l_pic_FixRight->setPicture(fixation_result(d_pic_fixGrid, rightSkew, STR_WARM_DARK_COLOR));
+
+        AIEyeMeasResult measResult;
+        measResult.left.sphere = 1.3;
+        measResult.left.cylinder = 2.3;
+        measResult.left.angle = 3.3;
+        measResult.left.diameter = 4.3;
+        measResult.right.sphere = 5.3;
+        measResult.right.cylinder = 5.3;
+        measResult.right.angle = 6.3;
+        measResult.right.diameter = 7.3;
+        QString measResLeft_str = QString("%1   %2   %3º   %4")
+                .arg(measResult.left.sphere)   //2
+                .arg(measResult.left.cylinder) //3
+                .arg(measResult.left.angle)    //4
+                .arg(measResult.left.diameter); //5
+        QString measResRightt_str = QString("%1   %2   %3º   %4")
+                .arg(measResult.right.sphere)   //6
+                .arg(measResult.right.cylinder) //7
+                .arg(measResult.right.angle)    //8
+                .arg(measResult.right.diameter); //9
+
+        d_l_refractionLeft->setText(measResLeft_str);
+        d_l_refractionRight->setText(measResRightt_str);
+        d_l_interocularRes->setText("10");
+
 #endif
 }
 
@@ -841,8 +884,8 @@ void MainWindow::slot_measure()
     d_l_pic_FixRight->setPicture(d_pic_fixGrid);
     d_l_refractionLeft->clear();
     d_l_refractionRight->clear();
-    d_l_diameterLeft->clear();
-    d_l_diameterRight->clear();
+    //d_l_diameterLeft->clear();
+    //d_l_diameterRight->clear();
     d_l_interocularRes->clear();
     d_l_leftEye->clear();
     d_l_rightEye->clear();
@@ -1000,8 +1043,8 @@ void MainWindow::slot_readUds(UdsUniPack pack)
         d_l_refractionLeft->setText(measResLeft_str);
         d_l_refractionRight->setText(measResRight_str);
 
-        d_l_diameterLeft ->setText(QString::number(measResult.left.diameter));
-        d_l_diameterRight->setText(QString::number(measResult.right.diameter));
+        //d_l_diameterLeft ->setText(QString::number(measResult.left.diameter));
+        //d_l_diameterRight->setText(QString::number(measResult.right.diameter));
 
         d_l_interocularRes->setText(QString::number(measResult.interocular));
 
