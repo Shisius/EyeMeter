@@ -61,6 +61,29 @@ static inline int ir_set_duty_all(float duty)
     return 0;
 }
 
+static inline int disp_power_toggle()
+{
+	gpio_config_t gpio_conf_dpwr = {
+        // config gpios
+        .pin_bit_mask = (1ULL << DISPLAY_POWER_PIN),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE,
+    };
+    ESP_ERROR_CHECK(gpio_config(&gpio_conf_dpwr));
+	gpio_set_level((gpio_num_t)DISPLAY_POWER_PIN, 1);
+	usleep(200000);
+	gpio_set_level((gpio_num_t)DISPLAY_POWER_PIN, 0);
+	usleep(200000);
+	gpio_set_level((gpio_num_t)DISPLAY_POWER_PIN, 1);
+	gpio_conf_dpwr.mode = GPIO_MODE_INPUT;
+	gpio_conf_dpwr.pull_up_en = GPIO_PULLUP_ENABLE;
+    // set the gpios as per gpio_conf
+    ESP_ERROR_CHECK(gpio_config(&gpio_conf_dpwr));
+    return 0;
+}
+
 static inline int usb_process_rx_buf(uint8_t * buf, size_t * size)
 {
 	size_t rx_size = *size;
@@ -78,21 +101,7 @@ static inline int usb_process_rx_buf(uint8_t * buf, size_t * size)
 			d_state.rgb_blink = 1;
 			result = 0;
 		} else if (cmd == LED_BYTE_CMD_DISP_PWR_ON) {
-			gpio_set_level((gpio_num_t)DISPLAY_POWER_PIN, 1);
-			usleep(200000);
-			gpio_set_level((gpio_num_t)DISPLAY_POWER_PIN, 0);
-			usleep(200000);
-			gpio_set_level((gpio_num_t)DISPLAY_POWER_PIN, 1);
-			gpio_config_t gpio_conf_dpwr = {
-		        // config gpios
-		        .pin_bit_mask = (1ULL << DISPLAY_POWER_PIN),
-		        .mode = GPIO_MODE_INPUT,
-		        .pull_up_en = GPIO_PULLUP_DISABLE,
-		        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-		        .intr_type = GPIO_INTR_DISABLE,
-		    };
-		    // set the gpios as per gpio_conf
-		    ESP_ERROR_CHECK(gpio_config(&gpio_conf_dpwr));
+			result = disp_power_toggle();
 		} else if (cmd == LED_BYTE_CMD_TRIG) {
 			gpio_set_level((gpio_num_t)TRIGGER_PIN, 1);
 			usleep(10);
