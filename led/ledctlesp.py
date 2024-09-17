@@ -1,5 +1,6 @@
 import serial
 import sys
+import time
 
 if __name__ == "__main__":
 	s = serial.Serial('/dev/ttyACM0')
@@ -9,6 +10,9 @@ if __name__ == "__main__":
 			s.write(b'\x0f')
 		elif sys.argv[1] == 'off':
 			s.write(b'\x00')
+		elif sys.argv[1] == 'disp':
+			s.write(b'\x40')
+			time.sleep(0.5)
 		else:
 			print("Unknown cmd")
 			written = False

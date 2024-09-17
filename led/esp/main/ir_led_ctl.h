@@ -27,6 +27,7 @@
 #define TRIGGER_PIN 15
 #define GREEN_LED_PIN 40
 #define GREEN_LED_CHANNEL LEDC_CHANNEL_6
+#define DISPLAY_POWER_PIN 21
 
 static int LED_GPIOS[N_LEDS] = {33,16,37,39,18,35}; //{39, 37, 35, 33, 18, 16};
 
@@ -76,6 +77,12 @@ static inline int usb_process_rx_buf(uint8_t * buf, size_t * size)
 		} else if (cmd == LED_BYTE_CMD_BLINK_ON) {
 			d_state.rgb_blink = 1;
 			result = 0;
+		} else if (cmd == LED_BYTE_CMD_DISP_PWR_ON) {
+			gpio_set_level((gpio_num_t)DISPLAY_POWER_PIN, 1);
+			usleep(100000);
+			gpio_set_level((gpio_num_t)DISPLAY_POWER_PIN, 0);
+			usleep(100000);
+			gpio_set_level((gpio_num_t)DISPLAY_POWER_PIN, 1);
 		} else if (cmd == LED_BYTE_CMD_TRIG) {
 			gpio_set_level((gpio_num_t)TRIGGER_PIN, 1);
 			usleep(10);
