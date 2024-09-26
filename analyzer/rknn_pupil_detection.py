@@ -1,0 +1,46 @@
+import numpy as np
+import torch
+
+from rknnlite.api import RKNNLite
+from torch.nn import functional as F
+from analyzer.inference_fin import onnx_yolo_pp
+
+
+class RKNNModel:
+    def __init__(self, rknn_model = 'yolov8_seg.rknn',
+                        conf=0.5, iou=0.7,
+                        imgsz=640):
+
+        self.rknn_model = RKNNLite()
+        ret = self.rknn_model.load_rknn(rknn_model)
+        if ret != 0:
+            print('Load RKNN model failed')
+            exit(ret)
+        print('done')
+
+        ret = self.rknn_model.init_runtime(core_mask=RKNNLite.NPU_CORE_0)
+        self.conf = conf
+        self.imgsz = imgsz
+        self.iou = iou
+
+    def predict(self, image, save=False, imgsz=640, conf=0.5):
+        image = image[-1] if isinstance(image, list) else image
+        data = F.interpolate(torch.tensor(image.astype(np.float32)), scale_factor=640 / 1936)
+        data = torch.cat([torch.zeros(1, 3, 640 - 401, 640), data], dim=2).numpy()
+        outputs = self.rknn_model.inference(inputs=[data], data_format='nchw')
+        inp2 = (data,) + tuple(outputs)
+        out = onnx_yolo_pp(inp2, conf=self.conf, iou=self.iou)
+        return out
+
+    def forwarf(self, image):
+        return self.predict(image)
+
+class PupilDetectRKNN:
+    def __init__(self, rknn_model = 'yolov8_seg.rknn',
+                        conf=0.5, iou=0.7,
+                        imgsz=640):
+
+        self.model = RKNNModel(rknn_model, conf, iou, imgsz)
+
+    def forwarf(self, image):
+        return self.model(image)

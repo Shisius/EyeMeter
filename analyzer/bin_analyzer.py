@@ -11,7 +11,7 @@ from net import RefractionNet
 import platform
 # import pickle
 from matplotlib import pyplot as plt
-
+from analyzer.rknn_pupil_detection import PupilDetectRKNN
 
 # from src.neural_refraction.train import eval_list
 # from scipy.optimize import curve_fit
@@ -21,10 +21,16 @@ class EyeAnalyzer:
     def __init__(self, num_imgs=40, path_to_chck='.\\weights\\only_wab.pt',
                  cfg_root='.\\weights\\my_yolo8n-seg.yaml',
                  ref_weights_path='.\\weights\\weights.pt',
-                 load_model_path='.\\weights\\yolo_eye.pt', verbose=False, reverse=-1):
+                 load_model_path='.\\weights\\yolo_eye.pt',
+                 rknn_model_path='yolov8_seg.rknn',
+                 verbose=False, reverse=-1, conf=0.5, use_rknn=True):
         self.verbose = verbose
-        self.pd = PupilDetect(path_to_chck=self.adj_os(path_to_chck), conf=0.5,
-                              cfg_root=self.adj_os(cfg_root), load_model_path=self.adj_os(load_model_path))
+        if use_rknn:
+            self.pd = PupilDetectRKNN(rknn_model=rknn_model_path, conf=conf, iou=0.7, imgsz=640)
+        else:
+            self.pd = PupilDetect(path_to_chck=self.adj_os(path_to_chck), conf=conf,
+                                  cfg_root=self.adj_os(cfg_root), load_model_path=self.adj_os(load_model_path))
+
         self.num_imgs = num_imgs
         self.pix2mm = 0.09267
         input_sz = 28
@@ -195,7 +201,7 @@ class EyeAnalyzer:
 
 if __name__ == '__main__':
     ea_inst = EyeAnalyzer(verbose=False)
-    fname = 'D:\Projects\eye_blinks\data_24\\12_08_24\\_2024_08_12_18_50_05.bin'
+    fname = 'D:\Projects\eye_blinks\\data_24\\12_06_24\\648_1_2024_06_12_16_59_31.bin'
     # fname = '777_2024_06_12_20_34_55.bin'
 
     with open(fname, 'rb') as f:
