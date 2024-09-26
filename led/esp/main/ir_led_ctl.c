@@ -140,6 +140,18 @@ void app_main(void)
     // set the gpios as per gpio_conf
     ESP_ERROR_CHECK(gpio_config(&gpio_conf));
 
+    gpio_config_t gpio_conf_dpwr = {
+        // config gpios
+        .pin_bit_mask = (1ULL << DISPLAY_POWER_PIN),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE,
+    };
+    // set the gpios as per gpio_conf
+    ESP_ERROR_CHECK(gpio_config(&gpio_conf_dpwr));
+    gpio_set_level((gpio_num_t)DISPLAY_POWER_PIN, 0);
+
     // gpio_config_t gpio_conf_green = {
     //     // config gpios
     //     .pin_bit_mask = (1ULL << GREEN_LED_PIN),
