@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from ultralytics.utils.tal import TORCH_1_10
 
-from analyzer.postrpocessing_seg import postprocess
+from postrpocessing_seg import postprocess
 
 
 class DFL(nn.Module):

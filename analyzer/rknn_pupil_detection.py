@@ -3,7 +3,7 @@ import torch
 
 from rknnlite.api import RKNNLite
 from torch.nn import functional as F
-from analyzer.inference_fin import onnx_yolo_pp
+from inference_fin import onnx_yolo_pp
 
 
 class RKNNModel:
@@ -39,7 +39,8 @@ class PupilDetectRKNN:
     def __init__(self, rknn_model = 'yolov8_seg.rknn',
                         conf=0.5, iou=0.7,
                         imgsz=640):
-
+        self.conf = conf
+        self.imgsz = imgsz
         self.model = RKNNModel(rknn_model, conf, iou, imgsz)
 
     def forwarf(self, image):

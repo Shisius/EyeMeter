@@ -2,7 +2,7 @@ import torch
 import torchvision
 import numpy as np
 from torch.nn import functional as F
-from analyzer.result_seg import Results
+from result_seg import Results
 ## ultralytics\models\yolo\segment\predict.py
 
 iou = 0.7
