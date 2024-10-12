@@ -23,7 +23,7 @@ class EyeAnalyzer:
                  ref_weights_path='.\\weights\\weights.pt',
                  load_model_path='.\\weights\\yolo_eye.pt',
                  rknn_model_path='yolov8_seg.rknn',
-                 verbose=False, reverse=-1, conf=0.5, use_rknn=True):
+                 verbose=False, reverse=-1, conf=0.5, use_rknn=False):
         self.verbose = verbose
         if use_rknn:
             self.pd = PupilDetectRKNN(rknn_model=rknn_model_path, conf=conf, iou=0.7, imgsz=640)
