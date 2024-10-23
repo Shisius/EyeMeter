@@ -11,8 +11,7 @@ from net import RefractionNet
 import platform
 # import pickle
 from matplotlib import pyplot as plt
-from rknn_pupil_detection import PupilDetectRKNN
-
+import matplotlib.patches as patches
 # from src.neural_refraction.train import eval_list
 # from scipy.optimize import curve_fit
 
@@ -23,11 +22,16 @@ class EyeAnalyzer:
                  ref_weights_path='.\\weights\\weights.pt',
                  load_model_path='.\\weights\\yolo_eye.pt',
                  rknn_model_path='yolov8_seg.rknn',
-                 verbose=False, reverse=-1, conf=0.5, use_rknn=False):
+                 verbose=False, reverse=-1, conf=0.5, backend_type='onnx'):
         self.verbose = verbose
-        if use_rknn:
+        if backend_type == 'rknn':
+            from rknn_pupil_detection import PupilDetectRKNN
             self.pd = PupilDetectRKNN(rknn_model=rknn_model_path, conf=conf, iou=0.7, imgsz=640)
-        else:
+        elif backend_type == 'onnx':
+            from onnx_pupil_detection import PupilDetectONNX
+            self.pd = PupilDetectONNX(path_to_onnx = 'C:\\Users\\tomil\Downloads\Telegram Desktop\\my_yolo8n-seg (3).onnx',
+                                      conf=conf, iou=0.7, imgsz=640)
+        elif backend_type == 'torch':
             self.pd = PupilDetect(path_to_chck=self.adj_os(path_to_chck), conf=conf,
                                   cfg_root=self.adj_os(cfg_root), load_model_path=self.adj_os(load_model_path))
 
@@ -46,7 +50,7 @@ class EyeAnalyzer:
                                      num_layers=num_layers)
         self.ref_net.load_state_dict(torch.load(self.adj_os(ref_weights_path)))
         self.ref_net.eval()
-        self.pseudo_run()
+        # self.pseudo_run()
 
     def pseudo_run(self):
         print('Start pre run')
@@ -128,6 +132,15 @@ class EyeAnalyzer:
                 with torch.inference_mode():
                     result = self.pd.model.predict([img_array[img_num][:, :, None].repeat(3, axis=-1)],
                                                    save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
+                    # fig, ax = plt.subplots()
+                    # ax.imshow(result[-1].orig_img[:, :,])
+                    # # ax.imshow(out[-1].orig_img)
+                    # for b in result[-1].boxes:
+                    #     x, y, width, height = (int(b.xywh[0, 0].item()), int(b.xywh[0, 1].item()),
+                    #                            int(b.xywh[0, 2].item()), int(b.xywh[0, 3].item()))
+                    #     patch = patches.Rectangle((x, y), width, height, facecolor='none', edgecolor='red', linewidth=2)
+                    #     ax.add_patch(patch)
+                    # plt.show()
             if result[0].boxes.xyxy.size(0) == 2:
                 res = result[0].boxes.xyxy
                 masks = result[0].masks.xy

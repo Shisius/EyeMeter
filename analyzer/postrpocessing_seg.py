@@ -333,8 +333,8 @@ def postprocess(preds, img, orig_imgs, names=names, conf=conf, iou=iou):
             pred[:, :4] = scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
             masks = process_mask_native(proto[i], pred[:, 6:], pred[:, :4], orig_img.shape[:2])  # HWC
         else:
-            masks = process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
-            pred[:, :4] = scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape[1:])
+            masks = process_mask(proto[i], pred[:, 6:], pred[:, :4], orig_img.shape[:2], upsample=True)  # HWC
+            pred[:, :4] = scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape[:2])
         results.append(Results(orig_img, path=img_path, names=names, boxes=pred[:, :6], masks=masks))
     return results
 

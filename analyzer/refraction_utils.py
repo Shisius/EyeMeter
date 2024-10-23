@@ -90,6 +90,8 @@ def process_pupil(pup_1_l, rel2deg=60):
     pupil = F.interpolate(torch.tensor(pupil[None, None, :, :]).float(), size=(33, 33), mode='bilinear')[0][0].numpy()
     # pupil[(pupil.mean() * 0.85 < pupil) * (pupil > pupil.mean() * 1.15)] = pupil.mean()
     pupil = pick_filter(pupil)
+    # plt.imshow(pupil)
+    # plt.show()
     res = get_zernicke_from_image(pupil, offset=0)
     return {'flickless_pupil': pupil,
             'zernicke_c': res[2].astype(np.float32),

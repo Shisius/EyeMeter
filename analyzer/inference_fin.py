@@ -81,7 +81,7 @@ def _inference(x, stride=[8, 16, 32], shape_0=torch.Size([136, 64, 84, 56]),
 def io_adapter(x, mc, p):
     return (torch.cat([x[0], mc], 1), (x[1], mc, p))
 
-def onnx_yolo_pp(onnx_out, names={0: 'pupil'}, conf=0.5, iou=0.7):
+def onnx_yolo_pp(onnx_out, names={0: 'pupil'}, conf=0.5, iou=0.7, orig_img=None):
     x1 = torch.cat([torch.tensor(onnx_out[1]), torch.tensor(onnx_out[2])], dim=1)
     x2 = torch.cat([torch.tensor(onnx_out[5]), torch.tensor(onnx_out[6])], dim=1)
     x3 = torch.cat([torch.tensor(onnx_out[9]), torch.tensor(onnx_out[10])], dim=1)
@@ -92,7 +92,9 @@ def onnx_yolo_pp(onnx_out, names={0: 'pupil'}, conf=0.5, iou=0.7):
     proto = torch.tensor(onnx_out[13])
     img = torch.tensor(onnx_out[0])
     in_postpr = io_adapter([out, [x1, x2, x3]], masks, proto)
-    result = postprocess(in_postpr, img, (img*255).to(torch.uint8), names=names, conf=conf, iou=iou)
+    if orig_img is None:
+        orig_img = (img*255).to(torch.uint8)
+    result = postprocess(in_postpr, img, orig_img, names=names, conf=conf, iou=iou)
     return result
 
 
