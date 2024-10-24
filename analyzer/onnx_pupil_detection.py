@@ -3,6 +3,7 @@ import torch
 from torch.nn import functional as F
 from inference_fin import onnx_yolo_pp
 import onnxruntime as ort
+from prepare_image import letter_box
 
 
 class RKNNModel:
@@ -19,9 +20,10 @@ class RKNNModel:
 
     def predict(self, image, save=False, imgsz=640, conf=None):
         image = image[-1] if isinstance(image, list) else image
-        data = F.interpolate(torch.tensor(image.astype(np.float32)).permute(2, 0, 1).unsqueeze(0),
-                             scale_factor=640 / 1936, mode='bilinear')
-        data = torch.cat([140*torch.ones(1, 3, 118, 640), data, 140*torch.ones(1, 3, 121, 640),], dim=2).numpy()
+        # data = F.interpolate(torch.tensor(image.astype(np.float32)).permute(2, 0, 1).unsqueeze(0),
+        #                      scale_factor=640 / 1936, mode='bilinear')
+        # data = torch.cat([140*torch.ones(1, 3, 118, 640), data, 114*torch.ones(1, 3, 121, 640),], dim=2).numpy()
+        data = torch.tensor(letter_box(image, auto=False).astype(np.float32)).permute(2, 0, 1).unsqueeze(0).numpy()
         outputs = self.ort_sess.run(None, {self.model_inputs[0].name: data.astype(np.float32) / 255})
         #outputs = self.rknn_model.inference(inputs=[data], data_format='nchw')
         inp2 = (data,) + tuple(outputs)

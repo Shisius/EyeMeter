@@ -4,6 +4,7 @@ import torch
 from rknnlite.api import RKNNLite
 from torch.nn import functional as F
 from inference_fin import onnx_yolo_pp
+from prepare_image import letter_box
 
 
 class RKNNModel:
@@ -25,9 +26,10 @@ class RKNNModel:
 
     def predict(self, image, save=False, imgsz=640, conf=0.5):
         image = image[-1] if isinstance(image, list) else image
-        data = F.interpolate(torch.tensor(image.astype(np.float32)).permute(2, 0, 1).unsqueeze(0),
-                             scale_factor=640 / 1936, mode='bilinear')
-        data = torch.cat([140*torch.ones(1, 3, 118, 640), data, 140*torch.ones(1, 3, 121, 640),], dim=2).numpy()
+        # data = F.interpolate(torch.tensor(image.astype(np.float32)).permute(2, 0, 1).unsqueeze(0),
+        #                      scale_factor=640 / 1936, mode='bilinear')
+        # data = torch.cat([140*torch.ones(1, 3, 118, 640), data, 140*torch.ones(1, 3, 121, 640),], dim=2).numpy()
+        data = torch.tensor(letter_box(image, auto=False).astype(np.float32)).permute(2, 0, 1).unsqueeze(0).numpy()
         outputs = self.rknn_model.inference(inputs=[data], data_format='nchw')
         inp2 = (data,) + tuple(outputs)
         out = onnx_yolo_pp(inp2, conf=conf if conf is not None else self.conf, iou=self.iou,

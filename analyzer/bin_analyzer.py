@@ -21,15 +21,16 @@ class EyeAnalyzer:
                  cfg_root='.\\weights\\my_yolo8n-seg.yaml',
                  ref_weights_path='.\\weights\\weights.pt',
                  load_model_path='.\\weights\\yolo_eye.pt',
-                 rknn_model_path='yolov8_seg.rknn',
-                 verbose=False, reverse=-1, conf=0.5, backend_type='onnx'):
+                 rknn_model_path='.\\weights\\yolov8_seg.rknn',
+                 verbose=False, reverse=-1, conf=0.5, backend_type='torch'):
         self.verbose = verbose
         if backend_type == 'rknn':
             from rknn_pupil_detection import PupilDetectRKNN
-            self.pd = PupilDetectRKNN(rknn_model=rknn_model_path, conf=conf, iou=0.7, imgsz=640)
+            self.pd = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path), conf=conf, iou=0.7, imgsz=640)
         elif backend_type == 'onnx':
             from onnx_pupil_detection import PupilDetectONNX
-            self.pd = PupilDetectONNX(path_to_onnx = 'C:\\Users\\tomil\Downloads\Telegram Desktop\\my_yolo8n-seg (3).onnx',
+            self.pd = PupilDetectONNX(path_to_onnx = self.adj_os('C:\\Users\\tomil\Downloads\Telegram Desktop'
+                                                                 '\\my_yolo8n-seg (3).onnx'),
                                       conf=conf, iou=0.7, imgsz=640)
         elif backend_type == 'torch':
             self.pd = PupilDetect(path_to_chck=self.adj_os(path_to_chck), conf=conf,
