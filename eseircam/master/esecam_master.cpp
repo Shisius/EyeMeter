@@ -253,7 +253,7 @@ void EseCamMaster::meas_routine()
 				// 	unique_lock<mutex> lk(d_frame_ready_mut);
 				// 	d_frame_ready_cond.wait(lk,[this]{return (d_frame_ready_flag.load() || !(d_in_meas.load()));});
 				// }
-				std::this_thread::sleep_for(std::chrono::milliseconds(25));
+				std::this_thread::sleep_for(std::chrono::milliseconds(15));
 				if (d_frame_ready_flag.load()) {
 					// std::this_thread::sleep_for(std::chrono::milliseconds(15));
 					break;
