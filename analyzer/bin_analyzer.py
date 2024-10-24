@@ -22,7 +22,7 @@ class EyeAnalyzer:
                  ref_weights_path='.\\weights\\weights.pt',
                  load_model_path='.\\weights\\yolo_eye.pt',
                  rknn_model_path='.\\weights\\yolov8_seg.rknn',
-                 verbose=False, reverse=-1, conf=0.7, backend_type='torch'):
+                 verbose=False, reverse=-1, conf=0.7, backend_type='rknn'):
         self.verbose = verbose
         if backend_type == 'rknn':
             from rknn_pupil_detection import PupilDetectRKNN
