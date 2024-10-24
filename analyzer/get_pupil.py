@@ -43,7 +43,7 @@ class PupilDetect:
         wab = torch.load(path_to_chck)
         wab = OrderedDict([(k.replace('model.', 'model.model.'), v) for k, v in wab.items()])
         self.model.load_state_dict(wab)
-        self.model.export(format="onnx")
+        # self.model.export(format="onnx")
             # self.reinit_succ = False
         # self.model.model = self.model.model.eval()
         # self.model.fuse()

@@ -22,7 +22,7 @@ class EyeAnalyzer:
                  ref_weights_path='.\\weights\\weights.pt',
                  load_model_path='.\\weights\\yolo_eye.pt',
                  rknn_model_path='.\\weights\\yolov8_seg.rknn',
-                 verbose=False, reverse=-1, conf=0.5, backend_type='rknn'):
+                 verbose=False, reverse=-1, conf=0.7, backend_type='torch'):
         self.verbose = verbose
         if backend_type == 'rknn':
             from rknn_pupil_detection import PupilDetectRKNN
@@ -37,7 +37,7 @@ class EyeAnalyzer:
                                   cfg_root=self.adj_os(cfg_root), load_model_path=self.adj_os(load_model_path))
 
         self.num_imgs = num_imgs
-        self.pix2mm = 0.09267
+        self.pix2mm = 0.09267/0.95 #/0.966
         input_sz = 28
         num_cls = 3
         hidden_sz = 1024
@@ -218,7 +218,7 @@ if __name__ == '__main__':
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:
-        fname = 'D:\Projects\eye_blinks\\data_24\\12_06_24\\648_1_2024_06_12_16_59_31.bin'
+        fname = 'D:\Projects\eye_blinks\data_24\\15_09_24\Pupils_doc_120924\\4088_2024_08_22_12_56_02.bin'
     # fname = '777_2024_06_12_20_34_55.bin'
 
     with open(fname, 'rb') as f:
