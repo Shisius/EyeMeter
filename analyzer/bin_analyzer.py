@@ -37,7 +37,7 @@ class EyeAnalyzer:
                                   cfg_root=self.adj_os(cfg_root), load_model_path=self.adj_os(load_model_path))
 
         self.num_imgs = num_imgs
-        self.pix2mm = 0.09267/1.065 #/0.95 #/0.966
+        self.pix2mm = 0.09267/1.012 #/0.95 #/0.966
         input_sz = 28
         num_cls = 3
         hidden_sz = 1024
