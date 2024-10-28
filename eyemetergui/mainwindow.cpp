@@ -898,7 +898,9 @@ void MainWindow::slot_showMeasImg(uint num)
     if(d_vec_snapshots.size()>static_cast<int>(num))
     {
         QPixmap pix = image( d_vec_snapshots.at(num), d_l_snapshot.size());
+        qDebug() << "d_l_snapshot pix.size()" << pix.size();
         d_l_snapshot.setPixmap(pix);
+        qDebug() << "d_l_snapshot pix.size()" << pix.size();
         //d_l_snapshot.adjustSize();
     }
     qDebug() << Q_FUNC_INFO << "end";
