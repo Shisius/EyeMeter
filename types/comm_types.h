@@ -12,6 +12,14 @@ typedef struct _udsunimsg
 	unsigned char size;
 } UdsUniMsg;
 
+typedef struct _eyerolestate
+{
+	unsigned char role;
+	unsigned char ready4stream;
+	unsigned char ready4meas;
+	unsigned char alarm;
+} EyeRoleState;
+
 typedef enum
 {
 	EYEMETER_ROLE_NONE = 0,
@@ -28,6 +36,9 @@ typedef enum
 
 typedef enum
 {
+	UDSUNI_TITLE_STATE_REQ = 0x08,
+	UDSUNI_TITLE_MY_STATE = 0x09,
+
 	UDSUNI_TITLE_STREAM_START = 0x10,
 	UDSUNI_TITLE_STREAM_RUNNING = 0x12,
 	UDSUNI_TITLE_STREAM_STOP = 0x1A,
@@ -52,13 +63,15 @@ typedef enum
 {
 	UDSUNI_TYPE_CHAR = 0x00,	// 8 bit. If size > 1 - it is char array
 	UDSUNI_TYPE_INT = 0x01,		// usually 32 bits
-	UDSUNI_TYPE_FLOAT = 0x2,	// float 32
+	UDSUNI_TYPE_FLOAT = 0x02,	// float 32
 
 	UDSUNI_TYPE_SHARED_FRAME = 0x10,
 	UDSUNI_TYPE_STREAM_SETTINGS = 0x11,
 	UDSUNI_TYPE_MEASURE_SETTINGS = 0x12,
 
 	UDSUNI_TYPE_MEASURE_RESULT = 0x22,
+
+	UDSUNI_TYPE_ROLE_STATE = 0x80,
 
 	UDSUNI_TYPE_UNKNOWN = 0xFF
 } UdsUniType;
