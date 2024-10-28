@@ -1121,6 +1121,17 @@ QPixmap MainWindow::image(const Image_params &imgParams, QSize size)
     //qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
     QPixmap pix = QPixmap::fromImage(snapshot_img.scaled(size, Qt::KeepAspectRatio, Qt::FastTransformation));
     qDebug() << "pix_snapshot.size()" << pix.size();
+qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
+qDebug() << "d_l_leftEye"<<d_l_leftEye->size();
+qDebug() << "d_l_rightEye"<<d_l_rightEye->size();
+qDebug() << "d_l_eyes"<<d_l_eyes->size();
+qDebug() << "d_l_pic_FixLeft"<<d_l_pic_FixLeft->size();
+qDebug() << "d_l_pic_FixRight"<<d_l_pic_FixRight->size();
+qDebug() << "d_l_refractionLeft"<<d_l_refractionLeft->size();
+qDebug() << "d_l_refractionRight"<<d_l_refractionRight->size();
+qDebug() << "d_l_diameterLeft"<<d_l_diameterLeft->size();
+qDebug() << "d_l_diameterRight"<<d_l_diameterRight->size();
+qDebug() << "d_l_interocularRes"<<d_l_interocularRes->size();
 
     //qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
 //    QPainter painter;
