@@ -146,16 +146,20 @@ def estimate_coeffs(a, part):
     num_frames = part['end_frame'] - part['start_frame']
     for idx, r in enumerate(range(part['start_frame'], part['end_frame'] + 1, 1)):
         img_1 = a[r]
+        if f'{idx}_mask_left' in part:
+            ((y_min_l, x_min_l, y_max_l, x_max_l),
+             (y_min_r, x_min_r, y_max_r, x_max_r)) = (list(part[f'{idx}_mask_left'].long().numpy()),
+                                                      list(part[f'{idx}_mask_right'].long().numpy()))
+        else:
+            x_min_l, x_max_l = start_coord[0][0] + speed_l[0] / num_frames * (idx + 1), \
+                               start_coord[0][1] + (speed_l[0] + speed_l[2]) / num_frames * (idx + 1)
+            y_min_l, y_max_l = start_coord[0][2] + speed_l[1] / num_frames * (idx + 1), \
+                               start_coord[0][3] + (speed_l[1] + speed_l[3]) / num_frames * (idx + 1)
 
-        x_min_l, x_max_l = start_coord[0][0] + speed_l[0] / num_frames * (idx + 1), \
-                           start_coord[0][1] + (speed_l[0] + speed_l[2]) / num_frames * (idx + 1)
-        y_min_l, y_max_l = start_coord[0][2] + speed_l[1] / num_frames * (idx + 1), \
-                           start_coord[0][3] + (speed_l[1] + speed_l[3]) / num_frames * (idx + 1)
-
-        x_min_r, x_max_r = start_coord[1][0] + speed_r[0] / num_frames * (idx + 1), \
-                           start_coord[1][1] + (speed_r[0] + speed_r[2]) / num_frames * (idx + 1)
-        y_min_r, y_max_r = start_coord[1][2] + speed_r[1] / num_frames * (idx + 1), \
-                           start_coord[1][3] + (speed_r[1] + speed_r[3]) / num_frames * (idx + 1)
+            x_min_r, x_max_r = start_coord[1][0] + speed_r[0] / num_frames * (idx + 1), \
+                               start_coord[1][1] + (speed_r[0] + speed_r[2]) / num_frames * (idx + 1)
+            y_min_r, y_max_r = start_coord[1][2] + speed_r[1] / num_frames * (idx + 1), \
+                               start_coord[1][3] + (speed_r[1] + speed_r[3]) / num_frames * (idx + 1)
 
         pup_1_l = img_1[int(x_min_l):int(x_max_l), int(y_min_l):int(y_max_l)]
         pup_1_r = img_1[int(x_min_r):int(x_max_r), int(y_min_r):int(y_max_r)]
