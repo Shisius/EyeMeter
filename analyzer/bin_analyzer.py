@@ -19,7 +19,7 @@ import matplotlib.patches as patches
 class EyeAnalyzer:
     def __init__(self, num_imgs=40, path_to_chck='.\\weights\\only_wab.pt',
                  cfg_root='.\\weights\\my_yolo8n-seg.yaml',
-                 ref_weights_path='.\\weights\\weights.pt',
+                 ref_weights_path='.\\weights\\weights_doc.pt',
                  load_model_path='.\\weights\\yolo_eye.pt',
                  rknn_model_path='.\\weights\\yolov8_seg.rknn',
                  verbose=False, reverse=-1, conf=0.5, backend_type='rknn'):
@@ -40,9 +40,9 @@ class EyeAnalyzer:
         self.pix2mm = 0.09267 #/1.012 #/0.95 #/0.966
         input_sz = 28
         num_cls = 3
-        hidden_sz = 1024
-        do_rate = 0.3
-        num_layers = 4
+        hidden_sz = 256
+        do_rate = 0.5
+        num_layers = 10
         self.reverse = reverse  # -1 if predict shoul be inversed
         self.ref_net = RefractionNet(input_sz,
                                      num_cls,
@@ -51,6 +51,7 @@ class EyeAnalyzer:
                                      num_layers=num_layers)
         self.ref_net.load_state_dict(torch.load(self.adj_os(ref_weights_path)))
         self.ref_net.eval()
+        self.fast = True
         # self.pseudo_run()
 
     def pseudo_run(self):
@@ -71,22 +72,53 @@ class EyeAnalyzer:
             path_file = path_file.replace('\\', '/')
         return path_file
 
-    def pack2tries(self, data):
+    def pack2tries(self, data, use_fast=False):
         tmp_4 = []
-        for r_st, r_end in zip(data[:-1], data[1:]):
-            g = 1
-            if r_end[0] - r_st[0] == 4:
-                tmp_4.append({'start_frame': r_st[0],
-                              'end_frame': r_end[0],
-                              'start_box_left': r_st[2],
-                              'start_box_right': r_st[1],
-                              'start_mask_left': r_st[4],
-                              'start_mask_right': r_st[3],
-                              'end_box_left': r_end[2],
-                              'end_box_right': r_end[1],
-                              'end_mask_left': r_end[4],
-                              'end_mask_right': r_end[3],
-                              })
+        if use_fast:
+            tmp_arr_end = range(4, 40, 4) if len(data) == 40 else range(5, 41, 4)
+            tmp_arr_st = range(0, 40 - 4, 4) if len(data) == 40 else range(1, 41 - 4, 4)
+
+            for r_st, r_end in zip(tmp_arr_st, tmp_arr_end):
+                if len(data[r_st]) == 5 and len(data[r_end]) == 5:
+                    tmp_4.append({'start_frame': r_st,
+                                  'end_frame': r_end,
+
+                                  'start_mask_left': data[r_st][2],
+                                  'start_mask_right': data[r_st][1],
+                                  'start_box_left': data[r_st][2],
+                                  'start_box_right': data[r_st][1],
+
+                                  '0_mask_left': data[r_st][2],
+                                  '0_mask_right': data[r_st][1],
+                                  '1_mask_left': data[r_st + 1][2],
+                                  '1_mask_right': data[r_st + 1][1],
+                                  '2_mask_left': data[r_st + 2][2],
+                                  '2_mask_right': data[r_st + 2][1],
+                                  '3_mask_left': data[r_st + 3][2],
+                                  '3_mask_right': data[r_st + 3][1],
+                                  '4_mask_left': data[r_end][2],
+                                  '4_mask_right': data[r_end][1],
+
+                                  'end_mask_left': data[r_end][2],
+                                  'end_mask_right': data[r_end][1],
+                                  'end_box_left': data[r_end][2],
+                                  'end_box_right': data[r_end][1],
+                                  })
+        else:
+            for r_st, r_end in zip(data[:-1], data[1:]):
+                g = 1
+                if r_end[0] - r_st[0] == 4:
+                    tmp_4.append({'start_frame': r_st[0],
+                                  'end_frame': r_end[0],
+                                  'start_box_left': r_st[2],
+                                  'start_box_right': r_st[1],
+                                  'start_mask_left': r_st[4],
+                                  'start_mask_right': r_st[3],
+                                  'end_box_left': r_end[2],
+                                  'end_box_right': r_end[1],
+                                  'end_mask_left': r_end[4],
+                                  'end_mask_right': r_end[3],
+                                  })
         return tmp_4
 
     def get_interocular_dist(self, nn_boxes_list):
@@ -128,7 +160,11 @@ class EyeAnalyzer:
         assert len(img_array) == self.num_imgs, f'NDArray should have {self.num_imgs} elements'
         img_array = img_array[1:, :, :] if len(img_array) == 41 else img_array
         tmp = []
-        for img_num in range(0, self.num_imgs, 4):
+        if self.fast:
+            div = 1
+        else:
+            div = 4
+        for img_num in range(0, self.num_imgs, div):
             with torch.jit.optimized_execution(False):
                 with torch.inference_mode():
                     result = self.pd.model.predict([img_array[img_num][:, :, None].repeat(3, axis=-1)],
@@ -150,7 +186,7 @@ class EyeAnalyzer:
                 else:
                     tmp.append([img_num, res[1], res[0], masks[1], masks[0]])
         try:
-            part_collections = self.pack2tries(tmp)
+            part_collections = self.pack2tries(tmp, use_fast=self.fast)
             info_storage = []
             for part in part_collections:
                 try:
@@ -214,7 +250,7 @@ class EyeAnalyzer:
 
 
 if __name__ == '__main__':
-    ea_inst = EyeAnalyzer(verbose=False)
+    ea_inst = EyeAnalyzer(verbose=True, backend_type='onnx')
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:

@@ -6,19 +6,21 @@ from torch.nn import functional as F
 class ResFC(nn.Module):
     def __init__(self, hidden_sz=256, do_rate=0.3):
         super().__init__()
-        self.fc1 = nn.Linear(hidden_sz, hidden_sz)
+        self.fc1 = nn.Linear(hidden_sz, 16)
+        self.fc2 = nn.Linear(16, hidden_sz)
         self.act = nn.LeakyReLU()
         self.do = nn.Dropout(do_rate)
         self.bn = nn.BatchNorm1d(hidden_sz)
         self.bn2 = nn.BatchNorm1d(hidden_sz)
+        self.alpha = nn.Parameter(torch.tensor(1e-5), requires_grad=True)
 
     def forward(self, x):
         y = x
         x = self.fc1(x)
         x = self.do(x)
-        x = self.bn(x)
         x = F.relu(x)
-        x = x + y
+        x = self.fc2(x)
+        x = x * self.alpha + y
         return x
 
 
@@ -33,8 +35,7 @@ class RefractionNet(nn.Module):
         self.fc2 = nn.Sequential(
             *[ResFC(hidden_sz, do_rate) for _ in range(num_layers)]
         )
-        self.fc3 = nn.Sequential(nn.BatchNorm1d(hidden_sz),
-                                 nn.ReLU(),
+        self.fc3 = nn.Sequential(nn.ReLU(),
                                  nn.Linear(hidden_sz, num_cls))
         self.eye_emb = nn.Embedding(2, 8)
         self.angle_emb = nn.Embedding(6, 8)
