@@ -79,31 +79,35 @@ class EyeAnalyzer:
             tmp_arr_st = range(0, 40 - 4, 4) if len(data) == 40 else range(1, 41 - 4, 4)
 
             for r_st, r_end in zip(tmp_arr_st, tmp_arr_end):
-                if len(data[r_st]) == 5 and len(data[r_end]) == 5:
-                    tmp_4.append({'start_frame': r_st,
-                                  'end_frame': r_end,
+                try:
+                    if len(data[r_st]) == 5 and len(data[r_end]) == 5:
 
-                                  'start_mask_left': data[r_st][2],
-                                  'start_mask_right': data[r_st][1],
-                                  'start_box_left': data[r_st][2],
-                                  'start_box_right': data[r_st][1],
+                        tmp_4.append({'start_frame': r_st,
+                                      'end_frame': r_end,
 
-                                  '0_mask_left': data[r_st][2],
-                                  '0_mask_right': data[r_st][1],
-                                  '1_mask_left': data[r_st + 1][2],
-                                  '1_mask_right': data[r_st + 1][1],
-                                  '2_mask_left': data[r_st + 2][2],
-                                  '2_mask_right': data[r_st + 2][1],
-                                  '3_mask_left': data[r_st + 3][2],
-                                  '3_mask_right': data[r_st + 3][1],
-                                  '4_mask_left': data[r_end][2],
-                                  '4_mask_right': data[r_end][1],
+                                      'start_mask_left': data[r_st][2],
+                                      'start_mask_right': data[r_st][1],
+                                      'start_box_left': data[r_st][2],
+                                      'start_box_right': data[r_st][1],
 
-                                  'end_mask_left': data[r_end][2],
-                                  'end_mask_right': data[r_end][1],
-                                  'end_box_left': data[r_end][2],
-                                  'end_box_right': data[r_end][1],
-                                  })
+                                      '0_mask_left': data[r_st][2],
+                                      '0_mask_right': data[r_st][1],
+                                      '1_mask_left': data[r_st + 1][2],
+                                      '1_mask_right': data[r_st + 1][1],
+                                      '2_mask_left': data[r_st + 2][2],
+                                      '2_mask_right': data[r_st + 2][1],
+                                      '3_mask_left': data[r_st + 3][2],
+                                      '3_mask_right': data[r_st + 3][1],
+                                      '4_mask_left': data[r_end][2],
+                                      '4_mask_right': data[r_end][1],
+
+                                      'end_mask_left': data[r_end][2],
+                                      'end_mask_right': data[r_end][1],
+                                      'end_box_left': data[r_end][2],
+                                      'end_box_right': data[r_end][1],
+                                      })
+                except:
+                    print(f'problem with frame formation, start {r_st}, end {r_end}')
         else:
             for r_st, r_end in zip(data[:-1], data[1:]):
                 g = 1
@@ -250,11 +254,11 @@ class EyeAnalyzer:
 
 
 if __name__ == '__main__':
-    ea_inst = EyeAnalyzer(verbose=True, backend_type='onnx')
+    ea_inst = EyeAnalyzer(verbose=False, backend_type='onnx')
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:
-        fname = 'D:\Projects\eye_blinks\data_24\\15_09_24\Pupils_doc_120924\\4088_2024_08_22_12_56_02.bin'
+        fname = 'D:\Projects\eye_blinks\data_24\\28_10_24\\36_2024_10_28_23_01_09.bin'
     # fname = '777_2024_06_12_20_34_55.bin'
 
     with open(fname, 'rb') as f:
