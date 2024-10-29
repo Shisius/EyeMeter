@@ -53,6 +53,8 @@ class MainWindow : public QMainWindow
     QLabel *d_l_leftEye;
     QLabel *d_l_rightEye;
     QLabel *d_l_eyes;
+    bool d_isEyesLabelSizeFixed = false;
+    QSize d_eyesLabelSize;
     QLabel *d_l_refractionLeft;
     QLabel *d_l_refractionRight;
     QLabel *d_l_diameterLeft;
@@ -69,6 +71,24 @@ class MainWindow : public QMainWindow
 
     QLabel d_l_snapshot;
 
+    //FOR TEST
+
+    QSize d_frame_card_lastSize;
+    QSize d_pb_shot_lastSize ;
+    QSize d_l_leftEye_lastSize;
+    QSize d_l_rightEye_lastSize;
+    QSize d_l_eyes_lastSize;
+    QSize d_l_refractionLeft_lastSize;
+    QSize d_l_refractionRight_lastSize;
+    QSize d_l_diameterLeft_lastSize;
+    QSize d_l_diameterRight_lastSize;
+    QSize d_l_interocularRes_lastSize;
+    QSize d_l_pic_FixLeft_lastSize;
+    QSize d_l_pic_FixRight_lastSize;
+    QSize d_measReviewButs_lastSize;
+
+    //FOR TEST end
+
     QToolBar *d_topToolbar = nullptr;
     QPushButton d_but_close;
     UdsUniSocket *d_udsUniSocket = nullptr;
@@ -82,14 +102,8 @@ class MainWindow : public QMainWindow
     } ;
     Image_params d_snapshotParams;
     uint d_measShotsCount;
-    QVector<Image_params> d_vec_snapshots;
+    QVector<Image_params> d_vec_snapshots;    
 
-    QVBoxLayout mainWinLayout;
-    QHBoxLayout tb_layout;
-    QWidget *d_mainWidget;
-
-    const double CONST_RATIO_WIDTH2HEIGHT = 16./10;
-    int d_lastShotWidth = 0;
     QFile d_file_measure;
     ImageButtons *d_measReviewButs = nullptr;
     bool d_isMeasurStarted = false;
@@ -97,9 +111,6 @@ class MainWindow : public QMainWindow
 
     SharedPupilImage d_leftPupil;
     SharedPupilImage d_rightPupil;
-
-    const QString CONST_REFRACTION_STR = "Рефракция";
-    const QString CONST_INTEROCULAR_STR = "Межзрачковое расстояние";
 
     //void createActions();
     //void createMenus();
