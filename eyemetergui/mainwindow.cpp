@@ -1401,6 +1401,11 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/)
         qDebug() << "d_measReviewButs->size()" << d_measReviewButs->size();
         d_measReviewButs->resize(d_l_snapshot.width(),d_l_snapshot.height());
         qDebug() << "d_measReviewButs->size()" << d_measReviewButs->size();
+        if (d_measReviewButs_lastSize != d_measReviewButs->size())
+        {
+            qDebug() << "d_measReviewButs size changed from " <<d_measReviewButs_lastSize << "to " << d_measReviewButs->size();
+            d_measReviewButs_lastSize = d_measReviewButs->size();
+        }
     }
 
     //qDebug() << "d_frame_card" << d_frame_card->size();
@@ -1417,11 +1422,7 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/)
 //    qDebug() << "d_l_interocularRes"<<d_l_interocularRes->size();
 //    qDebug() << "d_l_pic_FixLeft"<<d_l_pic_FixLeft->size();
 //    qDebug() << "d_l_pic_FixRight"<<d_l_pic_FixRight->size();
-    if (d_measReviewButs_lastSize != d_measReviewButs->size())
-    {
-        qDebug() << "d_measReviewButs size changed from " <<d_measReviewButs_lastSize << "to " << d_measReviewButs->size();
-        d_measReviewButs_lastSize = d_measReviewButs->size();
-    }
+
     if (d_frame_card_lastSize != d_frame_card->size())
     {
         qDebug() << "d_frame_card size changed from " <<d_frame_card_lastSize << "to " << d_frame_card->size();
