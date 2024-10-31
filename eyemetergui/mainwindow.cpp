@@ -588,11 +588,7 @@ QFontDatabase base;
     title->setStyleSheet(str_labelStyle_wintitle);
     d_topToolbar->addWidget(title);
 
-    //tb_layout.addWidget(&d_but_close);
     connect(&d_but_close, SIGNAL(clicked()), SLOT(close()));
-    //d_topToolbar->setLayout(&tb_layout);
-    //setIconSize(QSize(100,100));
-    //d_topToolbar->addSeparator();
     d_topToolbar->addWidget(&d_but_close);
     d_topToolbar->setMovable(false);
     showFullScreen();
@@ -607,85 +603,11 @@ QFontDatabase base;
     d_measReviewButs->hide(true);
     //d_measReviewButs->hide(false);
     connect(d_measReviewButs, SIGNAL(showMeasImg_clicked(uint)), SLOT(slot_showMeasImg(uint)));
-    //d_mainWidget = new QWidget();
-    //QVBoxLayout mainWinLayout;
-    //QSizePolicy sp;
-    //sp.setHeightForWidth(true);
-    //d_l_snapshot.setSizePolicy(sp);
-//#ifndef NEWVISION
-//    mainWinLayout.addWidget(&d_l_snapshot);
-//#endif
-    d_l_snapshot.setAlignment(Qt::AlignCenter);
-    //mainWinLayout.addWidget(&d_l_measRes);
-    //d_l_measRes.setFixedHeight(200);
-    //d_l_measRes.setWordWrap(true);
-    //QString measRes_str = QString("%1:\n%2:")
-    //                .arg(CONST_REFRACTION_STR).arg(CONST_INTEROCULAR_STR);
 
-//    AIEyeMeasResult measResult;
-//    measResult.left.sphere = 1.3;
-//    measResult.left.cylinder = 2.3;
-//    measResult.left.angle = 3.3;
-//    measResult.left.diameter = 4.3;
-//    measResult.right.sphere = 5.3;
-//    measResult.right.cylinder = 5.3;
-//    measResult.right.angle = 6.3;
-//    measResult.right.diameter = 7.3;
-//    QString measRes_str = QString("%1:   %2   %3   %4º   %5        %6   %7   %8º   %9\n%10:   %11")
-//            .arg(CONST_REFRACTION_STR)     //1
-//            .arg(measResult.left.sphere)   //2
-//            .arg(measResult.left.cylinder) //3
-//            .arg(measResult.left.angle)    //4
-//            .arg(measResult.left.diameter) //5
-//            .arg(measResult.right.sphere)   //6
-//            .arg(measResult.right.cylinder) //7
-//            .arg(measResult.right.angle)    //8
-//            .arg(measResult.right.diameter) //9
-//            .arg(CONST_INTEROCULAR_STR)     //10
-//            .arg(measResult.interocular);
-    //d_l_measRes.setStyleSheet("font: 20px "
-    //              /*"color: black;"*/);
-    //d_l_measRes.setText(measRes_str);
-//#ifndef NEWVISION
-//    centralWidgetLayout->addLayout(mainWinLayout);
-//#endif
-    //d_mainWidget->setLayout(&mainWinLayout);
-    //setCentralWidget( d_mainWidget);
-    //qDebug() << d_l_snapshot.width();
-    //qDebug() << d_l_snapshot.height();
-    //qDebug() << static_cast<double>(d_l_snapshot.width())/d_l_snapshot.height();
-    //qDebug() << d_l_snapshot.width()/CONST_RATIO_WIDTH2HEIGHT;
-    //d_l_snapshot.setFixedHeight(d_l_snapshot.width()/CONST_RATIO_WIDTH2HEIGHT);
+    d_l_snapshot.setAlignment(Qt::AlignCenter);
 
     initNetwork();
 
-    //connect(&d_measReviewButs, SIGNAL(imagePrev_clicked(uint)), SLOT(slot_imagePrev(uint)));
-    //connect(&d_measReviewButs, SIGNAL(imageNext_clicked(uint)), SLOT(slot_imageNext(uint)));
-//#ifdef TEST_snapshot
-//    d_snapshotParams.frame_height = 1216;
-//    d_snapshotParams.frame_width = 1936;
-//    d_snapshotParams.size = d_snapshotParams.frame_height * d_snapshotParams.frame_width;
-//    d_snapshotParams.buf.resize(d_snapshotParams.size);
-//    //uchar buf[d_snapshotParams.size];
-//    qDebug() << Q_FUNC_INFO << "file_0";
-//    FILE *f; // переменная для работы с файлом
-
-//       f=fopen("/home/moonlight/Main/Work/eyemeter/repa/EyeMeter/eyemetergui/frame1.bin", "r"); // открываем бинарный файл для записи и чтения в режиме добавления, то есть, если файла нет, то он создастся, а если файл есть, то содержимое файла не будет уничтожено, из файла можно будет читать и в файл можно будет записывать
-
-//       qDebug() << Q_FUNC_INFO << f;
-//       qDebug() << fread(d_snapshotParams.buf.data() , sizeof(uchar), d_snapshotParams.size, f); // считываем из файла f ровно 1 пакет pack размера int_double
-
-//       fclose(f);
-//       qDebug() << Q_FUNC_INFO << "file_end";
-//       //memcpy(d_snapshotParams.buf, &buf, d_snapshotParams.size);
-//       QPixmap pix = snapshot(d_snapshotParams);
-//       d_l_snapshot.setPixmap(pix);
-//       //d_l_snapshot.adjustSize();
-//#endif
-//    int screenHeight = QGuiApplication::primaryScreen()->size().height();
-//    QRectF vb_rect = QGuiApplication::inputMethod()->inputItemRectangle();
-//    vb_rect.setHeight(screenHeight/3.);
-//    QGuiApplication::inputMethod()->setInputItemRectangle(vb_rect);
     d_measResultShmemReader = std::make_unique<MeasResultShmemReader>();
     if(d_measResultShmemReader->setup() < 0){
         qDebug() << "MeasResultShmemReader setup fail";
@@ -794,64 +716,70 @@ void MainWindow::slot_start()
     qDebug() << Q_FUNC_INFO << "file_0";
     FILE *f; // переменная для работы с файлом
 
-       //f=fopen("/home/moonlight/Main/Work/eyemeter/repa/EyeMeter/eyemetergui/frame1.bin", "r"); // открываем бинарный файл для записи и чтения в режиме добавления, то есть, если файла нет, то он создастся, а если файл есть, то содержимое файла не будет уничтожено, из файла можно будет читать и в файл можно будет записывать
-        f=fopen("/home/moonlight/Main/Work/eyemeter/repa/EyeMeter/eyemetergui/_2024_08_08_11_19_40.bin", "r");
-       qDebug() << Q_FUNC_INFO << f;
-       qDebug() << fread(d_snapshotParams.buf.data() , sizeof(uchar), d_snapshotParams.size, f); // считываем из файла f ровно 1 пакет pack размера int_double
+    //f=fopen("/home/moonlight/Main/Work/eyemeter/repa/EyeMeter/eyemetergui/frame1.bin", "r"); // открываем бинарный файл для записи и чтения в режиме добавления, то есть, если файла нет, то он создастся, а если файл есть, то содержимое файла не будет уничтожено, из файла можно будет читать и в файл можно будет записывать
+    f=fopen("/home/moonlight/Main/Work/eyemeter/repa/EyeMeter/eyemetergui/_2024_08_08_11_19_40.bin", "r");
+    qDebug() << Q_FUNC_INFO << f;
+    qDebug() << fread(d_snapshotParams.buf.data() , sizeof(uchar), d_snapshotParams.size, f); // считываем из файла f ровно 1 пакет pack размера int_double
 
-       fclose(f);
-       qDebug() << Q_FUNC_INFO << "file_end";
-       //memcpy(d_snapshotParams.buf, &buf, d_snapshotParams.size);
-       QPixmap pix = image(d_snapshotParams, d_l_snapshot.size());
-       //double kscale = static_cast<double>(pix.width())/d_snapshotParams.frame_width;
-       //qDebug() << "kscale" << kscale;
-       //qDebug() << "hscale" << static_cast<double>(pix.height())/d_snapshotParams.frame_height;
-       d_l_snapshot.setPixmap(pix);
-       //{'n_frame': 36, 'left_x': 1386, 'left_y': 529, 'left_r': 26, 'right_x': 822, 'right_y': 569, 'right_r': 26}}
-       EyeCirclePos left {1386,529,26};
-       EyeCirclePos right {822,569,26};
-       d_l_eyes->setFixedSize(d_l_eyes->size());
-       d_l_eyes->setPixmap(ocular_pixmap(d_snapshotParams, left, right)
-               .scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
-       qDebug() << "d_l_eyes->size()" << d_l_eyes->size();
-       //d_l_snapshot.adjustSize();
-       std::vector<EyeSkewCoords> leftSkew(5);
-       std::vector<EyeSkewCoords> rightSkew(5);
+    fclose(f);
+    qDebug() << Q_FUNC_INFO << "file_end";
+    //memcpy(d_snapshotParams.buf, &buf, d_snapshotParams.size);
+    QPixmap pix = image(d_snapshotParams, d_l_snapshot.size());
+    //double kscale = static_cast<double>(pix.width())/d_snapshotParams.frame_width;
+    //qDebug() << "kscale" << kscale;
+    //qDebug() << "hscale" << static_cast<double>(pix.height())/d_snapshotParams.frame_height;
+    d_l_snapshot.setPixmap(pix);
+    //{'n_frame': 36, 'left_x': 1386, 'left_y': 529, 'left_r': 26, 'right_x': 822, 'right_y': 569, 'right_r': 26}}
+    EyeCirclePos left {1386,529,26};
+    EyeCirclePos right {822,569,26};
+    qDebug() << "d_l_eyes->size()" << d_l_eyes->size();
+    if(!d_isEyesLabelSizeFixed)
+    {
+        d_eyesLabelSize = d_l_eyes->size();
+        d_l_eyes->setFixedSize(d_eyesLabelSize);
+        d_isEyesLabelSizeFixed = true;
+    }
+    d_l_eyes->setPixmap(ocular_pixmap(d_snapshotParams, left, right)
+           .scaled(d_eyesLabelSize,Qt::KeepAspectRatio));
+    qDebug() << "d_l_eyes->size()" << d_l_eyes->size();
+    //d_l_snapshot.adjustSize();
+    std::vector<EyeSkewCoords> leftSkew(5);
+    std::vector<EyeSkewCoords> rightSkew(5);
 
-       for (size_t i = 0; i < 5; i++) {
-           leftSkew[i].x = i*5;
-           leftSkew[i].y = 0;
-           rightSkew[i].x = i*2;
-           rightSkew[i].y = 10;
-       }
-       d_l_pic_FixLeft->setFixedSize(d_pic_fixGrid.width(), d_pic_fixGrid.height());
-       d_l_pic_FixRight->setFixedSize(d_pic_fixGrid.width(), d_pic_fixGrid.height());
-       d_l_pic_FixLeft->setPicture(fixation_result(d_pic_fixGrid, leftSkew, STR_WARM_DARK_COLOR));
-       d_l_pic_FixRight->setPicture(fixation_result(d_pic_fixGrid, rightSkew, STR_WARM_DARK_COLOR));
+    for (size_t i = 0; i < 5; i++) {
+       leftSkew[i].x = i*5;
+       leftSkew[i].y = 0;
+       rightSkew[i].x = i*2;
+       rightSkew[i].y = 10;
+    }
+    d_l_pic_FixLeft->setFixedSize(d_pic_fixGrid.width(), d_pic_fixGrid.height());
+    d_l_pic_FixRight->setFixedSize(d_pic_fixGrid.width(), d_pic_fixGrid.height());
+    d_l_pic_FixLeft->setPicture(fixation_result(d_pic_fixGrid, leftSkew, STR_WARM_DARK_COLOR));
+    d_l_pic_FixRight->setPicture(fixation_result(d_pic_fixGrid, rightSkew, STR_WARM_DARK_COLOR));
 
-        AIEyeMeasResult measResult;
-        measResult.left.sphere = 1.3;
-        measResult.left.cylinder = 2.3;
-        measResult.left.angle = 3.3;
-        measResult.left.diameter = 4.3;
-        measResult.right.sphere = 5.3;
-        measResult.right.cylinder = 5.3;
-        measResult.right.angle = 6.3;
-        measResult.right.diameter = 7.3;
-        QString measResLeft_str = QString("%1   %2   %3º   %4")
-                .arg(measResult.left.sphere)   //2
-                .arg(measResult.left.cylinder) //3
-                .arg(measResult.left.angle)    //4
-                .arg(measResult.left.diameter); //5
-        QString measResRightt_str = QString("%1   %2   %3º   %4")
-                .arg(measResult.right.sphere)   //6
-                .arg(measResult.right.cylinder) //7
-                .arg(measResult.right.angle)    //8
-                .arg(measResult.right.diameter); //9
+    AIEyeMeasResult measResult;
+    measResult.left.sphere = 1.3;
+    measResult.left.cylinder = 2.3;
+    measResult.left.angle = 3.3;
+    measResult.left.diameter = 4.3;
+    measResult.right.sphere = 5.3;
+    measResult.right.cylinder = 5.3;
+    measResult.right.angle = 6.3;
+    measResult.right.diameter = 7.3;
+    QString measResLeft_str = QString("%1   %2   %3º   %4")
+            .arg(measResult.left.sphere)   //2
+            .arg(measResult.left.cylinder) //3
+            .arg(measResult.left.angle)    //4
+            .arg(measResult.left.diameter); //5
+    QString measResRightt_str = QString("%1   %2   %3º   %4")
+            .arg(measResult.right.sphere)   //6
+            .arg(measResult.right.cylinder) //7
+            .arg(measResult.right.angle)    //8
+            .arg(measResult.right.diameter); //9
 
-        d_l_refractionLeft->setText(measResLeft_str);
-        d_l_refractionRight->setText(measResRightt_str);
-        d_l_interocularRes->setText("10");
+    d_l_refractionLeft->setText(measResLeft_str);
+    d_l_refractionRight->setText(measResRightt_str);
+    d_l_interocularRes->setText("10");
 
 #endif
 }
@@ -898,7 +826,9 @@ void MainWindow::slot_showMeasImg(uint num)
     if(d_vec_snapshots.size()>static_cast<int>(num))
     {
         QPixmap pix = image( d_vec_snapshots.at(num), d_l_snapshot.size());
+        qDebug() << "d_l_snapshot pix.size()" << pix.size();
         d_l_snapshot.setPixmap(pix);
+        qDebug() << "d_l_snapshot pix.size()" << pix.size();
         //d_l_snapshot.adjustSize();
     }
     qDebug() << Q_FUNC_INFO << "end";
@@ -1088,9 +1018,16 @@ void MainWindow::slot_readUds(UdsUniPack pack)
                 qDebug() << "d_vec_snapshots.size() > static_cast<int>(measResult.frame4circles)";
                 //QPixmap snapshot = image( d_vec_snapshots.at(measResult.frame4circles), d_l_snapshot.size());
                 //double kscale = static_cast<double>(snapshot.width())/d_vec_snapshots.at(measResult.frame4circles).frame_width;
-                d_l_eyes->setFixedSize(d_l_eyes->size());
+                qDebug() << "d_l_eyes->size()" << d_l_eyes->size();
+                if(!d_isEyesLabelSizeFixed)
+                {
+                    d_eyesLabelSize = d_l_eyes->size();
+                    d_l_eyes->setFixedSize(d_eyesLabelSize);
+                    d_isEyesLabelSizeFixed = true;
+                }
                 d_l_eyes->setPixmap(ocular_pixmap(d_vec_snapshots.at(measResult.frame4circles), measResult.left.position, measResult.right.position)
-                        .scaled(d_l_eyes->size(),Qt::KeepAspectRatio));
+                        .scaled(d_eyesLabelSize,Qt::KeepAspectRatio));
+                qDebug() << "d_l_eyes->size()" << d_l_eyes->size();
             }
             else
             {
@@ -1119,6 +1056,17 @@ QPixmap MainWindow::image(const Image_params &imgParams, QSize size)
     //qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
     QPixmap pix = QPixmap::fromImage(snapshot_img.scaled(size, Qt::KeepAspectRatio, Qt::FastTransformation));
     qDebug() << "pix_snapshot.size()" << pix.size();
+qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
+qDebug() << "d_l_leftEye"<<d_l_leftEye->size();
+qDebug() << "d_l_rightEye"<<d_l_rightEye->size();
+qDebug() << "d_l_eyes"<<d_l_eyes->size();
+qDebug() << "d_l_pic_FixLeft"<<d_l_pic_FixLeft->size();
+qDebug() << "d_l_pic_FixRight"<<d_l_pic_FixRight->size();
+qDebug() << "d_l_refractionLeft"<<d_l_refractionLeft->size();
+qDebug() << "d_l_refractionRight"<<d_l_refractionRight->size();
+qDebug() << "d_l_diameterLeft"<<d_l_diameterLeft->size();
+qDebug() << "d_l_diameterRight"<<d_l_diameterRight->size();
+qDebug() << "d_l_interocularRes"<<d_l_interocularRes->size();
 
     //qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
 //    QPainter painter;
@@ -1453,45 +1401,88 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/)
         qDebug() << "d_measReviewButs->size()" << d_measReviewButs->size();
         d_measReviewButs->resize(d_l_snapshot.width(),d_l_snapshot.height());
         qDebug() << "d_measReviewButs->size()" << d_measReviewButs->size();
+        if (d_measReviewButs_lastSize != d_measReviewButs->size())
+        {
+            qDebug() << "d_measReviewButs size changed from " <<d_measReviewButs_lastSize << "to " << d_measReviewButs->size();
+            d_measReviewButs_lastSize = d_measReviewButs->size();
+        }
     }
-    qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
-    qDebug() << "d_pb_shot.size()" << d_pb_shot->size();
+
+    //qDebug() << "d_frame_card" << d_frame_card->size();
+    //qDebug() << "d_pb_shot.size()" << d_pb_shot->size();
     QSize screenSize = QGuiApplication::primaryScreen()->size();
     qDebug() << "screenSize"<<screenSize;
-    qDebug() << "d_l_leftEye"<<d_l_leftEye->size();
-    qDebug() << "d_l_rightEye"<<d_l_rightEye->size();
-    qDebug() << "d_l_eyes"<<d_l_eyes->size();
-    qDebug() << "d_l_refractionLeft"<<d_l_refractionLeft->size();
-    qDebug() << "d_l_refractionRight"<<d_l_refractionRight->size();
+//    qDebug() << "d_l_leftEye"<<d_l_leftEye->size();
+//    qDebug() << "d_l_rightEye"<<d_l_rightEye->size();
+//    qDebug() << "d_l_eyes"<<d_l_eyes->size();
+//    qDebug() << "d_l_refractionLeft"<<d_l_refractionLeft->size();
+//    qDebug() << "d_l_refractionRight"<<d_l_refractionRight->size();
 //    qDebug() << "d_l_diameterLeft"<<d_l_diameterLeft->size();
 //    qDebug() << "d_l_diameterRight"<<d_l_diameterRight->size();
-    qDebug() << "d_l_interocularRes"<<d_l_interocularRes->size();
-    qDebug() << "d_l_pic_FixLeft"<<d_l_pic_FixLeft->size();
-    qDebug() << "d_l_pic_FixRight"<<d_l_pic_FixRight->size();
-//#ifdef NEWVISION
-//    if(d_l_picLeftDataResults != nullptr && d_l_picRightDataResults != nullptr)
-//    {
-//        int s = min(d_l_picLeftDataResults->width(), d_frame_card->height() - d_l_leftEye->height());
-//        qDebug() << d_frame_card->height();
-//        qDebug() << d_l_leftEye->height();
-//        qDebug() << d_l_picLeftDataResults->width();
-//        qDebug() << s;
-//        d_l_picLeftDataResults->setMinimumSize(s,s);
-//        d_l_picLeftDataResults->setPicture(fixation(s));
-//        d_l_picRightDataResults->setMinimumSize(s,s);
-//        d_l_picRightDataResults->setPicture(fixation(s));
-//    }
-//#endif
-//    if(d_lastShotWidth != d_l_snapshot.width())
-//    {
-//        qDebug() << "d_lastShotWidth" << d_lastShotWidth;
-//        qDebug() << "d_l_snapshot.width()" << d_l_snapshot.width();
-//        qDebug() << "d_l_snapshot.height()" << d_l_snapshot.height();
-//        qDebug() << "w/h" << static_cast<double>(d_l_snapshot.width())/d_l_snapshot.height();
-//        qDebug() << "h" << d_l_snapshot.width()/CONST_RATIO_WIDTH2HEIGHT;
-//        d_l_snapshot.setFixedHeight(d_l_snapshot.width()/CONST_RATIO_WIDTH2HEIGHT);
-//        d_lastShotWidth = d_l_snapshot.width();
-//    }
+//    qDebug() << "d_l_interocularRes"<<d_l_interocularRes->size();
+//    qDebug() << "d_l_pic_FixLeft"<<d_l_pic_FixLeft->size();
+//    qDebug() << "d_l_pic_FixRight"<<d_l_pic_FixRight->size();
+
+    if (d_frame_card_lastSize != d_frame_card->size())
+    {
+        qDebug() << "d_frame_card size changed from " <<d_frame_card_lastSize << "to " << d_frame_card->size();
+        d_frame_card_lastSize = d_frame_card->size();
+    }
+    if (d_pb_shot_lastSize != d_pb_shot->size())
+    {
+        qDebug() << "d_pb_shot size changed from " <<d_pb_shot_lastSize << "to " << d_pb_shot->size();
+        d_pb_shot_lastSize = d_pb_shot->size();
+    }
+    if (d_l_leftEye_lastSize != d_l_leftEye->size())
+    {
+        qDebug() << "d_l_leftEye size changed from " <<d_l_leftEye_lastSize << "to " << d_l_leftEye->size();
+        d_l_leftEye_lastSize = d_l_leftEye->size();
+    }
+    if (d_l_rightEye_lastSize != d_l_rightEye->size())
+    {
+        qDebug() << "d_l_rightEye size changed from " <<d_l_rightEye_lastSize << "to " << d_l_rightEye->size();
+        d_l_rightEye_lastSize = d_l_rightEye->size();
+    }
+    if (d_l_eyes_lastSize != d_l_eyes->size())
+    {
+        qDebug() << "d_l_eyes size changed from " <<d_l_eyes_lastSize << "to " << d_l_eyes->size();
+        d_l_eyes_lastSize = d_l_eyes->size();
+    }
+    if (d_l_refractionLeft_lastSize != d_l_refractionLeft->size())
+    {
+        qDebug() << "d_l_refractionLeft size changed from " <<d_l_refractionLeft_lastSize << "to " << d_l_refractionLeft->size();
+        d_l_refractionLeft_lastSize = d_l_refractionLeft->size();
+    }
+    if (d_l_refractionRight_lastSize != d_l_refractionRight->size())
+    {
+        qDebug() << "d_l_refractionRight size changed from " <<d_l_refractionRight_lastSize << "to " << d_l_refractionRight->size();
+        d_l_refractionRight_lastSize = d_l_refractionRight->size();
+    }
+    if (d_l_diameterLeft_lastSize != d_l_diameterLeft->size())
+    {
+        qDebug() << "d_l_diameterLeft size changed from " <<d_l_diameterLeft_lastSize << "to " << d_l_diameterLeft->size();
+        d_l_diameterLeft_lastSize = d_l_diameterLeft->size();
+    }
+    if (d_l_diameterRight_lastSize != d_l_diameterRight->size())
+    {
+        qDebug() << "d_l_diameterRight size changed from " <<d_l_diameterRight_lastSize << "to " << d_l_diameterRight->size();
+        d_l_diameterRight_lastSize = d_l_diameterRight->size();
+    }
+    if (d_l_interocularRes_lastSize != d_l_interocularRes->size())
+    {
+        qDebug() << "d_l_interocularRes size changed from " <<d_l_interocularRes_lastSize << "to " << d_l_interocularRes->size();
+        d_l_interocularRes_lastSize = d_l_interocularRes->size();
+    }
+    if (d_l_pic_FixLeft_lastSize != d_l_pic_FixLeft->size())
+    {
+        qDebug() << "d_l_pic_FixLeft size changed from " <<d_l_pic_FixLeft_lastSize << "to " << d_l_pic_FixLeft->size();
+        d_l_pic_FixLeft_lastSize = d_l_pic_FixLeft->size();
+    }
+    if (d_l_pic_FixRight_lastSize != d_l_pic_FixRight->size())
+    {
+        qDebug() << "d_l_pic_FixRight size changed from " <<d_l_pic_FixRight_lastSize << "to " << d_l_pic_FixRight->size();
+        d_l_pic_FixRight_lastSize = d_l_pic_FixRight->size();
+    }
 }
 
 //bool MainWindow::event(QEvent* e) {

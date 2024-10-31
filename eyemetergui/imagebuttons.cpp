@@ -67,28 +67,30 @@ void ImageButtons::setImageCount(uint imageCount)
     d_imageCount = imageCount;
     if(imageCount < 2)
     {
+        qDebug()<<Q_FUNC_INFO << "imageCount < 2";
 //        d_but_prev->setDisabled(true);
 //        d_but_next->setDisabled(true);
         d_but_prev->setVisible(false);
         d_but_next->setVisible(false);
     } else
     {
-        if(imageCount == 2)
+//        if(imageCount == 2)
+//        {
+////            d_but_prev->setEnabled(true);
+////            d_but_next->setDisabled(true);
+//            d_but_prev->setVisible(true);
+//            d_but_next->setVisible(false);
+//        } else
         {
-//            d_but_prev->setEnabled(true);
-//            d_but_next->setDisabled(true);
-            d_but_prev->setVisible(true);
-            d_but_next->setVisible(false);
-        } else
-        {
-            qDebug()<<Q_FUNC_INFO << "imageCount > 2";
+            qDebug()<<Q_FUNC_INFO << "imageCount >= 2";
 //            d_but_prev->setEnabled(true);
 //            d_but_next->setEnabled(true);
             d_but_prev->setVisible(true);
             d_but_next->setVisible(true);
-            qDebug()<<Q_FUNC_INFO << "imageCount > 2 end";
+            qDebug()<<Q_FUNC_INFO << "imageCount >= 2 end";
         }
     }
+    d_but_prev->setEnabled(true);
     d_but_next->setDisabled(true);
     qDebug()<<Q_FUNC_INFO << "end";
 }
