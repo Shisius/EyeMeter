@@ -20,6 +20,12 @@ typedef struct _eyerolestate
 	unsigned char alarm;
 } EyeRoleState;
 
+typedef struct _time_sync_ans_abs
+{
+	unsigned long long recv_time_ns;
+	unsigned long long cur_time_ns;
+} TimeSyncAnsAbs;
+
 typedef enum
 {
 	EYEMETER_ROLE_NONE = 0,
@@ -38,6 +44,7 @@ typedef enum
 {
 	UDSUNI_TITLE_STATE_REQ = 0x08,
 	UDSUNI_TITLE_MY_STATE = 0x09,
+	UDSUNI_TITLE_TIMESYNC = 0x0C,
 
 	UDSUNI_TITLE_STREAM_START = 0x10,
 	UDSUNI_TITLE_STREAM_RUNNING = 0x12,
@@ -72,6 +79,7 @@ typedef enum
 	UDSUNI_TYPE_MEASURE_RESULT = 0x22,
 
 	UDSUNI_TYPE_ROLE_STATE = 0x80,
+	UDSUNI_TYPE_TIMESYNC_ANS_ABS = 0x8C,
 
 	UDSUNI_TYPE_UNKNOWN = 0xFF
 } UdsUniType;

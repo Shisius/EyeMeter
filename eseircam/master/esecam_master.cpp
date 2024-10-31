@@ -221,49 +221,56 @@ void EseCamMaster::meas_routine()
 
 	if (d_in_meas.load()) d_uds->send(UDSUNI_TITLE_MEAS_RUNNING, d_meas_settings);
 
-	for (unsigned char i_repeat = 0; i_repeat < d_meas_settings.n_repeat; i_repeat++)
+	d_meas_frame_idx.store(0);
+	d_n_bad_meas_frames.store(0);
+	while (d_meas_frame_idx.load() < d_meas_settings.n_repeat*d_meas_settings.n_led_pos)
 	{
-		for (unsigned char i_led = 0; i_led < d_meas_settings.n_led_pos; i_led++) 
-		{
-			printf("EseCamMaster:: meas %d, %d\n", i_repeat, i_led);
-			if (!(d_in_meas.load())) break;
-			// Set led
-			unsigned short led_value = 0;
-			if (i_led == 0 || i_led == d_meas_settings.n_led_pos/2) {
-				led_value = 0xFFFF & EYEMETER_LEDS_MASK;
-			} else {
-				if (i_led < d_meas_settings.n_led_pos/2) led_value = 0x01 << (i_led - 1);
-				else led_value = 0x01 << (i_led - 2);
-			}
-			if (led_control(led_value) < 0) {
-				printf("EseCamMaster:: meas failed on led\n");
+		unsigned char i_led = d_meas_frame_idx.load() % d_meas_settings.n_led_pos;
+		unsigned char i_repeat = floor(d_meas_frame_idx.load() / d_meas_settings.n_led_pos);
+		printf("EseCamMaster:: meas %d, %d\n", i_repeat, i_led);
+		if (!(d_in_meas.load())) break;
+		// Set led
+		unsigned short led_value = 0;
+		if (i_led == 0 || i_led == d_meas_settings.n_led_pos/2) {
+			led_value = 0xFFFF & EYEMETER_LEDS_MASK;
+		} else {
+			if (i_led < d_meas_settings.n_led_pos/2) led_value = 0x01 << (i_led - 1);
+			else led_value = 0x01 << (i_led - 2);
+		}
+		if (led_control(led_value) < 0) {
+			printf("EseCamMaster:: meas failed on led\n");
+			stop_meas();
+			break;
+		}
+		// Do shot
+		while (d_in_meas.load()) {
+			if (get_frame_soft_trigger() < 0) {
+				printf("EseCamMaster:: meas failed on trigger\n");
 				stop_meas();
 				break;
 			}
-			// Do shot
-			while (d_in_meas.load()) {
-				if (get_frame_soft_trigger() < 0) {
-					printf("EseCamMaster:: meas failed on trigger\n");
-					stop_meas();
-					break;
-				}
-				// get_frame_hard_trigger();
-				// Wait
-				// {
-				// 	unique_lock<mutex> lk(d_frame_ready_mut);
-				// 	d_frame_ready_cond.wait(lk,[this]{return (d_frame_ready_flag.load() || !(d_in_meas.load()));});
-				// }
-				std::this_thread::sleep_for(std::chrono::milliseconds(25));
-				if (d_frame_ready_flag.load()) {
-					// std::this_thread::sleep_for(std::chrono::milliseconds(15));
-					break;
-				} else {
-					printf("EseCamMaster::meas frame %d, %d repeat\n", i_repeat, i_led);
-					stop_meas();
-					break;
-				}
+			// get_frame_hard_trigger();
+			// Wait
+			// {
+			// 	unique_lock<mutex> lk(d_frame_ready_mut);
+			// 	d_frame_ready_cond.wait(lk,[this]{return (d_frame_ready_flag.load() || !(d_in_meas.load()));});
+			// }
+			std::this_thread::sleep_for(std::chrono::milliseconds(25));
+			if (d_frame_ready_flag.load()) {
+				// std::this_thread::sleep_for(std::chrono::milliseconds(15));
+				break;
+			} else {
+				printf("EseCamMaster::meas frame %d, %d repeat\n", i_repeat, i_led);
+				stop_meas();
+				break;
 			}
 		}
+		if (d_n_bad_meas_frames.load() > 4) {
+			printf("EseCamMaster:: %d bad frames detected\n", d_n_bad_meas_frames.load());
+			stop_meas();
+			break;
+		}
+		d_meas_frame_idx++;
 	}
 
 	if (!d_in_meas.load()) meas_failed = true;
@@ -273,6 +280,8 @@ void EseCamMaster::meas_routine()
 	rgb_blink(false);
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+	printf("EseCamMaster::black frames number = %d\n", d_n_bad_meas_frames.load());
 
 	if (meas_failed) {
 		d_uds->send(UDSUNI_TITLE_MEAS_FAILED);
@@ -551,17 +560,34 @@ void EseCamMaster::cam_timer()
 void EseCamMaster::frame_ready_event(SharedFrame & frame, unsigned char* frame_ptr)
 {
 	ShmemBlock block;
-	if (d_shmem->block_alloc(block) == 0) {
-		frame.id = block.id;
-		memcpy(block.ptr, frame_ptr, frame.size);
-		d_uds->send(UDSUNI_TITLE_FRAME_READY, frame);
-		printf("EseCamMaster:: frame id %d\n", frame.id);
+	if (black_frame(frame_ptr) == 0)
+	{
+		if (d_shmem->block_alloc(block) == 0) {
+			frame.id = block.id;
+			memcpy(block.ptr, frame_ptr, frame.size);
+			d_uds->send(UDSUNI_TITLE_FRAME_READY, frame);
+			printf("EseCamMaster:: frame id %d\n", frame.id);
+		} else {
+			printf("EseCamMaster:: shmem overflow\n");
+		}
 	} else {
-		printf("EseCamMaster:: shmem overflow\n");
+		printf("EseCamMaster:: black frame %d\n", d_meas_frame_idx.load());
+		d_meas_frame_idx--;
+		d_n_bad_meas_frames++;
 	}
 	d_frame_ready_flag.store(true);
 	{
 		lock_guard<mutex> lk(d_frame_ready_mut);
 		d_frame_ready_cond.notify_one();
 	}
+}
+
+int EseCamMaster::black_frame(unsigned char* frame_ptr)
+{
+	unsigned char max = 0;
+	for (unsigned int i = 7*d_meas_settings.stream.frame_size/16; i < d_meas_settings.stream.frame_size/2; i++) {
+		if (*(frame_ptr+i) > max) max = *(frame_ptr+i);
+	}
+	if (max > 90) return 0;
+	return 1;
 }

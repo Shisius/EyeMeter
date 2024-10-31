@@ -19,6 +19,13 @@ typedef struct std_in_out_err_fds
 	int err;
 } StdInOutErrFds;
 
+typedef struct std_in_out_err_files
+{
+	FILE* in;
+	FILE* out;
+	FILE* err;
+} StdInOutErrFiles;
+
 __attribute__((unused)) static inline void get_process_name_by_pid(char* name, const int pid)
 {
     if(name){
@@ -60,7 +67,7 @@ __attribute__((unused)) static inline bool write_pid_file(const std::string & na
 {
 	// Get pid and convert to string
 	pid_t pid = getpid();
-	char pid_s[8];
+	char pid_s[32];
 	sprintf(pid_s, "%d\n", pid);
 	// Open pid file
 	// if (name == NULL) return false;
@@ -86,8 +93,8 @@ __attribute__((unused)) static inline pid_t get_pid_from_file(const std::string 
 	FILE* f = fopen(fullname.c_str(), "r");
 	if (f == NULL) return -1;
 	// Get content
-	char pid_s[8];
-	size_t n_bytes = fread(pid_s, sizeof(char), 8, f);
+	char pid_s[32];
+	size_t n_bytes = fread(pid_s, sizeof(char), 32, f);
 	fclose(f);
 	if (n_bytes <= 0) return -1;
 	// Read PID
@@ -147,6 +154,17 @@ __attribute__((unused)) static inline StdInOutErrFds redirect_stdfd(std::string 
 __attribute__((unused)) static inline StdInOutErrFds redirect_std2null(void)
 {
 	return redirect_stdfd("/dev/null", "/dev/null", "/dev/null");
+}
+
+__attribute__((unused)) static inline StdInOutErrFiles redirect_std2log(void)
+{
+	StdInOutErrFiles stdfds;
+	fflush(stdout);
+	fflush(stderr);
+	stdfds.in = freopen("/dev/null", "r", stdin);
+	stdfds.out = freopen("/tmp/cam_log.txt", "a", stdout);
+	stdfds.err = freopen("/tmp/cam_err.txt", "a", stderr);
+	return stdfds;
 }
 
 __attribute__((unused)) static inline bool is_daemon_self_running(void)
