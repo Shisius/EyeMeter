@@ -22,11 +22,11 @@ class EyeAnalyzer:
                  ref_weights_path='.\\weights\\weights_doc.pt',
                  load_model_path='.\\weights\\yolo_eye.pt',
                  rknn_model_path='.\\weights\\yolov8_seg.rknn',
-                 verbose=False, reverse=-1, conf=0.5, backend_type='rknn'):
+                 verbose=False, reverse=-1, conf=0.3, backend_type='rknn'):
         self.verbose = verbose
         if backend_type == 'rknn':
             from rknn_pupil_detection import PupilDetectRKNN
-            self.pd = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path), conf=conf, iou=0.7, imgsz=640)
+            self.pd = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path), conf=conf, iou=0.5, imgsz=640)
         elif backend_type == 'onnx':
             from onnx_pupil_detection import PupilDetectONNX
             self.pd = PupilDetectONNX(path_to_onnx = self.adj_os('C:\\Users\\tomil\Downloads\Telegram Desktop'
