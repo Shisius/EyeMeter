@@ -51,7 +51,7 @@ class EyeAnalyzer:
                                      num_layers=num_layers)
         self.ref_net.load_state_dict(torch.load(self.adj_os(ref_weights_path)))
         self.ref_net.eval()
-        self.fast = True
+        self.fast = False
         # self.pseudo_run()
 
     def pseudo_run(self):
