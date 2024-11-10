@@ -585,6 +585,7 @@ void EseCamMaster::frame_ready_event(SharedFrame & frame, unsigned char* frame_p
 int EseCamMaster::black_frame(unsigned char* frame_ptr)
 {
 	unsigned char max = 0;
+	if (!d_in_meas.load()) return 0;
 	for (unsigned int i = 7*d_meas_settings.stream.frame_size/16; i < d_meas_settings.stream.frame_size/2; i++) {
 		if (*(frame_ptr+i) > max) max = *(frame_ptr+i);
 	}
