@@ -22,7 +22,7 @@ class EyeAnalyzer:
                  ref_weights_path='.\\weights\\weights_doc.pt',
                  load_model_path='.\\weights\\yolo_eye.pt',
                  rknn_model_path='.\\weights\\yolov8_seg.rknn',
-                 verbose=False, reverse=-1, conf=0.3, backend_type='rknn'):
+                 verbose=False, reverse=-1, conf=0.5, backend_type='rknn'):
         self.verbose = verbose
         if backend_type == 'rknn':
             from rknn_pupil_detection import PupilDetectRKNN
@@ -51,7 +51,7 @@ class EyeAnalyzer:
                                      num_layers=num_layers)
         self.ref_net.load_state_dict(torch.load(self.adj_os(ref_weights_path)))
         self.ref_net.eval()
-        self.fast = False
+        self.fast = True
         # self.pseudo_run()
 
     def pseudo_run(self):
