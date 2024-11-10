@@ -16,7 +16,8 @@ void sigint_handler(int signum)
 
 int main(int argc, char ** argv)
 {
-	StdInOutErrFds stdfds;
+	//StdInOutErrFds stdfds;
+	StdInOutErrFiles stdfds;
 	bool run_as_daemon = false;
 	bool exit_daemon = false;
 	int charopt = -1;
@@ -83,8 +84,12 @@ int main(int argc, char ** argv)
 	if (run_as_daemon) {
 		printf("Starting daemon\n");
 		if (!(doublefork())) printf("Double fork failed\n");
-		stdfds = redirect_std2null();
+
+		stdfds = redirect_std2log();
+		
 		if (!daemon_self_write_pid_file()) return 1;
+		
+		printf("Daemonized\n");
 	}
 
 	signal(SIGINT, sigint_handler);
@@ -111,8 +116,11 @@ int main(int argc, char ** argv)
 
 	cammaster.reset();
 
-	if (run_as_daemon)
+	if (run_as_daemon) {
 		at_daemon_self_exit();
+		fclose(stdfds.out);
+		fclose(stdfds.err);
+	}
 
 	return 0;
 }

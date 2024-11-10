@@ -1064,8 +1064,8 @@ qDebug() << "d_l_pic_FixLeft"<<d_l_pic_FixLeft->size();
 qDebug() << "d_l_pic_FixRight"<<d_l_pic_FixRight->size();
 qDebug() << "d_l_refractionLeft"<<d_l_refractionLeft->size();
 qDebug() << "d_l_refractionRight"<<d_l_refractionRight->size();
-qDebug() << "d_l_diameterLeft"<<d_l_diameterLeft->size();
-qDebug() << "d_l_diameterRight"<<d_l_diameterRight->size();
+//qDebug() << "d_l_diameterLeft"<<d_l_diameterLeft->size();
+//qDebug() << "d_l_diameterRight"<<d_l_diameterRight->size();
 qDebug() << "d_l_interocularRes"<<d_l_interocularRes->size();
 
     //qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
@@ -1458,16 +1458,16 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/)
         qDebug() << "d_l_refractionRight size changed from " <<d_l_refractionRight_lastSize << "to " << d_l_refractionRight->size();
         d_l_refractionRight_lastSize = d_l_refractionRight->size();
     }
-    if (d_l_diameterLeft_lastSize != d_l_diameterLeft->size())
-    {
-        qDebug() << "d_l_diameterLeft size changed from " <<d_l_diameterLeft_lastSize << "to " << d_l_diameterLeft->size();
-        d_l_diameterLeft_lastSize = d_l_diameterLeft->size();
-    }
-    if (d_l_diameterRight_lastSize != d_l_diameterRight->size())
-    {
-        qDebug() << "d_l_diameterRight size changed from " <<d_l_diameterRight_lastSize << "to " << d_l_diameterRight->size();
-        d_l_diameterRight_lastSize = d_l_diameterRight->size();
-    }
+//    if (d_l_diameterLeft_lastSize != d_l_diameterLeft->size())
+//    {
+//        qDebug() << "d_l_diameterLeft size changed from " <<d_l_diameterLeft_lastSize << "to " << d_l_diameterLeft->size();
+//        d_l_diameterLeft_lastSize = d_l_diameterLeft->size();
+//    }
+//    if (d_l_diameterRight_lastSize != d_l_diameterRight->size())
+//    {
+//        qDebug() << "d_l_diameterRight size changed from " <<d_l_diameterRight_lastSize << "to " << d_l_diameterRight->size();
+//        d_l_diameterRight_lastSize = d_l_diameterRight->size();
+//    }
     if (d_l_interocularRes_lastSize != d_l_interocularRes->size())
     {
         qDebug() << "d_l_interocularRes size changed from " <<d_l_interocularRes_lastSize << "to " << d_l_interocularRes->size();

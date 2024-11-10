@@ -61,12 +61,15 @@ protected:
 	std::condition_variable d_frame_ready_cond;
 	std::mutex d_frame_ready_mut;
 	std::atomic<bool> d_frame_ready_flag;
+	std::atomic<int> d_meas_frame_idx;
+	std::atomic<int> d_n_bad_meas_frames;
 
 	int start_stream();
 	int stop_stream();
 	int start_meas();
 	void stop_meas();
 	int frame_free(UdsUniPack & pack);
+	int black_frame(unsigned char* frame_ptr);
 	
 	int set_led_pwr(UdsUniPack & pack);
 	int led_control(unsigned short led_state);
