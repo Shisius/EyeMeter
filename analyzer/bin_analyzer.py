@@ -72,7 +72,7 @@ class EyeAnalyzer:
             path_file = path_file.replace('\\', '/')
         return path_file
 
-    def pack2tries(self, data, use_fast=False):
+    def pack2tries(self, data, use_fast=False, img_array=None):
         tmp_4 = []
         if use_fast:
             tmp_arr_end = range(4, 40, 4) if len(data) == 40 else range(5, 41, 4)
@@ -112,17 +112,30 @@ class EyeAnalyzer:
             for r_st, r_end in zip(data[:-1], data[1:]):
                 g = 1
                 if r_end[0] - r_st[0] == 4:
-                    tmp_4.append({'start_frame': r_st[0],
-                                  'end_frame': r_end[0],
-                                  'start_box_left': r_st[2],
-                                  'start_box_right': r_st[1],
-                                  'start_mask_left': r_st[4],
-                                  'start_mask_right': r_st[3],
-                                  'end_box_left': r_end[2],
-                                  'end_box_right': r_end[1],
-                                  'end_mask_left': r_end[4],
-                                  'end_mask_right': r_end[3],
-                                  })
+                    if img_array is not None and all([img_array[i].max() > 128 for i in range(r_st[0], r_end[0], )]):
+                        tmp_4.append({'start_frame': r_st[0],
+                                      'end_frame': r_end[0],
+                                      'start_box_left': r_st[2],
+                                      'start_box_right': r_st[1],
+                                      'start_mask_left': r_st[4],
+                                      'start_mask_right': r_st[3],
+                                      'end_box_left': r_end[2],
+                                      'end_box_right': r_end[1],
+                                      'end_mask_left': r_end[4],
+                                      'end_mask_right': r_end[3],
+                                      })
+                    else:
+                        tmp_4.append({'start_frame': r_st[0],
+                                      'end_frame': r_end[0],
+                                      'start_box_left': r_st[2],
+                                      'start_box_right': r_st[1],
+                                      'start_mask_left': r_st[4],
+                                      'start_mask_right': r_st[3],
+                                      'end_box_left': r_end[2],
+                                      'end_box_right': r_end[1],
+                                      'end_mask_left': r_end[4],
+                                      'end_mask_right': r_end[3],
+                                      })
         return tmp_4
 
     def get_interocular_dist(self, nn_boxes_list):
@@ -176,11 +189,21 @@ class EyeAnalyzer:
                     # fig, ax = plt.subplots()
                     # ax.imshow(result[-1].orig_img[:, :,])
                     # # ax.imshow(out[-1].orig_img)
-                    # for b in result[-1].boxes:
-                    #     x, y, width, height = (int(b.xywh[0, 0].item()), int(b.xywh[0, 1].item()),
-                    #                            int(b.xywh[0, 2].item()), int(b.xywh[0, 3].item()))
-                    #     patch = patches.Rectangle((x, y), width, height, facecolor='none', edgecolor='red', linewidth=2)
-                    #     ax.add_patch(patch)
+                    # if False:
+                    #     for b in result[-1].boxes:
+                    #         x, y, width, height = (int(b.xywh[0, 0].item()), int(b.xywh[0, 1].item()),
+                    #                                int(b.xywh[0, 2].item()), int(b.xywh[0, 3].item()))
+                    #         patch = patches.Rectangle((x, y), width, height, facecolor='none', edgecolor='red', linewidth=2)
+                    #         ax.add_patch(patch)
+                    # if True:
+                    #     for b in result[-1].boxes:
+                    #         x, y, width, height = (int(b.xywh[0, 0].item()), int(b.xywh[0, 1].item()),
+                    #                                int(b.xywh[0, 2].item()), int(b.xywh[0, 3].item()))
+                    #         patch = patches.Rectangle((x, y), width, height, facecolor='none', edgecolor='red', linewidth=2)
+                    #         ax.add_patch(patch)
+                    #     poly = Polygon(list(zip(eye[:, 0], eye[:, 1])), facecolor='none',
+                    #                    edgecolor=colors[idx])
+                    #     ax.add_patch(poly)
                     # plt.show()
             if result[0].boxes.xyxy.size(0) == 2:
                 res = result[0].boxes.xyxy
@@ -190,7 +213,7 @@ class EyeAnalyzer:
                 else:
                     tmp.append([img_num, res[1], res[0], masks[1], masks[0]])
         try:
-            part_collections = self.pack2tries(tmp, use_fast=self.fast)
+            part_collections = self.pack2tries(tmp, use_fast=self.fast, img_array=img_array)
             info_storage = []
             for part in part_collections:
                 try:
@@ -254,11 +277,11 @@ class EyeAnalyzer:
 
 
 if __name__ == '__main__':
-    ea_inst = EyeAnalyzer(verbose=False, backend_type='onnx')
+    ea_inst = EyeAnalyzer(verbose=True, backend_type='onnx')
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:
-        fname = 'D:\Projects\eye_blinks\data_24\\28_10_24\\36_2024_10_28_23_01_09.bin'
+        fname = 'D:\Projects\eye_blinks\data_24\\10_11_24\in_motion\\991_2024_11_10_00_26_07.bin'
     # fname = '777_2024_06_12_20_34_55.bin'
 
     with open(fname, 'rb') as f:
