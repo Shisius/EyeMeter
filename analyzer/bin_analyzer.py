@@ -19,7 +19,7 @@ import matplotlib.patches as patches
 class EyeAnalyzer:
     def __init__(self, num_imgs=40, path_to_chck='.\\weights\\only_wab.pt',
                  cfg_root='.\\weights\\my_yolo8n-seg.yaml',
-                 ref_weights_path='.\\weights\\weights_doc.pt',
+                 ref_weights_path='.\\weights\\weights_common.pt',
                  load_model_path='.\\weights\\yolo_eye.pt',
                  rknn_model_path='.\\weights\\yolov8_seg.rknn',
                  verbose=False, reverse=-1, conf=0.5, backend_type='rknn'):
@@ -38,11 +38,12 @@ class EyeAnalyzer:
 
         self.num_imgs = num_imgs
         self.pix2mm = 0.09267 #/1.012 #/0.95 #/0.966
+
         input_sz = 28
         num_cls = 3
-        hidden_sz = 256
+        hidden_sz = 512
         do_rate = 0.5
-        num_layers = 10
+        num_layers = 3
         self.reverse = reverse  # -1 if predict shoul be inversed
         self.ref_net = RefractionNet(input_sz,
                                      num_cls,
