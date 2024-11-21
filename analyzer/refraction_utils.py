@@ -101,6 +101,8 @@ def process_pupil(pup_1_l, rel2deg=60):
 
 
 def get_eye_box(one_eye_b, anoth_eye_b):
+    anoth_eye_b = anoth_eye_b.round()
+    one_eye_b = one_eye_b.round()
     pos_l = (int(anoth_eye_b[1]), int(anoth_eye_b[3]), int(anoth_eye_b[0]), int(anoth_eye_b[2]))
     pos_r = (int(one_eye_b[1]), int(one_eye_b[3]), int(one_eye_b[0]), int(one_eye_b[2]))
     if pos_l[2] < pos_r[2]:
@@ -120,18 +122,18 @@ def get_eye_mask(one_eye_m, anoth_eye_m):
 
 def speed_estimation(start, end):
     """Determine linear velocity in
-    1. First component box center shift
-    2. Second component box center shift
-    3. Height shift
-    4. Width shift"""
-    shift_l = (end[0][0] + end[0][1]) / 2 - (start[0][0] + start[0][1]) / 2, \
-              (end[0][2] + end[0][3]) / 2 - (start[0][2] + start[0][3]) / 2, \
-              (end[0][1] - end[0][0]) - (start[0][1] - start[0][0]), \
-              (end[0][3] - end[0][2]) - (start[0][3] - start[0][2])
-    shift_r = (end[1][0] + end[1][1]) / 2 - (start[1][0] + start[1][1]) / 2, \
-              (end[1][2] + end[1][3]) / 2 - (start[1][2] + start[1][3]) / 2, \
-              (end[1][1] - end[1][0]) - (start[1][1] - start[1][0]), \
-              (end[1][3] - end[1][2]) - (start[1][3] - start[1][2])
+    1. x_min shift
+    2. x_max shift
+    3. y_min shift
+    4. y_max shift"""
+    shift_l = end[0][0] - start[0][0], \
+              end[0][1] - start[0][1], \
+              end[0][2] - start[0][2], \
+              end[0][3] - start[0][3]
+    shift_r = end[1][0] - start[1][0], \
+              end[1][1] - start[1][1], \
+              end[1][2] - start[1][2], \
+              end[1][3] - start[1][3]
     return shift_l, shift_r
 
 
@@ -141,6 +143,19 @@ def estimate_coeffs(a, part):
     end_coord = get_eye_box(part['end_box_left'], part['end_box_right'])
     # start_coord = get_eye_mask(part['start_mask_left'], part['start_mask_right'])
     # end_coord = get_eye_mask(part['end_mask_left'], part['end_mask_right'])
+
+    # fig, ax = plt.subplots()
+    # ax.imshow(a[part['start_frame']])
+    #
+    # import matplotlib.patches as patches
+    # bbb = part['start_box_left']
+    # x, y, width, height = (int(bbb[0]), int(bbb[1]),
+    #                        int(int(bbb[2]) - int(bbb[0])),
+    #                        int(int(bbb[3]) - int(bbb[1])))
+    # patch = patches.Rectangle((x, y), width, height, facecolor='none', edgecolor='red', linewidth=2)
+    # ax.add_patch(patch)
+    # plt.show()
+
     speed_l, speed_r = speed_estimation(start_coord, end_coord)
     result_lst = []
     num_frames = part['end_frame'] - part['start_frame']
@@ -148,18 +163,18 @@ def estimate_coeffs(a, part):
         img_1 = a[r]
         if f'{idx}_mask_left' in part:
             ((y_min_l, x_min_l, y_max_l, x_max_l),
-             (y_min_r, x_min_r, y_max_r, x_max_r)) = (list(part[f'{idx}_mask_left'].long().numpy()),
-                                                      list(part[f'{idx}_mask_right'].long().numpy()))
+             (y_min_r, x_min_r, y_max_r, x_max_r)) = (list(part[f'{idx}_mask_left'].round().long().cpu().numpy()),
+                                                      list(part[f'{idx}_mask_right'].round().long().cpu().numpy()))
         else:
-            x_min_l, x_max_l = start_coord[0][0] + speed_l[0] / num_frames * (idx + 1), \
-                               start_coord[0][1] + (speed_l[0] + speed_l[2]) / num_frames * (idx + 1)
-            y_min_l, y_max_l = start_coord[0][2] + speed_l[1] / num_frames * (idx + 1), \
-                               start_coord[0][3] + (speed_l[1] + speed_l[3]) / num_frames * (idx + 1)
+            x_min_l, x_max_l = round(start_coord[0][0] + speed_l[0] / num_frames * idx, 0), \
+                               round(start_coord[0][1] + speed_l[1] / num_frames * idx, 0)
+            y_min_l, y_max_l = round(start_coord[0][2] + speed_l[2] / num_frames * idx, 0), \
+                               round(start_coord[0][3] + speed_l[3] / num_frames * idx, 0)
 
-            x_min_r, x_max_r = start_coord[1][0] + speed_r[0] / num_frames * (idx + 1), \
-                               start_coord[1][1] + (speed_r[0] + speed_r[2]) / num_frames * (idx + 1)
-            y_min_r, y_max_r = start_coord[1][2] + speed_r[1] / num_frames * (idx + 1), \
-                               start_coord[1][3] + (speed_r[1] + speed_r[3]) / num_frames * (idx + 1)
+            x_min_r, x_max_r = round(start_coord[1][0] + speed_r[0] / num_frames * idx, 0), \
+                               round(start_coord[1][1] + speed_r[1] / num_frames * idx, 0)
+            y_min_r, y_max_r = round(start_coord[1][2] + speed_r[2] / num_frames * idx, 0), \
+                               round(start_coord[1][3] + speed_r[3] / num_frames * idx, 0)
 
         pup_1_l = img_1[int(x_min_l):int(x_max_l), int(y_min_l):int(y_max_l)]
         pup_1_r = img_1[int(x_min_r):int(x_max_r), int(y_min_r):int(y_max_r)]

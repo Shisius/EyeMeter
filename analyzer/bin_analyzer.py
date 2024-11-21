@@ -72,8 +72,15 @@ class EyeAnalyzer:
             path_file = path_file.replace('\\', '/')
         return path_file
 
-    def pack2tries(self, data, use_fast=False, img_array=None):
+    def pack2tries(self, data, use_fast=False, img_array=None, use_bbox=True):
         tmp_4 = []
+        if use_bbox:
+            r_idx = 1
+            l_idx = 2
+        else:
+            r_idx = 3
+            l_idx = 4
+
         if use_fast:
             tmp_arr_end = range(4, 40, 4) if len(data) == 40 else range(5, 41, 4)
             tmp_arr_st = range(0, 40 - 4, 4) if len(data) == 40 else range(1, 41 - 4, 4)
@@ -85,26 +92,26 @@ class EyeAnalyzer:
                         tmp_4.append({'start_frame': r_st,
                                       'end_frame': r_end,
 
-                                      'start_mask_left': data[r_st][2],
-                                      'start_mask_right': data[r_st][1],
-                                      'start_box_left': data[r_st][2],
-                                      'start_box_right': data[r_st][1],
+                                      'start_mask_left': data[r_st][l_idx],
+                                      'start_mask_right': data[r_st][r_idx],
+                                      'start_box_left': data[r_st][l_idx],
+                                      'start_box_right': data[r_st][r_idx],
 
-                                      '0_mask_left': data[r_st][2],
-                                      '0_mask_right': data[r_st][1],
-                                      '1_mask_left': data[r_st + 1][2],
-                                      '1_mask_right': data[r_st + 1][1],
-                                      '2_mask_left': data[r_st + 2][2],
-                                      '2_mask_right': data[r_st + 2][1],
-                                      '3_mask_left': data[r_st + 3][2],
-                                      '3_mask_right': data[r_st + 3][1],
-                                      '4_mask_left': data[r_end][2],
-                                      '4_mask_right': data[r_end][1],
+                                      '0_mask_left': data[r_st][l_idx],
+                                      '0_mask_right': data[r_st][r_idx],
+                                      '1_mask_left': data[r_st + 1][l_idx],
+                                      '1_mask_right': data[r_st + 1][r_idx],
+                                      '2_mask_left': data[r_st + 2][l_idx],
+                                      '2_mask_right': data[r_st + 2][r_idx],
+                                      '3_mask_left': data[r_st + 3][l_idx],
+                                      '3_mask_right': data[r_st + 3][r_idx],
+                                      '4_mask_left': data[r_end][l_idx],
+                                      '4_mask_right': data[r_end][r_idx],
 
-                                      'end_mask_left': data[r_end][2],
-                                      'end_mask_right': data[r_end][1],
-                                      'end_box_left': data[r_end][2],
-                                      'end_box_right': data[r_end][1],
+                                      'end_mask_left': data[r_end][l_idx],
+                                      'end_mask_right': data[r_end][r_idx],
+                                      'end_box_left': data[r_end][l_idx],
+                                      'end_box_right': data[r_end][r_idx],
                                       })
                 except:
                     print(f'problem with frame formation, start {r_st}, end {r_end}')
@@ -115,26 +122,26 @@ class EyeAnalyzer:
                     if img_array is not None and all([img_array[i].max() > 128 for i in range(r_st[0], r_end[0], )]):
                         tmp_4.append({'start_frame': r_st[0],
                                       'end_frame': r_end[0],
-                                      'start_box_left': r_st[2],
-                                      'start_box_right': r_st[1],
-                                      'start_mask_left': r_st[4],
-                                      'start_mask_right': r_st[3],
-                                      'end_box_left': r_end[2],
-                                      'end_box_right': r_end[1],
-                                      'end_mask_left': r_end[4],
-                                      'end_mask_right': r_end[3],
+                                      'start_box_left': r_st[l_idx],
+                                      'start_box_right': r_st[r_idx],
+                                      'start_mask_left': r_st[l_idx],
+                                      'start_mask_right': r_st[r_idx],
+                                      'end_box_left': r_end[l_idx],
+                                      'end_box_right': r_end[r_idx],
+                                      'end_mask_left': r_end[l_idx],
+                                      'end_mask_right': r_end[r_idx],
                                       })
                     else:
                         tmp_4.append({'start_frame': r_st[0],
                                       'end_frame': r_end[0],
-                                      'start_box_left': r_st[2],
-                                      'start_box_right': r_st[1],
-                                      'start_mask_left': r_st[4],
-                                      'start_mask_right': r_st[3],
-                                      'end_box_left': r_end[2],
-                                      'end_box_right': r_end[1],
-                                      'end_mask_left': r_end[4],
-                                      'end_mask_right': r_end[3],
+                                      'start_box_left': r_st[l_idx],
+                                      'start_box_right': r_st[r_idx],
+                                      'start_mask_left': r_st[l_idx],
+                                      'start_mask_right': r_st[r_idx],
+                                      'end_box_left': r_end[l_idx],
+                                      'end_box_right': r_end[r_idx],
+                                      'end_mask_left': r_end[l_idx],
+                                      'end_mask_right': r_end[r_idx],
                                       })
         return tmp_4
 
@@ -186,25 +193,25 @@ class EyeAnalyzer:
                 with torch.inference_mode():
                     result = self.pd.model.predict([img_array[img_num][:, :, None].repeat(3, axis=-1)],
                                                    save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
-                    # fig, ax = plt.subplots()
-                    # ax.imshow(result[-1].orig_img[:, :,])
-                    # # ax.imshow(out[-1].orig_img)
-                    # if False:
-                    #     for b in result[-1].boxes:
-                    #         x, y, width, height = (int(b.xywh[0, 0].item()), int(b.xywh[0, 1].item()),
-                    #                                int(b.xywh[0, 2].item()), int(b.xywh[0, 3].item()))
-                    #         patch = patches.Rectangle((x, y), width, height, facecolor='none', edgecolor='red', linewidth=2)
-                    #         ax.add_patch(patch)
-                    # if True:
-                    #     for b in result[-1].boxes:
-                    #         x, y, width, height = (int(b.xywh[0, 0].item()), int(b.xywh[0, 1].item()),
-                    #                                int(b.xywh[0, 2].item()), int(b.xywh[0, 3].item()))
-                    #         patch = patches.Rectangle((x, y), width, height, facecolor='none', edgecolor='red', linewidth=2)
-                    #         ax.add_patch(patch)
-                    #     poly = Polygon(list(zip(eye[:, 0], eye[:, 1])), facecolor='none',
-                    #                    edgecolor=colors[idx])
-                    #     ax.add_patch(poly)
-                    # plt.show()
+                    # if self.verbose:
+                    #     fig, ax = plt.subplots()
+                    #     ax.imshow(result[-1].orig_img[:, :,])
+                    #     # ax.imshow(out[-1].orig_img)
+                    #     if True:
+                    #         for b in result[-1].boxes:
+                    #             x, y, width, height = (int(b.xyxy[0, 0].item()), int(b.xyxy[0, 1].item()),
+                    #                                    int(b.xyxy[0, 2].item() - b.xyxy[0, 0].item()),
+                    #                                    int(b.xyxy[0, 3].item() - b.xyxy[0, 1].item()))
+                    #             patch = patches.Rectangle((x, y), width, height, facecolor='none', edgecolor='red', linewidth=2)
+                    #             ax.add_patch(patch)
+                    #     colors = ['red', 'green', 'blue', ]
+                    #     if True:
+                    #         for b in result[-1].masks:
+                    #
+                    #             poly = patches.Polygon(list(zip(b.xy[0][:, 0], b.xy[0][:, 1])), facecolor='none',
+                    #                            edgecolor=colors[2])
+                    #             ax.add_patch(poly)
+                    #     plt.show()
             if result[0].boxes.xyxy.size(0) == 2:
                 res = result[0].boxes.xyxy
                 masks = result[0].masks.xy
@@ -277,7 +284,7 @@ class EyeAnalyzer:
 
 
 if __name__ == '__main__':
-    ea_inst = EyeAnalyzer(verbose=True, backend_type='onnx')
+    ea_inst = EyeAnalyzer(verbose=False, backend_type='torch')
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:
