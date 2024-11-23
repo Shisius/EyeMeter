@@ -41,9 +41,9 @@ class EyeAnalyzer:
 
         input_sz = 28
         num_cls = 3
-        hidden_sz = 512
-        do_rate = 0.5
-        num_layers = 3
+        hidden_sz = 32
+        do_rate = 0.2
+        num_layers = 10
         self.reverse = reverse  # -1 if predict shoul be inversed
         self.ref_net = RefractionNet(input_sz,
                                      num_cls,

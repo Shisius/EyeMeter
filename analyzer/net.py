@@ -10,15 +10,15 @@ class ResFC(nn.Module):
         self.fc2 = nn.Linear(16, hidden_sz)
         self.act = nn.LeakyReLU()
         self.do = nn.Dropout(do_rate)
-        self.bn = nn.BatchNorm1d(hidden_sz)
-        self.bn2 = nn.BatchNorm1d(hidden_sz)
+        # self.bn = nn.BatchNorm1d(hidden_sz)
+        # self.bn2 = nn.BatchNorm1d(hidden_sz)
         self.alpha = nn.Parameter(torch.tensor(1e-5), requires_grad=True)
 
     def forward(self, x):
-        y = x
+        y = x.clone()
         x = self.fc1(x)
         x = self.do(x)
-        x = F.relu(x)
+        x = F.leaky_relu(x, negative_slope=0.05)
         x = self.fc2(x)
         x = x * self.alpha + y
         return x
@@ -29,13 +29,13 @@ class RefractionNet(nn.Module):
         super().__init__()
         self.fc1 = nn.Sequential(
             nn.Linear(input_sz * 5 + 16 + 2, hidden_sz),
-            nn.BatchNorm1d(hidden_sz),
-            nn.ReLU()
+            # nn.BatchNorm1d(hidden_sz),
+            nn.SELU()
         )
         self.fc2 = nn.Sequential(
             *[ResFC(hidden_sz, do_rate) for _ in range(num_layers)]
         )
-        self.fc3 = nn.Sequential(nn.ReLU(),
+        self.fc3 = nn.Sequential(nn.SELU(),
                                  nn.Linear(hidden_sz, num_cls))
         self.eye_emb = nn.Embedding(2, 8)
         self.angle_emb = nn.Embedding(6, 8)
