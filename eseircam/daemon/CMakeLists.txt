@@ -11,6 +11,11 @@ set(MAIN_PATH "../../")
 # Apply settings
 include(${BUILD_FOLDER}/settings.cmake)
 
+OPTION(DEFINE_90HZ_MODE "Turn on 90 Hz mode" OFF)
+IF(DEFINE_90HZ_MODE)
+    ADD_DEFINITIONS(-DESECAM_90HZ)
+ENDIF(DEFINE_90HZ_MODE)
+
 # Flags
 set(MAIN_FLAGS "-Wall -Ofast -pthread -std=c++17 -lrt -lm -lESEUsbCam") # -lwiringPi -lwiringPiDev ")
 set(ALL_CXX_FLAGS "${MAIN_FLAGS} ${PLATFORM_FLAGS}")

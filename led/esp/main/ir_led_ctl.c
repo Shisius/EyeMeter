@@ -62,7 +62,7 @@ void tinyusb_cdc_rx_callback(int itf, cdcacm_event_t *event)
         //ESP_LOG_BUFFER_HEXDUMP(TAG, usb_buf, rx_size, ESP_LOG_INFO);
         result = usb_process_rx_buf(usb_buf, &rx_size);
     } else {
-        ESP_LOGE(TAG, "Read error");
+        //ESP_LOGE(TAG, "Read error");
     }
 
     /* write back */
@@ -86,15 +86,38 @@ static void led_task(void * data)
                 ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, GREEN_LED_CHANNEL));
             }
             vTaskDelay( pdMS_TO_TICKS(100));
+            xSemaphoreTake(d_sem_pwm, portMAX_DELAY);
             // Set duty to 10%
             ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, GREEN_LED_CHANNEL, 0));
             // Update duty to apply the new value
             ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, GREEN_LED_CHANNEL));
+            xSemaphoreGive(d_sem_pwm);
             vTaskDelay( pdMS_TO_TICKS(100));
         }
         vTaskDelay( pdMS_TO_TICKS(500));
     }
     vTaskDelete(NULL);
+}
+
+static void IRAM_ATTR gpio_isr_handler(void* arg)
+{
+    if (gpio_get_level(CAM_OUT_PIN) == 0) {
+        if (d_frame_detected == 1) {
+            if (d_fake_frames == 0) {
+                d_fake_frames++;
+            } else {
+                d_frame_number++;
+            }
+            d_frame_detected = 0;
+            if (d_in_meas == 1) { 
+                if (ir_set_led4frame() < 0) {
+                    d_meas_error = 1;
+                }
+            }
+        }
+    } else {
+        d_frame_detected = 1;
+    }
 }
 
 void app_main(void)
@@ -105,6 +128,10 @@ void app_main(void)
     //     ret = nvs_flash_init();
     // }
     // ESP_ERROR_CHECK( ret );
+    d_reboot_lock = 0;
+
+    d_sem_pwm = xSemaphoreCreateBinary();
+    d_in_meas = 0;
 
     // USB Init
     ESP_LOGI(TAG, "USB initialization");
@@ -140,33 +167,39 @@ void app_main(void)
     // set the gpios as per gpio_conf
     ESP_ERROR_CHECK(gpio_config(&gpio_conf));
 
-    gpio_config_t gpio_conf_dpwr = {
-        // config gpios
-        .pin_bit_mask = (1ULL << DISPLAY_POWER_PIN),
-        .mode = GPIO_MODE_OUTPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE,
-    };
-    // set the gpios as per gpio_conf
-    ESP_ERROR_CHECK(gpio_config(&gpio_conf_dpwr));
-    gpio_set_level((gpio_num_t)DISPLAY_POWER_PIN, 0);
-
-    // gpio_config_t gpio_conf_green = {
+    // gpio_config_t gpio_conf_dpwr = {
     //     // config gpios
-    //     .pin_bit_mask = (1ULL << GREEN_LED_PIN),
+    //     .pin_bit_mask = (1ULL << DISPLAY_POWER_PIN),
     //     .mode = GPIO_MODE_OUTPUT,
     //     .pull_up_en = GPIO_PULLUP_DISABLE,
-    //     .pull_down_en = GPIO_PULLDOWN_ENABLE,
+    //     .pull_down_en = GPIO_PULLDOWN_DISABLE,
     //     .intr_type = GPIO_INTR_DISABLE,
     // };
     // // set the gpios as per gpio_conf
-    // ESP_ERROR_CHECK(gpio_config(&gpio_conf_green));
+    // ESP_ERROR_CHECK(gpio_config(&gpio_conf_dpwr));
+    // gpio_set_level((gpio_num_t)DISPLAY_POWER_PIN, 0);
+
+    gpio_config_t gpio_conf_int = {
+        // config gpios
+        .pin_bit_mask = (1ULL << CAM_OUT_PIN),
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_ENABLE,
+        .intr_type = GPIO_INTR_ANYEDGE, //GPIO_INTR_NEGEDGE,
+    };
+    // set the gpios as per gpio_conf
+    ESP_ERROR_CHECK(gpio_config(&gpio_conf_int));
+    ESP_ERROR_CHECK(gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT));
+    ESP_ERROR_CHECK(gpio_isr_handler_add(CAM_OUT_PIN, gpio_isr_handler, NULL));
+    d_frame_number = 0;
+    d_frame_detected = 0;
+    d_fake_frames = 0;
 
     // Set the LEDC peripheral configuration
     ir_led_init();
 
-    xTaskCreate(led_task, "ledtask", 2048, &d_state, configMAX_PRIORITIES - 1, NULL);
+    xSemaphoreGive(d_sem_pwm);
+    xTaskCreate(led_task, "ledtask", 2048, &d_state, LED_TASK_PRIO, NULL);
     //
     // for (int i_led = 0; i_led < N_LEDS; i_led++) {
     //     ir_set_duty(i_led, 0.1*i_led);
