@@ -1,2 +1,3 @@
-1. Meas - do not stop stream? free shmem
-2. Debug
+
+# Чего доделать к 14.11.24
+1. 90 Гц

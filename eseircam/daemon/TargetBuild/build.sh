@@ -9,7 +9,7 @@ cd tmp/
 # run cmake
 result=0
 echo "Running cmake"
-cmake -DBUILD_FOLDER="${PWD}/.." ../../ 
+cmake -DBUILD_FOLDER="${PWD}/.." -DDEFINE_90HZ_MODE=OFF ../../ 
 echo "Building project"
 make -j12 && result=1
 if [ $result == 1 ]
