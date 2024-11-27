@@ -274,7 +274,9 @@ MainWindow::MainWindow(QWidget *parent)
     d_pb_start = new QPushButton (tr("Начать сеанс"));    
     //d_pb_start->setStyleSheet(str_butStyle);
     d_pb_start->setFixedSize(300,40);
+    #ifdef START_BY_ID
     d_pb_start->setDisabled(true);
+    #endif
     //d_pb_start->setMinimumSize(120,30);
     //d_pb_start->setMaximumSize(300,50);
     //d_pb_start->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
@@ -297,6 +299,7 @@ MainWindow::MainWindow(QWidget *parent)
     d_l_pic_FixRight->setStyleSheet(str_labelStyle_pic);
     d_l_pic_FixRight->setAlignment(Qt::AlignRight);
     QVBoxLayout *layout_digitsDataResults = new QVBoxLayout;
+
     QLabel *l_refraction = new QLabel(tr("Рефракция, dpt"));
     l_refraction->setStyleSheet(str_labelStyle_resultHeader);
     l_refraction->setAlignment(Qt::AlignHCenter);
@@ -314,23 +317,7 @@ MainWindow::MainWindow(QWidget *parent)
     QFrame *line1_res = new QFrame;
     decorateLine(line1_res, str_lineStyle);
     layout_digitsDataResults->addWidget(line1_res);
-//    QLabel *l_diameter = new QLabel(tr("Диаметр зрачка, мм"));
-//    l_diameter->setAlignment(Qt::AlignHCenter);
-//    l_diameter->setStyleSheet(str_labelStyle_resultHeader);
-//    layout_digitsDataResults->addWidget(l_diameter);
-//    QHBoxLayout *layout_diameter = new QHBoxLayout;
-//    d_l_diameterLeft = new QLabel;
-//    d_l_diameterRight = new QLabel;
-//    d_l_diameterRight->setAlignment(Qt::AlignRight);
-//    d_l_diameterLeft ->setStyleSheet(str_labelStyle_resultData);
-//    d_l_diameterRight->setStyleSheet(str_labelStyle_resultData);
-//    layout_diameter->addWidget(d_l_diameterLeft);
-//    layout_diameter->addSpacing(30);
-//    layout_diameter->addWidget(d_l_diameterRight);
-//    layout_digitsDataResults->addLayout(layout_diameter);
-//    QFrame *line2_res = new QFrame;
-//    decorateLine(line2_res, str_lineStyle);
-//    layout_digitsDataResults->addWidget(line2_res);
+
     QLabel *l_interocular = new QLabel(tr("Межзрачковое расстояние, мм"));
     l_interocular->setAlignment(Qt::AlignHCenter);
     l_interocular->setStyleSheet(str_labelStyle_resultHeader);
@@ -343,6 +330,7 @@ MainWindow::MainWindow(QWidget *parent)
     decorateLine(line3_res, str_lineStyle);
     layout_digitsDataResults->addWidget(line3_res);
     layout_digitsDataResults->setAlignment(Qt::AlignCenter);
+
     QVBoxLayout *layout_fixLeft = new QVBoxLayout;
     layout_fixLeft->setAlignment(Qt::AlignHCenter);
     QLabel *l_fixLeft = new QLabel(tr("OS"));
@@ -350,7 +338,6 @@ MainWindow::MainWindow(QWidget *parent)
     l_fixLeft->setStyleSheet( str_labelStyle_resultHeader);
     layout_fixLeft->addWidget(l_fixLeft);
     layout_fixLeft->addWidget(d_l_pic_FixLeft);
-
     QVBoxLayout *layout_fixRight = new QVBoxLayout;
     layout_fixRight->setAlignment(Qt::AlignHCenter);
     QLabel *l_fixRight = new QLabel(tr("OD"));
@@ -358,11 +345,9 @@ MainWindow::MainWindow(QWidget *parent)
     l_fixRight->setStyleSheet( str_labelStyle_resultHeader);
     layout_fixRight->addWidget(l_fixRight);
     layout_fixRight->addWidget(d_l_pic_FixRight);
-    layout_dataResults->addLayout(layout_fixRight);
-    //layout_dataResults->addWidget(d_l_pic_FixLeft);
+    layout_dataResults->addLayout(layout_fixRight);    
     layout_dataResults->addLayout(layout_digitsDataResults);
-    layout_dataResults->addLayout(layout_fixLeft);
-    //layout_dataResults->addWidget(d_l_pic_FixRight);
+    layout_dataResults->addLayout(layout_fixLeft);    
     frame_dataResults->setLayout(layout_dataResults);
     layout_dataResults_total->addWidget(frame_dataResults);
     layout_dataResults_total->addStretch();
@@ -429,10 +414,7 @@ MainWindow::MainWindow(QWidget *parent)
     d_pb_shot->setFixedWidth(100);
     d_pb_shot->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Expanding);
     d_pb_shot->setStyleSheet(str_butStyle);
-//    d_pb_shot->setStyleSheet("background: qradialgradient(cx:0.25, cy:0.25, radius: 0.5,"
-//                             "fx:0, fy:0, stop:0 white, stop:1 #e5a977);"
-//                             //"font: bold 20px "
-//                            );
+
     qDebug() << connect(d_pb_shot, SIGNAL(clicked()), SLOT(slot_measure()));
     layout_meas->addWidget(d_pb_shot);
 
@@ -812,8 +794,6 @@ void MainWindow::slot_measure()
     d_l_pic_FixRight->setPicture(d_pic_fixGrid);
     d_l_refractionLeft->clear();
     d_l_refractionRight->clear();
-    //d_l_diameterLeft->clear();
-    //d_l_diameterRight->clear();
     d_l_interocularRes->clear();
     d_l_leftEye->clear();
     d_l_rightEye->clear();
@@ -920,7 +900,9 @@ void MainWindow::slot_readUds(UdsUniPack pack)
     case UDSUNI_TITLE_MEAS_SHOOT_DONE:
     {
         qDebug() << "UDSUNI_TITLE_MEAS_SHOOT_DONE";
+#ifdef START_BY_ID
         d_pb_start->setDisabled(true);
+#endif
         //d_isMeasurStarted = false;
         QString file_measure_str = d_le_id->text().append('_').append(QDateTime::currentDateTime().toString("yyyy_MM_dd_hh_mm_ss")).append(".bin");
         qDebug() << "file_measure: " << file_measure_str;
@@ -972,9 +954,6 @@ void MainWindow::slot_readUds(UdsUniPack pack)
 
         d_l_refractionLeft->setText(measResLeft_str);
         d_l_refractionRight->setText(measResRight_str);
-
-        //d_l_diameterLeft ->setText(QString::number(measResult.left.diameter));
-        //d_l_diameterRight->setText(QString::number(measResult.right.diameter));
 
         d_l_interocularRes->setText(QString::number(measResult.interocular));
 
@@ -1064,8 +1043,6 @@ qDebug() << "d_l_pic_FixLeft"<<d_l_pic_FixLeft->size();
 qDebug() << "d_l_pic_FixRight"<<d_l_pic_FixRight->size();
 qDebug() << "d_l_refractionLeft"<<d_l_refractionLeft->size();
 qDebug() << "d_l_refractionRight"<<d_l_refractionRight->size();
-//qDebug() << "d_l_diameterLeft"<<d_l_diameterLeft->size();
-//qDebug() << "d_l_diameterRight"<<d_l_diameterRight->size();
 qDebug() << "d_l_interocularRes"<<d_l_interocularRes->size();
 
     //qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
@@ -1417,8 +1394,6 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/)
 //    qDebug() << "d_l_eyes"<<d_l_eyes->size();
 //    qDebug() << "d_l_refractionLeft"<<d_l_refractionLeft->size();
 //    qDebug() << "d_l_refractionRight"<<d_l_refractionRight->size();
-//    qDebug() << "d_l_diameterLeft"<<d_l_diameterLeft->size();
-//    qDebug() << "d_l_diameterRight"<<d_l_diameterRight->size();
 //    qDebug() << "d_l_interocularRes"<<d_l_interocularRes->size();
 //    qDebug() << "d_l_pic_FixLeft"<<d_l_pic_FixLeft->size();
 //    qDebug() << "d_l_pic_FixRight"<<d_l_pic_FixRight->size();
@@ -1458,16 +1433,6 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/)
         qDebug() << "d_l_refractionRight size changed from " <<d_l_refractionRight_lastSize << "to " << d_l_refractionRight->size();
         d_l_refractionRight_lastSize = d_l_refractionRight->size();
     }
-//    if (d_l_diameterLeft_lastSize != d_l_diameterLeft->size())
-//    {
-//        qDebug() << "d_l_diameterLeft size changed from " <<d_l_diameterLeft_lastSize << "to " << d_l_diameterLeft->size();
-//        d_l_diameterLeft_lastSize = d_l_diameterLeft->size();
-//    }
-//    if (d_l_diameterRight_lastSize != d_l_diameterRight->size())
-//    {
-//        qDebug() << "d_l_diameterRight size changed from " <<d_l_diameterRight_lastSize << "to " << d_l_diameterRight->size();
-//        d_l_diameterRight_lastSize = d_l_diameterRight->size();
-//    }
     if (d_l_interocularRes_lastSize != d_l_interocularRes->size())
     {
         qDebug() << "d_l_interocularRes size changed from " <<d_l_interocularRes_lastSize << "to " << d_l_interocularRes->size();
