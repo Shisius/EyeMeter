@@ -56,9 +56,7 @@ class MainWindow : public QMainWindow
     bool d_isEyesLabelSizeFixed = false;
     QSize d_eyesLabelSize;
     QLabel *d_l_refractionLeft;
-    QLabel *d_l_refractionRight;
-    QLabel *d_l_diameterLeft;
-    QLabel *d_l_diameterRight;
+    QLabel *d_l_refractionRight;    
     QLabel *d_l_interocularRes;
     QLabel *d_l_pic_FixLeft;
     QLabel *d_l_pic_FixRight;
@@ -79,9 +77,7 @@ class MainWindow : public QMainWindow
     QSize d_l_rightEye_lastSize;
     QSize d_l_eyes_lastSize;
     QSize d_l_refractionLeft_lastSize;
-    QSize d_l_refractionRight_lastSize;
-    QSize d_l_diameterLeft_lastSize;
-    QSize d_l_diameterRight_lastSize;
+    QSize d_l_refractionRight_lastSize;    
     QSize d_l_interocularRes_lastSize;
     QSize d_l_pic_FixLeft_lastSize;
     QSize d_l_pic_FixRight_lastSize;
