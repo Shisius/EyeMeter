@@ -101,23 +101,23 @@ static void led_task(void * data)
 
 static void IRAM_ATTR gpio_isr_handler(void* arg)
 {
-    if (gpio_get_level(CAM_OUT_PIN) == 0) {
-        if (d_frame_detected == 1) {
+    //if (gpio_get_level(CAM_OUT_PIN) == 0 || true) {
+    //    if (d_frame_detected == 1) {
             if (d_fake_frames == 0) {
                 d_fake_frames++;
             } else {
                 d_frame_number++;
             }
-            d_frame_detected = 0;
+            // d_frame_detected = 0;
             if (d_in_meas == 1) { 
                 if (ir_set_led4frame() < 0) {
                     d_meas_error = 1;
                 }
             }
-        }
-    } else {
-        d_frame_detected = 1;
-    }
+    //    }
+    //} else {
+    //    d_frame_detected = 1;
+    //}
 }
 
 void app_main(void)
@@ -185,14 +185,14 @@ void app_main(void)
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_ENABLE,
-        .intr_type = GPIO_INTR_ANYEDGE, //GPIO_INTR_NEGEDGE,
+        .intr_type = GPIO_INTR_NEGEDGE, //GPIO_INTR_ANYEDGE,
     };
     // set the gpios as per gpio_conf
     ESP_ERROR_CHECK(gpio_config(&gpio_conf_int));
     ESP_ERROR_CHECK(gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT));
     ESP_ERROR_CHECK(gpio_isr_handler_add(CAM_OUT_PIN, gpio_isr_handler, NULL));
     d_frame_number = 0;
-    d_frame_detected = 0;
+    d_frame_detected = 1;
     d_fake_frames = 0;
 
     // Set the LEDC peripheral configuration

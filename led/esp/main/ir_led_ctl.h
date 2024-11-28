@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <unistd.h>
+#include <stdatomic.h>
 #include "driver/ledc.h"
 #include "driver/gpio.h"
 #include "esp_err.h"
@@ -179,9 +180,9 @@ static inline int usb_process_rx_buf(uint8_t * buf, size_t * size)
 				result = timesync_handle(buf);
 				break;
 			case UDSUNI_TITLE_STREAM_START:
-				d_frame_number = 0;
 				d_fake_frames = 0;
-				d_frame_detected = 0;
+				d_frame_number = 0;
+				// d_frame_detected = 0;
 				d_in_meas = 0;
 				result = 0;
 				d_reboot_lock = 1;
