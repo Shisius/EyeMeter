@@ -1093,7 +1093,7 @@ void MainWindow::setPhotoScreen()
 {
 
 }
-//#ifdef NEWVISION
+
 QPicture MainWindow::fixation_grid(int side, QColor grid)
 {
     qDebug() << Q_FUNC_INFO;
