@@ -762,7 +762,7 @@ void MainWindow::slot_start()
     d_l_refractionLeft->setText(measResLeft_str);
     d_l_refractionRight->setText(measResRightt_str);
     d_l_interocularRes->setText("10");
-
+    measFinished("TEST");
 #endif
 }
 
@@ -1082,10 +1082,20 @@ void MainWindow::measFinished(const QString &res)
     qDebug() << Q_FUNC_INFO;
     d_isMeasurStarted = false;
     //d_file_measure.close();
-    /*int ret = */QMessageBox::information(this, tr("Измерения завершены."),
-                                           res,
-                                           QMessageBox::Ok,
-                                           QMessageBox::Ok);
+    ///*int ret = */QMessageBox::information(this, tr("Измерения завершены."),
+    //                                       res,
+    //                                       QMessageBox::Ok,
+    //                                       QMessageBox::Ok);
+    QMessageBox msgBox;
+    msgBox.setWindowTitle(tr("Измерения завершены."));
+    msgBox.setText(res);
+    //msgBox.setIcon(QMessageBox::Information);
+                //msgBox.setParent(QWidget Ui->QMainWindow);
+    QSize screenSize = QGuiApplication::primaryScreen()->size();
+    //msgBox.resize(600,400);
+                msgBox.setGeometry(screenSize.width() - 200, 450, 200, 200);
+    qDebug() << msgBox.width();
+    msgBox.exec();
     d_tab_central->setCurrentIndex(static_cast<int>(tabWidget::CARD));
 }
 
