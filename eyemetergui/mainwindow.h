@@ -73,6 +73,7 @@ class MainWindow : public QMainWindow
 
     QSize d_frame_card_lastSize;
     QSize d_pb_shot_lastSize ;
+    QSize d_l_snapshot_lastSize ;
     QSize d_l_leftEye_lastSize;
     QSize d_l_rightEye_lastSize;
     QSize d_l_eyes_lastSize;
@@ -141,6 +142,8 @@ private slots:
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
+    void showEvent(QShowEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
     //bool event(QEvent*) override;
 };
 #endif // MAINWINDOW_H

@@ -148,6 +148,10 @@ MainWindow::MainWindow(QWidget *parent)
     //        border-color: rgb(100,100,100);
     //       spacing: 5px;
     //    }
+    QSize screenSize = QGuiApplication::primaryScreen()->size();
+    setBaseSize(screenSize);
+    setFixedSize(screenSize);
+    setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
     d_tab_central = new QTabWidget();
     d_tab_central->tabBar()->setExpanding(true);    
     setCentralWidget(d_tab_central);
@@ -273,6 +277,7 @@ MainWindow::MainWindow(QWidget *parent)
     /*PushButton START*/
     d_pb_start = new QPushButton (tr("Начать сеанс"));    
     //d_pb_start->setStyleSheet(str_butStyle);
+    d_pb_start->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
     d_pb_start->setFixedSize(300,40);
     #ifdef START_BY_ID
     d_pb_start->setDisabled(true);
@@ -411,8 +416,9 @@ MainWindow::MainWindow(QWidget *parent)
     QFrame *frame_meas = new QFrame;
     QHBoxLayout *layout_meas = new QHBoxLayout;
     d_pb_shot = new QPushButton(tr("И\nз\nм\nе\nр\nе\nн\nи\nе"));
-    d_pb_shot->setFixedWidth(100);
-    d_pb_shot->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Expanding);
+d_pb_shot->setFixedWidth(100);
+    d_pb_shot->setSizePolicy(QSizePolicy::Preferred/*QSizePolicy::Fixed*/,QSizePolicy::Expanding);
+
     d_pb_shot->setStyleSheet(str_butStyle);
 
     qDebug() << connect(d_pb_shot, SIGNAL(clicked()), SLOT(slot_measure()));
@@ -1399,6 +1405,7 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/)
     //qDebug() << "d_pb_shot.size()" << d_pb_shot->size();
     QSize screenSize = QGuiApplication::primaryScreen()->size();
     qDebug() << "screenSize"<<screenSize;
+    qDebug() << "MainWindowSize"<<size();
 //    qDebug() << "d_l_leftEye"<<d_l_leftEye->size();
 //    qDebug() << "d_l_rightEye"<<d_l_rightEye->size();
 //    qDebug() << "d_l_eyes"<<d_l_eyes->size();
@@ -1417,6 +1424,11 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/)
     {
         qDebug() << "d_pb_shot size changed from " <<d_pb_shot_lastSize << "to " << d_pb_shot->size();
         d_pb_shot_lastSize = d_pb_shot->size();
+    }
+    if (d_l_snapshot_lastSize != d_l_snapshot.size())
+    {
+        qDebug() << "d_l_snapshot size changed from " <<d_l_snapshot_lastSize << "to " << d_l_snapshot.size();
+        d_l_snapshot_lastSize = d_l_snapshot.size();
     }
     if (d_l_leftEye_lastSize != d_l_leftEye->size())
     {
@@ -1459,7 +1471,174 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/)
         d_l_pic_FixRight_lastSize = d_l_pic_FixRight->size();
     }
 }
-
+void MainWindow::showEvent(QShowEvent *event)
+{
+    qDebug() << Q_FUNC_INFO;
+    QSize screenSize = QGuiApplication::primaryScreen()->size();
+    qDebug() << "screenSize"<<screenSize;
+    qDebug() << "MainWindowSize"<<size();
+    qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
+    qDebug() << "d_frame_card" << d_frame_card->size();
+    qDebug() << "d_pb_shot.size()" << d_pb_shot->size();
+    qDebug() << "d_l_leftEye"<<d_l_leftEye->size();
+    qDebug() << "d_l_rightEye"<<d_l_rightEye->size();
+    qDebug() << "d_l_eyes"<<d_l_eyes->size();
+    qDebug() << "d_l_refractionLeft"<<d_l_refractionLeft->size();
+    qDebug() << "d_l_refractionRight"<<d_l_refractionRight->size();
+    qDebug() << "d_l_interocularRes"<<d_l_interocularRes->size();
+    qDebug() << "d_l_pic_FixLeft"<<d_l_pic_FixLeft->size();
+    qDebug() << "d_l_pic_FixRight"<<d_l_pic_FixRight->size();
+    if (d_frame_card_lastSize != d_frame_card->size())
+    {
+        qDebug() << "d_frame_card size changed from " <<d_frame_card_lastSize << "to " << d_frame_card->size();
+        d_frame_card_lastSize = d_frame_card->size();
+    }
+    if (d_pb_shot_lastSize != d_pb_shot->size())
+    {
+        qDebug() << "d_pb_shot size changed from " <<d_pb_shot_lastSize << "to " << d_pb_shot->size();
+        d_pb_shot_lastSize = d_pb_shot->size();
+    }
+    if (d_l_snapshot_lastSize != d_l_snapshot.size())
+    {
+        qDebug() << "d_l_snapshot size changed from " <<d_l_snapshot_lastSize << "to " << d_l_snapshot.size();
+        d_l_snapshot_lastSize = d_l_snapshot.size();
+    }
+    if (d_l_leftEye_lastSize != d_l_leftEye->size())
+    {
+        qDebug() << "d_l_leftEye size changed from " <<d_l_leftEye_lastSize << "to " << d_l_leftEye->size();
+        d_l_leftEye_lastSize = d_l_leftEye->size();
+    }
+    if (d_l_rightEye_lastSize != d_l_rightEye->size())
+    {
+        qDebug() << "d_l_rightEye size changed from " <<d_l_rightEye_lastSize << "to " << d_l_rightEye->size();
+        d_l_rightEye_lastSize = d_l_rightEye->size();
+    }
+    if (d_l_eyes_lastSize != d_l_eyes->size())
+    {
+        qDebug() << "d_l_eyes size changed from " <<d_l_eyes_lastSize << "to " << d_l_eyes->size();
+        d_l_eyes_lastSize = d_l_eyes->size();
+    }
+    if (d_l_refractionLeft_lastSize != d_l_refractionLeft->size())
+    {
+        qDebug() << "d_l_refractionLeft size changed from " <<d_l_refractionLeft_lastSize << "to " << d_l_refractionLeft->size();
+        d_l_refractionLeft_lastSize = d_l_refractionLeft->size();
+    }
+    if (d_l_refractionRight_lastSize != d_l_refractionRight->size())
+    {
+        qDebug() << "d_l_refractionRight size changed from " <<d_l_refractionRight_lastSize << "to " << d_l_refractionRight->size();
+        d_l_refractionRight_lastSize = d_l_refractionRight->size();
+    }
+    if (d_l_interocularRes_lastSize != d_l_interocularRes->size())
+    {
+        qDebug() << "d_l_interocularRes size changed from " <<d_l_interocularRes_lastSize << "to " << d_l_interocularRes->size();
+        d_l_interocularRes_lastSize = d_l_interocularRes->size();
+    }
+    if (d_l_pic_FixLeft_lastSize != d_l_pic_FixLeft->size())
+    {
+        qDebug() << "d_l_pic_FixLeft size changed from " <<d_l_pic_FixLeft_lastSize << "to " << d_l_pic_FixLeft->size();
+        d_l_pic_FixLeft_lastSize = d_l_pic_FixLeft->size();
+    }
+    if (d_l_pic_FixRight_lastSize != d_l_pic_FixRight->size())
+    {
+        qDebug() << "d_l_pic_FixRight size changed from " <<d_l_pic_FixRight_lastSize << "to " << d_l_pic_FixRight->size();
+        d_l_pic_FixRight_lastSize = d_l_pic_FixRight->size();
+    }
+//    d_frame_card->setFixedSize( d_frame_card->size());
+//    d_pb_shot->setFixedSize(d_pb_shot->size());
+//    d_l_leftEye->setFixedSize(d_l_leftEye->size());
+//    d_l_rightEye->setFixedSize(d_l_rightEye->size());
+//    d_l_eyes->setFixedSize(d_l_eyes->size());
+//    d_l_refractionLeft->setFixedSize(d_l_refractionLeft->size());
+//    d_l_refractionRight->setFixedSize(d_l_refractionRight->size());
+//    d_l_interocularRes->setFixedSize(d_l_interocularRes->size());
+//    d_l_pic_FixLeft->setFixedSize(d_l_pic_FixLeft->size());
+//    d_l_pic_FixRight->setFixedSize(d_l_pic_FixRight->size());
+    return QMainWindow::showEvent(event);
+}
+void MainWindow::paintEvent(QPaintEvent *event)
+{
+    qDebug() << Q_FUNC_INFO;
+    QSize screenSize = QGuiApplication::primaryScreen()->size();
+    qDebug() << "screenSize"<<screenSize;
+    qDebug() << "MainWindowSize"<<size();
+    qDebug() << "d_l_snapshot.size()" << d_l_snapshot.size();
+    qDebug() << "d_frame_card" << d_frame_card->size();
+    qDebug() << "d_pb_shot.size()" << d_pb_shot->size();
+    qDebug() << "d_l_leftEye"<<d_l_leftEye->size();
+    qDebug() << "d_l_rightEye"<<d_l_rightEye->size();
+    qDebug() << "d_l_eyes"<<d_l_eyes->size();
+    qDebug() << "d_l_refractionLeft"<<d_l_refractionLeft->size();
+    qDebug() << "d_l_refractionRight"<<d_l_refractionRight->size();
+    qDebug() << "d_l_interocularRes"<<d_l_interocularRes->size();
+    qDebug() << "d_l_pic_FixLeft"<<d_l_pic_FixLeft->size();
+    qDebug() << "d_l_pic_FixRight"<<d_l_pic_FixRight->size();
+    if (d_frame_card_lastSize != d_frame_card->size())
+    {
+        qDebug() << "d_frame_card size changed from " <<d_frame_card_lastSize << "to " << d_frame_card->size();
+        d_frame_card_lastSize = d_frame_card->size();
+    }
+    if (d_pb_shot_lastSize != d_pb_shot->size())
+    {
+        qDebug() << "d_pb_shot size changed from " <<d_pb_shot_lastSize << "to " << d_pb_shot->size();
+        d_pb_shot_lastSize = d_pb_shot->size();
+    }
+    if (d_l_snapshot_lastSize != d_l_snapshot.size())
+    {
+        qDebug() << "d_l_snapshot size changed from " <<d_l_snapshot_lastSize << "to " << d_l_snapshot.size();
+        d_l_snapshot_lastSize = d_l_snapshot.size();
+    }
+    if (d_l_leftEye_lastSize != d_l_leftEye->size())
+    {
+        qDebug() << "d_l_leftEye size changed from " <<d_l_leftEye_lastSize << "to " << d_l_leftEye->size();
+        d_l_leftEye_lastSize = d_l_leftEye->size();
+    }
+    if (d_l_rightEye_lastSize != d_l_rightEye->size())
+    {
+        qDebug() << "d_l_rightEye size changed from " <<d_l_rightEye_lastSize << "to " << d_l_rightEye->size();
+        d_l_rightEye_lastSize = d_l_rightEye->size();
+    }
+    if (d_l_eyes_lastSize != d_l_eyes->size())
+    {
+        qDebug() << "d_l_eyes size changed from " <<d_l_eyes_lastSize << "to " << d_l_eyes->size();
+        d_l_eyes_lastSize = d_l_eyes->size();
+    }
+    if (d_l_refractionLeft_lastSize != d_l_refractionLeft->size())
+    {
+        qDebug() << "d_l_refractionLeft size changed from " <<d_l_refractionLeft_lastSize << "to " << d_l_refractionLeft->size();
+        d_l_refractionLeft_lastSize = d_l_refractionLeft->size();
+    }
+    if (d_l_refractionRight_lastSize != d_l_refractionRight->size())
+    {
+        qDebug() << "d_l_refractionRight size changed from " <<d_l_refractionRight_lastSize << "to " << d_l_refractionRight->size();
+        d_l_refractionRight_lastSize = d_l_refractionRight->size();
+    }
+    if (d_l_interocularRes_lastSize != d_l_interocularRes->size())
+    {
+        qDebug() << "d_l_interocularRes size changed from " <<d_l_interocularRes_lastSize << "to " << d_l_interocularRes->size();
+        d_l_interocularRes_lastSize = d_l_interocularRes->size();
+    }
+    if (d_l_pic_FixLeft_lastSize != d_l_pic_FixLeft->size())
+    {
+        qDebug() << "d_l_pic_FixLeft size changed from " <<d_l_pic_FixLeft_lastSize << "to " << d_l_pic_FixLeft->size();
+        d_l_pic_FixLeft_lastSize = d_l_pic_FixLeft->size();
+    }
+    if (d_l_pic_FixRight_lastSize != d_l_pic_FixRight->size())
+    {
+        qDebug() << "d_l_pic_FixRight size changed from " <<d_l_pic_FixRight_lastSize << "to " << d_l_pic_FixRight->size();
+        d_l_pic_FixRight_lastSize = d_l_pic_FixRight->size();
+    }
+//    d_frame_card->setFixedSize( d_frame_card->size());
+//    d_pb_shot->setFixedSize(d_pb_shot->size());
+//    d_l_leftEye->setFixedSize(d_l_leftEye->size());
+//    d_l_rightEye->setFixedSize(d_l_rightEye->size());
+//    d_l_eyes->setFixedSize(d_l_eyes->size());
+//    d_l_refractionLeft->setFixedSize(d_l_refractionLeft->size());
+//    d_l_refractionRight->setFixedSize(d_l_refractionRight->size());
+//    d_l_interocularRes->setFixedSize(d_l_interocularRes->size());
+//    d_l_pic_FixLeft->setFixedSize(d_l_pic_FixLeft->size());
+//    d_l_pic_FixRight->setFixedSize(d_l_pic_FixRight->size());
+    return QMainWindow::paintEvent(event);
+}
 //bool MainWindow::event(QEvent* e) {
 //    qDebug() << Q_FUNC_INFO;
 //    const auto keyboard_rect = QGuiApplication::inputMethod()->keyboardRectangle();
