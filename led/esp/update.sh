@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source export.sh
+source ~/Downloads/esp-idf/export.sh
 
 result=0
 idf.py dfu && result=1
