@@ -33,6 +33,8 @@ class MainWindow : public QMainWindow
         MEAS //measure screen
     };
     QFrame *d_frame_card;
+    QFrame *frame_data_total;
+    QFrame *frame_dataResults_total;
 
     QLineEdit *d_le_firstName;
     QLineEdit *d_le_lastName;
@@ -72,6 +74,8 @@ class MainWindow : public QMainWindow
     //FOR TEST
 
     QSize d_frame_card_lastSize;
+    QSize frame_data_total_lastSize;
+    QSize frame_dataResults_total_lastSize;
     QSize d_pb_shot_lastSize ;
     QSize d_l_snapshot_lastSize ;
     QSize d_l_leftEye_lastSize;

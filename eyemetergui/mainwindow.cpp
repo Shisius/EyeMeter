@@ -164,7 +164,7 @@ MainWindow::MainWindow(QWidget *parent)
     /**********************************/
     /*frame & layout with patient data*/
     /**********************************/
-    QFrame *frame_data_total = new QFrame;
+    /*QFrame **/frame_data_total = new QFrame;
     QVBoxLayout *layout_data_total = new QVBoxLayout;
     /*Title*/
     QLabel *l_patientDataTitle = new QLabel(tr("Данные пациента"));
@@ -291,7 +291,7 @@ MainWindow::MainWindow(QWidget *parent)
     /*****************************/
     /*frame & layout with results*/
     /*****************************/
-    QFrame *frame_dataResults_total = new QFrame;
+    /*QFrame **/frame_dataResults_total = new QFrame;
     QVBoxLayout *layout_dataResults_total = new QVBoxLayout;
     QLabel *l_patientResults = new QLabel(tr("Результаты измерений"));
     l_patientResults->setStyleSheet(str_labelStyle_title);
@@ -1420,6 +1420,17 @@ void MainWindow::resizeEvent(QResizeEvent* /*event*/)
         qDebug() << "d_frame_card size changed from " <<d_frame_card_lastSize << "to " << d_frame_card->size();
         d_frame_card_lastSize = d_frame_card->size();
     }
+    if (frame_data_total_lastSize != frame_data_total->size())
+    {
+        qDebug() << "frame_data_total size changed from " <<frame_data_total_lastSize << "to " << frame_data_total->size();
+        frame_data_total_lastSize = frame_data_total->size();
+    }
+    if (frame_dataResults_total_lastSize != frame_dataResults_total->size())
+    {
+        qDebug() << "frame_dataResults_total size changed from " <<frame_dataResults_total_lastSize << "to " << frame_dataResults_total->size();
+        frame_dataResults_total_lastSize = frame_dataResults_total->size();
+    }
+
     if (d_pb_shot_lastSize != d_pb_shot->size())
     {
         qDebug() << "d_pb_shot size changed from " <<d_pb_shot_lastSize << "to " << d_pb_shot->size();
