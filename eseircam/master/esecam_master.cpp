@@ -55,7 +55,7 @@ EseCamMaster::EseCamMaster()
 	d_stream_settings.fps_max = 30;
 
 #ifdef ESECAM_90HZ
-	d_trigger = ESECAM_TRIGGER_NONE; //ESECAM_TRIGGER_SOFT;
+	d_trigger = ESECAM_TRIGGER_SOFT_STREAM; //ESECAM_TRIGGER_NONE;
 #else
 	d_trigger = ESECAM_TRIGGER_SOFT;
 #endif
@@ -166,7 +166,7 @@ int EseCamMaster::start_stream()
 	}
 
 	// Send start stream cmd to esp
-	if (d_trigger == ESECAM_TRIGGER_NONE) {
+	if ((d_trigger == ESECAM_TRIGGER_NONE) || (d_trigger == ESECAM_TRIGGER_SOFT_STREAM)) {
 		if (led_msg(UDSUNI_TITLE_STREAM_START, nullptr) < 0) {
 			printf("EseCamMaster:: reset frame cnt for MCU failed!\n");
 			return -1;
@@ -258,6 +258,7 @@ void EseCamMaster::meas_routine()
 		meas_failed = meas_trigger_cycle();
 		break;
 	case ESECAM_TRIGGER_NONE:
+	case ESECAM_TRIGGER_SOFT_STREAM:
 		meas_failed = meas_wait_cycle();
 		break;
 	}
@@ -344,7 +345,16 @@ bool EseCamMaster::meas_wait_cycle()
 	bool meas_failed = false;
 	int n_wait = d_meas_settings.n_repeat*d_meas_settings.n_led_pos*2;
 	int i_wait = 0;
-	int wait_time_ms = 11;
+	int wait_time_ms = 11;	
+	// Reset Frame cnt
+	if (d_trigger == ESECAM_TRIGGER_SOFT_STREAM) {
+		if (reset_frame_cnt() < 0) {
+			printf("EseCamMaster:: reset frame cnt failed!\n");
+			return -1;
+		}
+		d_frame_number.store(0);
+		d_meas_frame_number.store(1);
+	}
 	// Send start cmd to esp
 	unsigned int meas_frame_number = d_meas_frame_number.load();
 	if (led_msg(UDSUNI_TITLE_MEAS_START, &meas_frame_number) < 0) {
@@ -352,6 +362,15 @@ bool EseCamMaster::meas_wait_cycle()
 		i_wait = n_wait;
 		meas_failed = true;
 	}
+
+	if (d_trigger == ESECAM_TRIGGER_SOFT_STREAM) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		if (set_trigger(ESECAM_TRIGGER_NONE) < 0) {
+			printf("EseCamMaster: set trigger to NONE for SOFT_STREAM failed\n");
+			return -1;
+		}
+	}
+
 	while (d_in_meas.load() && (i_wait < n_wait)) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(wait_time_ms));
 		i_wait++;
@@ -360,23 +379,6 @@ bool EseCamMaster::meas_wait_cycle()
 		}
 	}
 
-	/*
-	TRIGGER_CTRL_REG reg;
-
-	if (USB_GetCameraFeature(d_cam_name.c_str(), TRIGGER_MODE, (eseusbcam_unsigned_long_t*)&reg) != 1)
-		printf("EseCamMaster:: get trigger failed\n");
-
-	reg.OnOff = 1;
-	reg.TriggerMode = 3;
-
-	eseusbcam_unsigned_long_t _reg;
-	memcpy(&_reg, &reg, sizeof(TRIGGER_CTRL_REG));
-	if (USB_SetCameraFeature(d_cam_name.c_str(), TRIGGER_MODE, _reg) != 1)
-		printf("EseCamMaster:: set trigger failed\n");
-
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
-	*/
-
 	stop_stream();
 	if (i_wait >= n_wait) meas_failed = true;
 	if (led_msg(UDSUNI_TITLE_MEAS_STOP, &meas_frame_number) < 0) {
@@ -384,7 +386,7 @@ bool EseCamMaster::meas_wait_cycle()
 		meas_failed = true;
 	} else {
 		printf("EseCamMaster: MCU frame sync result cpu = %u, mcu = %u\n", d_frame_number.load(), meas_frame_number);
-		if (meas_frame_number > (d_frame_number.load() + 1)) {
+		if (meas_frame_number > (d_frame_number.load() + 100)) {
 			printf("EseCamMaster: MCU frame sync failed cpu = %u, mcu = %u\n", d_frame_number.load(), meas_frame_number);
 			meas_failed = true;
 		}
@@ -615,11 +617,16 @@ int EseCamMaster::led_msg(unsigned char title, unsigned int * data_ptr)
 
 int EseCamMaster::set_trigger()
 {
+	return set_trigger(d_trigger);
+}
+
+int EseCamMaster::set_trigger(unsigned char trigger_type)
+{
 	bool enable = false;
 	bool hard = false;
-	if (d_trigger != ESECAM_TRIGGER_NONE) {
+	if (trigger_type != ESECAM_TRIGGER_NONE) {
 		enable = true;
-		if (d_trigger == ESECAM_TRIGGER_HARD)
+		if (trigger_type == ESECAM_TRIGGER_HARD)
 			hard = true;
 	}
 
@@ -737,6 +744,7 @@ void EseCamMaster::cam_timer()
 			switch (d_trigger)
 			{
 			case ESECAM_TRIGGER_SOFT:
+			case ESECAM_TRIGGER_SOFT_STREAM:
 				get_frame_soft_trigger();
 				break;
 			case ESECAM_TRIGGER_HARD:
@@ -773,6 +781,7 @@ void EseCamMaster::frame_ready_event(SharedFrame & frame, unsigned char* frame_p
 		}
 		break;
 	case ESECAM_TRIGGER_NONE:
+	case ESECAM_TRIGGER_SOFT_STREAM:
 		bool alloc_perm = false;
 		if (d_in_meas.load()) {
 			if ((d_frame_number.load() >= d_meas_frame_number.load()) && 

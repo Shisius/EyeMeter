@@ -190,16 +190,23 @@ static inline int usb_process_rx_buf(uint8_t * buf, size_t * size)
 			case UDSUNI_TITLE_MEAS_START:
 				if ((msg.type == UDSUNI_TYPE_INT) && (msg.size == sizeof(uint32_t)) && (rx_size >= (sizeof(UdsUniMsg) + sizeof(uint32_t))) && (d_reboot_lock != 0)) {
 					memcpy(&d_meas_frame, buf + sizeof(UdsUniMsg), sizeof(uint32_t));
-					d_in_meas = 1;
+					// d_in_meas = 1;
 					*size = sizeof(UdsUniMsg);
 					msg.type = 0;
 					msg.size = 0;
 					memcpy(buf, &msg, sizeof(UdsUniMsg));
 					//ir_set_duty_all(LED_DEFAULT_PWM_ALL);
 					//d_meas_frame = d_frame_number + 50; // Kludge
-
-					if (d_meas_frame < d_frame_number + 1) result = -1;
-					else result = 0;
+					if (d_meas_frame == 1) {
+						d_frame_number = 0;
+						d_fake_frames = 0;
+						// d_frame_detected = 0;
+						result = 0;
+					} else {
+						if (d_meas_frame < d_frame_number + 1) result = -1;
+						else result = 0;
+					}
+					d_in_meas = 1;
 					d_meas_error = 0;
 				} else result = -1;
 				break;

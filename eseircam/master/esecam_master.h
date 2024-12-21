@@ -24,7 +24,8 @@ typedef enum
 {
 	ESECAM_TRIGGER_SOFT = 0,
 	ESECAM_TRIGGER_HARD,
-	ESECAM_TRIGGER_NONE
+	ESECAM_TRIGGER_NONE,
+	ESECAM_TRIGGER_SOFT_STREAM
 } EseCamShotTrigger;
 
 class EseCamMaster
@@ -92,6 +93,7 @@ protected:
 	int led_msg(unsigned char title, unsigned int * data_ptr);
 
 	int set_trigger();
+	int set_trigger(unsigned char trigger_type);
 	int get_frame_soft_trigger();
 	int get_frame_hard_trigger();
 	int reset_frame_cnt();
