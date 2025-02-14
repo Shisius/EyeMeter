@@ -16,6 +16,7 @@
 #include "tinyusb.h"
 #include "tusb_cdc_acm.h"
 #include "sdkconfig.h"
+#include "nvs_flash.h"
 #include "led_types.h"
 #include "comm_types.h"
 
@@ -34,6 +35,9 @@
 #define DISPLAY_POWER_PIN 21
 #define LED_TASK_PRIO 2
 #define CAM_OUT_PIN 38
+
+#define FRAME_DUR_MIN_US 5100
+#define FRAME_DUR_MAX_US 5200
 
 #define ESP_INTR_FLAG_DEFAULT 0
 
@@ -55,16 +59,17 @@ static uint8_t d_in_meas;
 static int8_t d_meas_error;
 static int8_t d_reboot_lock;
 static SemaphoreHandle_t d_sem_pwm;
+static int64_t frame_timestamp;
 
 static inline int ir_set_duty(int num, float duty)
 {
 	if (num >=0 && num < N_LEDS && duty >= 0 && duty < 1.0) {
 		// Set duty to 50%
-		xSemaphoreTake(d_sem_pwm, portMAX_DELAY);
+		//xSemaphoreTake(d_sem_pwm, portMAX_DELAY);
 	    ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LED_CHANNELS[num], (unsigned int)(round(duty * (float)(1 << 10)))));
 	    // Update duty to apply the new value
 	    ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LED_CHANNELS[num]));
-	    xSemaphoreGive(d_sem_pwm);
+	    //xSemaphoreGive(d_sem_pwm);
 	    return 0;
 	}
 	return -1;
@@ -133,6 +138,27 @@ static inline int disp_power_toggle()
     return 0;
 }
 
+static inline void frame_tic()
+{
+	struct timeval tv_now;
+	gettimeofday(&tv_now, NULL);
+	frame_timestamp = (int64_t)tv_now.tv_sec * 1000000L + (int64_t)tv_now.tv_usec;
+}
+static inline int64_t frame_toc()
+{
+	struct timeval tv_now;
+	gettimeofday(&tv_now, NULL);
+	int64_t newtime = (int64_t)tv_now.tv_sec * 1000000L + (int64_t)tv_now.tv_usec;
+	return newtime - frame_timestamp;
+}
+static inline int fake_frame()
+{
+	int64_t dur_us = frame_toc();
+	if (dur_us < FRAME_DUR_MIN_US) return 1;
+	if (dur_us > FRAME_DUR_MAX_US) return -1;
+	return 0;
+}
+
 static inline int timesync_handle(uint8_t * buf)
 {
 	return 0;
@@ -182,13 +208,15 @@ static inline int usb_process_rx_buf(uint8_t * buf, size_t * size)
 			case UDSUNI_TITLE_STREAM_START:
 				d_fake_frames = 0;
 				d_frame_number = 0;
-				// d_frame_detected = 0;
+				d_frame_detected = 0;
+				d_meas_error = 0;
 				d_in_meas = 0;
 				result = 0;
 				d_reboot_lock = 1;
 				break;
 			case UDSUNI_TITLE_MEAS_START:
-				if ((msg.type == UDSUNI_TYPE_INT) && (msg.size == sizeof(uint32_t)) && (rx_size >= (sizeof(UdsUniMsg) + sizeof(uint32_t))) && (d_reboot_lock != 0)) {
+				if ((msg.type == UDSUNI_TYPE_INT) && (msg.size == sizeof(uint32_t)) && (rx_size >= (sizeof(UdsUniMsg) + sizeof(uint32_t))) 
+					&& (d_reboot_lock != 0) && (d_meas_error == 0)) {
 					memcpy(&d_meas_frame, buf + sizeof(UdsUniMsg), sizeof(uint32_t));
 					// d_in_meas = 1;
 					*size = sizeof(UdsUniMsg);
@@ -200,14 +228,14 @@ static inline int usb_process_rx_buf(uint8_t * buf, size_t * size)
 					if (d_meas_frame == 1) {
 						d_frame_number = 0;
 						d_fake_frames = 0;
-						// d_frame_detected = 0;
+						d_frame_detected = 0;
 						result = 0;
 					} else {
 						if (d_meas_frame < d_frame_number + 1) result = -1;
 						else result = 0;
 					}
 					d_in_meas = 1;
-					d_meas_error = 0;
+					// d_meas_error = 0;
 				} else result = -1;
 				break;
 			case UDSUNI_TITLE_MEAS_STOP:

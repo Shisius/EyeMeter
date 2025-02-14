@@ -20,6 +20,8 @@
 #define LED_SERIAL
 #define LED_SERIAL_PORT "/dev/ttyACM0"
 
+#define EYEMETER_MEAS_N_FRAME_DELAY 20
+
 typedef enum 
 {
 	ESECAM_TRIGGER_SOFT = 0,
@@ -41,7 +43,14 @@ public:
 	bool is_alive() {return d_is_alive.load();}
 
 	void frame_ready_event(SharedFrame & frame, unsigned char* frame_ptr);
-	void set_frame_number(eseusbcam_unsigned_long_t number) {d_frame_number.store(number);}
+	void set_frame_time(eseusbcam_unsigned_long_t time) {
+		int64_t t = toc();
+		printf("dt = %u, %ld\n", time - d_frame_last_time.load(), t); 
+		if (d_frame_number == 1) d_time_start2frame = t;
+		d_frame_last_time.store(time); tic();
+	}
+	/// CALC SELF DT HERE
+	void set_frame_number(eseusbcam_unsigned_long_t number) {d_frame_number.store(number); d_frame_cnt++;}
 	unsigned short get_led_state() {return d_led_state.load();}
 
 protected:
@@ -78,6 +87,8 @@ protected:
 	std::atomic<int> d_n_bad_meas_frames;
 	std::atomic<eseusbcam_unsigned_long_t> d_frame_number;
 	std::atomic<eseusbcam_unsigned_long_t> d_meas_frame_number;
+	std::atomic<eseusbcam_unsigned_long_t> d_frame_cnt;
+	std::atomic<eseusbcam_unsigned_long_t> d_frame_last_time;
 	std::atomic<int> d_meas_error;
 
 	int start_stream();
@@ -103,6 +114,12 @@ protected:
 	void cam_timer();
 	bool meas_trigger_cycle();
 	bool meas_wait_cycle();
+
+	// Misc
+	std::chrono::time_point<std::chrono::high_resolution_clock> d_tic_time;
+	int64_t d_time_start2frame;
+	void tic() {d_tic_time = std::chrono::high_resolution_clock::now();}
+	int64_t toc() {return static_cast<int64_t>(std::chrono::duration<double, std::micro>(std::chrono::high_resolution_clock::now() - d_tic_time).count());}
 
 };
 

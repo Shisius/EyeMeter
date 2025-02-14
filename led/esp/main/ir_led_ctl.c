@@ -101,33 +101,39 @@ static void led_task(void * data)
 
 static void IRAM_ATTR gpio_isr_handler(void* arg)
 {
-    //if (gpio_get_level(CAM_OUT_PIN) == 0 || true) {
-    //    if (d_frame_detected == 1) {
-            if (d_fake_frames == 0) {
+    if (gpio_get_level(CAM_OUT_PIN) == 0) {
+       if (d_frame_detected == 1) {
+            // if (d_fake_frames == 0) {
+            int result = fake_frame();
+            if (result == 1) {
                 d_fake_frames++;
-            } else {
+            } else if (result == 0) {
                 d_frame_number++;
+            } else {
+                d_meas_error = 1;
             }
-            // d_frame_detected = 0;
             if (d_in_meas == 1) { 
                 if (ir_set_led4frame() < 0) {
                     d_meas_error = 1;
                 }
             }
-    //    }
-    //} else {
-    //    d_frame_detected = 1;
-    //}
+            d_frame_detected = 0;
+       }
+    } else {
+       d_frame_detected = 1;
+       frame_tic();
+    }
 }
 
 void app_main(void)
 {
-    // esp_err_t ret = nvs_flash_init();
-    // if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-    //     ESP_ERROR_CHECK(nvs_flash_erase());
-    //     ret = nvs_flash_init();
-    // }
-    // ESP_ERROR_CHECK( ret );
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK( ret );
+
     d_reboot_lock = 0;
 
     d_sem_pwm = xSemaphoreCreateBinary();
@@ -185,7 +191,7 @@ void app_main(void)
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_ENABLE,
-        .intr_type = GPIO_INTR_NEGEDGE, //GPIO_INTR_ANYEDGE,
+        .intr_type = GPIO_INTR_ANYEDGE, // GPIO_INTR_NEGEDGE,
     };
     // set the gpios as per gpio_conf
     ESP_ERROR_CHECK(gpio_config(&gpio_conf_int));

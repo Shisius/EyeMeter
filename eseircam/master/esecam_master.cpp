@@ -26,8 +26,9 @@ void esecam_callback (const char* szCameraName,
 				//printf("Esecam callback: %u, %u, %u, %u, %u\n", rRetSrv2.StreamServData.ulNTP_SecondExposureStart, 
 				//	rRetSrv2.StreamServData.ulNTP_PartSecondExposureStart, 
 				//	rRetSrv2.StreamServData.ulNTP_SecondExposureEnd, rRetSrv2.StreamServData.ulNTP_PartSecondExposureEnd, rRetSrv2.StreamServData.ulFrameNum);
-				//  printf("frame time %u\n", rRetSrv2.StreamServData.ulNTP_PartSecondExposureStart);
+				// printf("frame time %u\n", rRetSrv2.StreamServData.ulNTP_PartSecondExposureStart);
 				master->set_frame_number(rRetSrv2.StreamServData.ulFrameNum);
+				master->set_frame_time(rRetSrv2.StreamServData.ulNTP_PartSecondExposureStart);
 				master->frame_ready_event(frame, pFrame+sizeof(RET_SERV_DATA_ITK4_0));
 			} else printf("Esecam callback: wrong Serv data type!\n");
 		} else {
@@ -45,6 +46,7 @@ EseCamMaster::EseCamMaster()
 	d_in_meas.store(false);
 
 	d_led_state.store(0);
+	d_frame_cnt.store(0);
 
 	d_meas_settings.n_led_pos = LED_DEFAULT_POS_PER_CYCLE;
 	d_meas_settings.n_repeat = LED_DEFAULT_CYCLE_NUM;
@@ -55,7 +57,7 @@ EseCamMaster::EseCamMaster()
 	d_stream_settings.fps_max = 30;
 
 #ifdef ESECAM_90HZ
-	d_trigger = ESECAM_TRIGGER_SOFT_STREAM; //ESECAM_TRIGGER_NONE;
+	d_trigger = ESECAM_TRIGGER_NONE; //ESECAM_TRIGGER_SOFT_STREAM;
 #else
 	d_trigger = ESECAM_TRIGGER_SOFT;
 #endif
@@ -144,7 +146,7 @@ int EseCamMaster::start_stream()
 	printf("EseCamMaster:: start stream\n");
 	if (d_in_stream.load()) {
 		stop_stream();
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 	// Shmem
 	d_shmem->clear();
@@ -164,6 +166,8 @@ int EseCamMaster::start_stream()
 		printf("EseCamMaster:: reset frame cnt failed!\n");
 		return -1;
 	}
+	d_frame_cnt.store(0);
+	d_frame_last_time.store(0);
 
 	// Send start stream cmd to esp
 	if ((d_trigger == ESECAM_TRIGGER_NONE) || (d_trigger == ESECAM_TRIGGER_SOFT_STREAM)) {
@@ -184,6 +188,7 @@ int EseCamMaster::start_stream()
 		printf("EseCamMaster:: stream start failed!\n");
 		return -1;
 	}
+	tic();
 
 	d_uds->send(UDSUNI_TITLE_STREAM_RUNNING, d_stream_settings);
 
@@ -207,6 +212,11 @@ int EseCamMaster::start_meas()
 		printf("Stream is not started!\n");
 		return -1;
 	}
+
+	// if (start_stream() < 0) {
+	// 	printf("Restart stream failed!\n");
+	// 	return -1;
+	// }
 
 	// set_trigger(true, false);
 
@@ -247,7 +257,7 @@ void EseCamMaster::meas_routine()
 
 	if (d_in_meas.load()) d_uds->send(UDSUNI_TITLE_MEAS_RUNNING, d_meas_settings);
 
-	d_meas_frame_number.store(d_frame_number.load() + 20);
+	d_meas_frame_number.store(d_frame_number.load() + EYEMETER_MEAS_N_FRAME_DELAY);
 	d_meas_frame_idx.store(0);
 	d_n_bad_meas_frames.store(0);
 
@@ -343,7 +353,7 @@ bool EseCamMaster::meas_trigger_cycle()
 bool EseCamMaster::meas_wait_cycle()
 {
 	bool meas_failed = false;
-	int n_wait = d_meas_settings.n_repeat*d_meas_settings.n_led_pos*2;
+	int n_wait = d_meas_settings.n_repeat*d_meas_settings.n_led_pos*2 + EYEMETER_MEAS_N_FRAME_DELAY;
 	int i_wait = 0;
 	int wait_time_ms = 11;	
 	// Reset Frame cnt
@@ -355,8 +365,12 @@ bool EseCamMaster::meas_wait_cycle()
 		d_frame_number.store(0);
 		d_meas_frame_number.store(1);
 	}
-	// Send start cmd to esp
+	// Send start cmd to espmeas_frame_number
 	unsigned int meas_frame_number = d_meas_frame_number.load();
+	// Magic condition, Kludge?
+	if (d_time_start2frame < 23000) {
+		meas_frame_number -= 1;
+	}
 	if (led_msg(UDSUNI_TITLE_MEAS_START, &meas_frame_number) < 0) {
 		printf("EseCamMaster: send UDSUNI_TITLE_MEAS_START to MCU failed\n");
 		i_wait = n_wait;
@@ -385,12 +399,21 @@ bool EseCamMaster::meas_wait_cycle()
 		printf("EseCamMaster: send UDSUNI_TITLE_MEAS_STOP to MCU failed\n");
 		meas_failed = true;
 	} else {
-		printf("EseCamMaster: MCU frame sync result cpu = %u, mcu = %u\n", d_frame_number.load(), meas_frame_number);
-		if (meas_frame_number > (d_frame_number.load() + 100)) {
-			printf("EseCamMaster: MCU frame sync failed cpu = %u, mcu = %u\n", d_frame_number.load(), meas_frame_number);
-			meas_failed = true;
+		printf("EseCamMaster: MCU frame sync result cpu = %u, mcu = %u, ts2f = %ld\n", d_frame_number.load(), meas_frame_number, d_time_start2frame);
+		if (d_time_start2frame > 23000) {
+			if (meas_frame_number != (d_frame_number.load() + 1)) {
+				printf("EseCamMaster: MCU frame sync failed cpu = %u, mcu = %u, ts2f = %ld\n", d_frame_number.load(), meas_frame_number, d_time_start2frame);
+				meas_failed = true;
+			}
+		} else {
+			if (meas_frame_number != (d_frame_number.load())) {
+				printf("EseCamMaster: MCU frame sync failed cpu = %u, mcu = %u, ts2f = %ld\n", d_frame_number.load(), meas_frame_number, d_time_start2frame);
+				meas_failed = true;
+			}
 		}
+		
 	}
+	printf("EseCamMaster: time from start to frame = %ld us\n", d_time_start2frame);
 	return meas_failed;
 }
 
