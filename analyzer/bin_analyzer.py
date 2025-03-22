@@ -11,10 +11,48 @@ from net import RefractionNet
 import platform
 # import pickle
 from matplotlib import pyplot as plt
+from collections import OrderedDict
 import matplotlib.patches as patches
 # from src.neural_refraction.train import eval_list
 # from scipy.optimize import curve_fit
 
+class ErrorsEyeMeter:
+    def __init__(self):
+        self.error_priority_dct = OrderedDict([
+            (0, {'short': 'Фоновая ИК засветка', 'desc': 'Затемните помещение'}),
+            (1, {'short': 'Зрачки не обнаружены', 'desc': 'Направьте прибор на пациента'}),
+            (2, {'short': 'Изображение вне фокуса', 'desc': 'Отрегулируйте дальность'}),
+            (3, {'short': 'Нет фиксации взгляда', 'desc': 'Необходимо смотреть в камеру'}),
+            (4, {'short': 'Рефлекс не яркий', 'desc': 'Дефект глаз или нет фокуса'}),
+            (5, {'short': 'Слишком маленький зрачок', 'desc': 'Затемните помещение'}),
+            (6, {'short': 'Слишком большой зрачок', 'desc': 'Отрегулируйте яркость'}),
+            (7, {'short': 'Веко перекрывает зрачок', 'desc': 'Расширьте глаза'}),
+            (8, {'short': 'Ресница в области зрачка', 'desc': 'Расширьте глаза'}),
+            (9, {'short': 'Измерения не полные', 'desc': 'Возникла иная ошибка'}),
+            (10, {'short': 'Монокулярное измерение', 'desc': 'Закройте второй глаз'}),])
+
+class CollectedEyeData:
+    def __init__(self):
+        self.collect_data = {
+            'interocular_dist': [],
+            'right_eye_d': [],
+            'left_eye_d': [],
+            'eye_positions': [],
+            'img_num': []
+                             }
+        self.to_upload_data = ['interocular_dist', 'right_eye_d', 'left_eye_d']
+
+    def update(self, data_dct: dict):
+        for k in self.collect_data:
+            if k in data_dct:
+                self.collect_data[k].append(data_dct[k])
+
+    def upload(self):
+        return {k :np.array(self.collect_data[k]).mean() for k in self.to_upload_data}
+
+    def clear(self):
+        for k in self.collect_data:
+            self.collect_data[k] = []
 
 class EyeAnalyzer:
     def __init__(self, num_imgs=40, path_to_chck='.\\weights\\only_wab.pt',
@@ -24,6 +62,8 @@ class EyeAnalyzer:
                  rknn_model_path='.\\weights\\yolov8_seg.rknn',
                  verbose=False, reverse=-1, conf=0.5, backend_type='rknn'):
         self.verbose = verbose
+        self.data_collector = CollectedEyeData()
+        self.errors = ErrorsEyeMeter()
         if backend_type == 'rknn':
             from rknn_pupil_detection import PupilDetectRKNN
             self.pd = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path), conf=conf, iou=0.5, imgsz=640)
@@ -38,7 +78,7 @@ class EyeAnalyzer:
 
         self.num_imgs = num_imgs
         self.pix2mm = 0.09267 #/1.012 #/0.95 #/0.966
-
+        self.pd_step = 0.2  # цена деления
         input_sz = 28
         num_cls = 3
         hidden_sz = 32
@@ -147,23 +187,23 @@ class EyeAnalyzer:
         return tmp_4
 
     def get_interocular_dist(self, nn_boxes_list):
-        arr_form = np.array([[t[1].detach().cpu().numpy(), t[2].detach().cpu().numpy()] for t in nn_boxes_list])
+        arr_form = np.array([[nn_boxes_list[0].detach().cpu().numpy(), nn_boxes_list[1].detach().cpu().numpy()]])
         intra_oc = (((((arr_form[:, 0, 0] + arr_form[:, 0, 2]) / 2) -
                       (arr_form[:, 1, 0] + arr_form[:, 1, 2]) / 2) ** 2 +
                      (((arr_form[:, 0, 1] + arr_form[:, 0, 3]) / 2) -
                       (arr_form[:, 1, 1] + arr_form[:, 1, 3]) / 2) ** 2) ** 0.5).mean()
-        return round((intra_oc * self.pix2mm) / 0.2) * 0.2
+        return round((intra_oc * self.pix2mm) / self.pd_step) * self.pd_step
 
     def get_eye_diameter(self, nn_boxes_list):
-        arr_form = np.array([[t[1].detach().cpu().numpy(), t[2].detach().cpu().numpy()] for t in nn_boxes_list])
+        arr_form = np.array([[nn_boxes_list[0].detach().cpu().numpy(), nn_boxes_list[1].detach().cpu().numpy()]])
         rr = ((arr_form[:, 0, 2] - arr_form[:, 0, 0]).mean() + (arr_form[:, 0, 3] - arr_form[:, 0, 1]).mean()) / 2
         ll = ((arr_form[:, 1, 2] - arr_form[:, 1, 0]).mean() + (arr_form[:, 1, 3] - arr_form[:, 1, 1]).mean()) / 2
-        return round(ll * self.pix2mm / 0.2) * 0.2, round(rr * self.pix2mm / 0.2) * 0.2
+        return (round(ll * self.pix2mm / self.pd_step) * self.pd_step,
+                round(rr * self.pix2mm / self.pd_step) * self.pd_step)
 
     def get_eye_positions(self, nn_boxes_list):
-        num = nn_boxes_list[-1][0]
-        right = nn_boxes_list[-1][1]
-        left = nn_boxes_list[-1][2]
+        right = nn_boxes_list[0]
+        left = nn_boxes_list[1]
         left_x = int((left[2] + left[0]) / 2)
         left_y = int((left[3] + left[1]) / 2)
         right_x = int((right[2] + right[0]) / 2)
@@ -171,7 +211,7 @@ class EyeAnalyzer:
         right_r = int(((right[2] - right[0] + right[3] - right[1]) / 4).round())
         left_r = int(((left[2] - left[0] + left[3] - left[1]) / 4).round())
 
-        return {'n_frame': num,
+        return {'n_frame': 0,
                 'left_x': left_x,
                 'left_y': left_y,
                 'left_r': left_r,
@@ -180,8 +220,76 @@ class EyeAnalyzer:
                 'right_r': right_r
                 }
 
+
+    def calculate_refraction(self, part_collections, img_array):
+        info_storage = []
+        for part in part_collections:
+            try:
+                zer_res = estimate_coeffs(img_array, part)
+                info_storage.append({'processed_eyes': zer_res,
+                                     'metadata': part,
+                                     'subset': 'val'})
+                if self.verbose:
+                    for z in zer_res:
+                        plt.subplot(121)
+                        plt.imshow(z['left']['flickless_pupil'])
+                        plt.subplot(122)
+                        plt.imshow(z['right']['flickless_pupil'])
+                        plt.show()
+            except Exception as e:
+                print(f'An error during Zernike getting: {e}')
+        val_dataset = CustomTestVectorDataset(info_storage)
+        dataloader = DataLoader(val_dataset, batch_size=128, shuffle=False)
+        out_lst = []
+
+        for rotation, Zernicke_coef, eye, pupil_rad, flick_rad in tqdm(dataloader, total=len(dataloader)):
+            with torch.no_grad():
+                out_lst.append([self.ref_net(Zernicke_coef, eye, rotation,
+                                             pupil_rad, flick_rad).detach().cpu().numpy(),
+                                rotation, eye])
+        return info_storage, out_lst
+
+    def process_image(self, img: np.ndarray) -> dict:
+        with torch.jit.optimized_execution(False):
+            with torch.inference_mode():
+                result = self.pd.model.predict([img[:, :, None].repeat(3, axis=-1)],
+                                               save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
+                # if self.verbose:
+                #     fig, ax = plt.subplots()
+                #     ax.imshow(result[-1].orig_img[:, :,])
+                #     # ax.imshow(out[-1].orig_img)
+                #     if True:
+                #         for b in result[-1].boxes:
+                #             x, y, width, height = (int(b.xyxy[0, 0].item()), int(b.xyxy[0, 1].item()),
+                #                                    int(b.xyxy[0, 2].item() - b.xyxy[0, 0].item()),
+                #                                    int(b.xyxy[0, 3].item() - b.xyxy[0, 1].item()))
+                #             patch = patches.Rectangle((x, y), width, height, facecolor='none', edgecolor='red', linewidth=2)
+                #             ax.add_patch(patch)
+                #     colors = ['red', 'green', 'blue', ]
+                #     if True:
+                #         for b in result[-1].masks:
+                #
+                #             poly = patches.Polygon(list(zip(b.xy[0][:, 0], b.xy[0][:, 1])), facecolor='none',
+                #                            edgecolor=colors[2])
+                #             ax.add_patch(poly)
+                #     plt.show()
+        if result[0].boxes.xyxy.size(0) == 2:
+            boxes = result[0].boxes.xyxy
+            masks = result[0].masks.xy
+            if (boxes[0][0] + boxes[0][2]) / 2 < (boxes[1][0] + boxes[1][2]) / 2:
+                tmp = [boxes[0], boxes[1], masks[0], masks[1]]
+            else:
+                tmp = [boxes[1], boxes[0], masks[1], masks[0]]
+            result_dict = {'result': tmp, 'interocular_dist': self.get_interocular_dist(tmp)}
+            l, r = self.get_eye_diameter(tmp)
+            result_dict['right_eye_d'] = r
+            result_dict['left_eye_d'] = l
+            result_dict['eye_positions'] = self.get_eye_positions(tmp)
+            return result_dict
+        return {'result': self.errors.error_priority_dct[1]['short']}
+
     def process_array(self, img_array):
-        result_dict = {}
+        result_dict = {'error_msg': 'none'}
         assert len(img_array) == self.num_imgs, f'NDArray should have {self.num_imgs} elements'
         img_array = img_array[1:, :, :] if len(img_array) == 41 else img_array
         tmp = []
@@ -189,55 +297,19 @@ class EyeAnalyzer:
             div = 1
         else:
             div = 4
+        detection_result = {'result': 'Empty array!'}
         for img_num in range(0, self.num_imgs, div):
-            with torch.jit.optimized_execution(False):
-                with torch.inference_mode():
-                    result = self.pd.model.predict([img_array[img_num][:, :, None].repeat(3, axis=-1)],
-                                                   save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
-                    # if self.verbose:
-                    #     fig, ax = plt.subplots()
-                    #     ax.imshow(result[-1].orig_img[:, :,])
-                    #     # ax.imshow(out[-1].orig_img)
-                    #     if True:
-                    #         for b in result[-1].boxes:
-                    #             x, y, width, height = (int(b.xyxy[0, 0].item()), int(b.xyxy[0, 1].item()),
-                    #                                    int(b.xyxy[0, 2].item() - b.xyxy[0, 0].item()),
-                    #                                    int(b.xyxy[0, 3].item() - b.xyxy[0, 1].item()))
-                    #             patch = patches.Rectangle((x, y), width, height, facecolor='none', edgecolor='red', linewidth=2)
-                    #             ax.add_patch(patch)
-                    #     colors = ['red', 'green', 'blue', ]
-                    #     if True:
-                    #         for b in result[-1].masks:
-                    #
-                    #             poly = patches.Polygon(list(zip(b.xy[0][:, 0], b.xy[0][:, 1])), facecolor='none',
-                    #                            edgecolor=colors[2])
-                    #             ax.add_patch(poly)
-                    #     plt.show()
-            if result[0].boxes.xyxy.size(0) == 2:
-                res = result[0].boxes.xyxy
-                masks = result[0].masks.xy
-                if (res[0][0] + res[0][2]) / 2 < (res[1][0] + res[1][2]) / 2:
-                    tmp.append([img_num, res[0], res[1], masks[0], masks[1]])  # TODO check this
-                else:
-                    tmp.append([img_num, res[1], res[0], masks[1], masks[0]])
+            detection_result = self.process_image(img_array[img_num])
+            if not isinstance(detection_result['result'], str):
+                tmp.append([img_num] + detection_result['result'])
+                detection_result['img_num'] = img_num
+                self.data_collector.update(detection_result)
+        if len(tmp) == 0:
+            return {'error_msg', detection_result['result']}
+
         try:
             part_collections = self.pack2tries(tmp, use_fast=self.fast, img_array=img_array)
-            info_storage = []
-            for part in part_collections:
-                try:
-                    zer_res = estimate_coeffs(img_array, part)
-                    info_storage.append({'processed_eyes': zer_res,
-                                         'metadata': part,
-                                         'subset': 'val'})
-                    if self.verbose:
-                        for z in zer_res:
-                            plt.subplot(121)
-                            plt.imshow(z['left']['flickless_pupil'])
-                            plt.subplot(122)
-                            plt.imshow(z['right']['flickless_pupil'])
-                            plt.show()
-                except Exception as e:
-                    print(f'An error during Zernike getting: {e}')
+            info_storage, out_lst = self.calculate_refraction(part_collections, img_array)
             try:
                 left_pupil = info_storage[-1]['processed_eyes'][-1]['left']['flickless_pupil']
                 left_pupil = F.interpolate(torch.tensor(left_pupil[None, None, :, :]).float(),
@@ -257,15 +329,7 @@ class EyeAnalyzer:
                 result_dict['right_skew'] = right_skew
             except Exception as e:
                 print(f'An error during skew getting: {e}')
-            val_dataset = CustomTestVectorDataset(info_storage)
-            dataloader = DataLoader(val_dataset, batch_size=128, shuffle=False)
-            out_lst = []
 
-            for rotation, Zernicke_coef, eye, pupil_rad, flick_rad in tqdm(dataloader, total=len(dataloader)):
-                with torch.no_grad():
-                    out_lst.append([self.ref_net(Zernicke_coef, eye, rotation,
-                                                 pupil_rad, flick_rad).detach().cpu().numpy(),
-                                    rotation, eye])
             left = out_lst[0][0][out_lst[0][2] == 0].mean(0)
             right = out_lst[0][0][out_lst[0][2] == 1].mean(0)
             result_dict['sph_left'] = self.reverse * round(left[0] / 0.25) * 0.25
@@ -276,16 +340,13 @@ class EyeAnalyzer:
             result_dict['angle_right'] = round(right[2] / 30) * 30
         except:
             pass
-        result_dict['interocular_dist'] = self.get_interocular_dist(tmp)
-        l, r = self.get_eye_diameter(tmp)
-        result_dict['right_eye_d'] = r
-        result_dict['left_eye_d'] = l
-        result_dict['eye_positions'] = self.get_eye_positions(tmp)
+        result_dict.update(self.data_collector.upload())
+        result_dict['eye_positions'] = self.data_collector.collect_data['eye_positions'][0]
         return result_dict
 
 
 if __name__ == '__main__':
-    ea_inst = EyeAnalyzer(verbose=False, backend_type='torch')
+    ea_inst = EyeAnalyzer(verbose=False , backend_type='torch')
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:

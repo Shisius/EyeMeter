@@ -3,6 +3,8 @@ import struct
 import os
 import numpy as np
 from multiprocessing import shared_memory
+
+from bin_analyzer import ErrorsEyeMeter
 from eyemetercomm import *
 import bin_analyzer
 
@@ -91,7 +93,9 @@ class UdsUniCommAI:
                               dtype=np.uint8, buffer=self.shframe.buf)
             try:
                 out_dict = self.analyzer.process_array(data)
-                print(out_dict)
+                # print(out_dict)
+                if out_dict.get('error_msg', 'none') != 'none':
+                    raise NotImplementedError  # TODO realize interruption and sending to GUI an error msg
                 self.meas_result = MeasResult(out_dict['sph_left'], out_dict['cyl_left'], out_dict['angle_left'], out_dict['left_eye_d'], 
                                             out_dict['sph_right'], out_dict['cyl_right'], out_dict['angle_right'], out_dict['right_eye_d'], 
                                             out_dict['interocular_dist'])
