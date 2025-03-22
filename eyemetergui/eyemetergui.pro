@@ -48,12 +48,10 @@ CONFIG += embed_translations
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
-
+#DEFINES += START_BY_ID
 #DEFINES += TEST_snapshot
-#DEFINES += NEWVISION
 DEFINES += DEBUG2FILE
 RESOURCES += \
     images.qrc
 LIBS += -lrt -lm
 
-DISTFILES +=

@@ -33,6 +33,8 @@ class MainWindow : public QMainWindow
         MEAS //measure screen
     };
     QFrame *d_frame_card;
+    QFrame *frame_data_total;
+    QFrame *frame_dataResults_total;
 
     QLineEdit *d_le_firstName;
     QLineEdit *d_le_lastName;
@@ -56,9 +58,7 @@ class MainWindow : public QMainWindow
     bool d_isEyesLabelSizeFixed = false;
     QSize d_eyesLabelSize;
     QLabel *d_l_refractionLeft;
-    QLabel *d_l_refractionRight;
-    QLabel *d_l_diameterLeft;
-    QLabel *d_l_diameterRight;
+    QLabel *d_l_refractionRight;    
     QLabel *d_l_interocularRes;
     QLabel *d_l_pic_FixLeft;
     QLabel *d_l_pic_FixRight;
@@ -74,14 +74,15 @@ class MainWindow : public QMainWindow
     //FOR TEST
 
     QSize d_frame_card_lastSize;
+    QSize frame_data_total_lastSize;
+    QSize frame_dataResults_total_lastSize;
     QSize d_pb_shot_lastSize ;
+    QSize d_l_snapshot_lastSize ;
     QSize d_l_leftEye_lastSize;
     QSize d_l_rightEye_lastSize;
     QSize d_l_eyes_lastSize;
     QSize d_l_refractionLeft_lastSize;
-    QSize d_l_refractionRight_lastSize;
-    QSize d_l_diameterLeft_lastSize;
-    QSize d_l_diameterRight_lastSize;
+    QSize d_l_refractionRight_lastSize;    
     QSize d_l_interocularRes_lastSize;
     QSize d_l_pic_FixLeft_lastSize;
     QSize d_l_pic_FixRight_lastSize;
@@ -145,6 +146,8 @@ private slots:
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
+    void showEvent(QShowEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
     //bool event(QEvent*) override;
 };
 #endif // MAINWINDOW_H
