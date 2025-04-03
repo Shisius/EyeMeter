@@ -131,6 +131,9 @@ class UdsUniCommAI:
                     elif _title == UDSUNI_TITLE_MEAS_SHOOT_DONE:
                         self.meas_shoot_done()
                         #continue
+                    # TODO realize next
+                    # elif _title == UDSUNI_TITLE_FRAME_READY:
+                    #     use self.analyzer.process_image(data)
                     elif _title == UDSUNI_TITLE_STREAM_START or _title == UDSUNI_TITLE_STREAM_RUNNING or _title == UDSUNI_TITLE_MEAS_START or _title == UDSUNI_TITLE_FRAME_READY:
                         pass
                     else:

@@ -51,12 +51,8 @@ def get_zernicke_from_image(gray_img, radial_order=6, rad_cut=1.0, norm=False, o
     return cart, Phi, c1
 
 
-def process_pupil(pup_1_l, rel2deg=60):
+def remove_flick(pup_1_l, gap = 6, cut_sz = 12):
     flick_pos = np.unravel_index(np.argmax(pup_1_l), np.array(pup_1_l).shape)
-    flick_pos_rel = (flick_pos[1] / pup_1_l.shape[1] - 0.5) * rel2deg, \
-                    (flick_pos[0] / pup_1_l.shape[0] - 0.5) * rel2deg
-    gap = 6
-    cut_sz = 12
     x1, y1, x2, y2 = flick_pos[1], flick_pos[0], flick_pos[1], flick_pos[0]
     x1, y1, x2, y2 = x1 - cut_sz, y1 - cut_sz, x2 + cut_sz, y2 + cut_sz
     if x1 < 0 and x2 - x1 < 2:
@@ -89,7 +85,14 @@ def process_pupil(pup_1_l, rel2deg=60):
     pupil[y1:y2, x1:x2] = bilin + np.random.randn(y2 - y1, x2 - x1) * pupil[y1:y1 + gap, x1:x1 + gap].std()
     pupil = F.interpolate(torch.tensor(pupil[None, None, :, :]).float(), size=(33, 33), mode='bilinear')[0][0].numpy()
     # pupil[(pupil.mean() * 0.85 < pupil) * (pupil > pupil.mean() * 1.15)] = pupil.mean()
-    pupil = pick_filter(pupil)
+    # pupil = pick_filter(pupil)
+    return pupil, flick_pos
+
+def process_pupil(pup_1_l, rel2deg=60):
+    pupil, flick_pos = remove_flick(pup_1_l)
+    flick_pos_rel = (flick_pos[1] / pup_1_l.shape[1] - 0.5) * rel2deg, \
+                    (flick_pos[0] / pup_1_l.shape[0] - 0.5) * rel2deg
+
     # plt.imshow(pupil)
     # plt.show()
     res = get_zernicke_from_image(pupil, offset=0)

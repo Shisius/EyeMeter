@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
-from refraction_utils import estimate_coeffs
+from refraction_utils import estimate_coeffs, remove_flick
 from dataset import CustomTestVectorDataset
 from net import RefractionNet
 import platform
@@ -13,23 +13,38 @@ import platform
 from matplotlib import pyplot as plt
 from collections import OrderedDict
 import matplotlib.patches as patches
+from dom import DOM
 # from src.neural_refraction.train import eval_list
 # from scipy.optimize import curve_fit
 
 class ErrorsEyeMeter:
     def __init__(self):
         self.error_priority_dct = OrderedDict([
-            (0, {'short': 'Фоновая ИК засветка', 'desc': 'Затемните помещение'}),
-            (1, {'short': 'Зрачки не обнаружены', 'desc': 'Направьте прибор на пациента'}),
-            (2, {'short': 'Изображение вне фокуса', 'desc': 'Отрегулируйте дальность'}),
+            (0, {'short': 'Фоновая ИК засветка', 'desc': 'Затемните помещение'}),  # graphical
+            (1, {'short': 'Зрачки не обнаружены', 'desc': 'Направьте прибор на пациента'}),   #    # graphical
+            (2, {'short': 'Изображение вне фокуса', 'desc': 'Отрегулируйте дальность'}),   # graphical
             (3, {'short': 'Нет фиксации взгляда', 'desc': 'Необходимо смотреть в камеру'}),
             (4, {'short': 'Рефлекс не яркий', 'desc': 'Дефект глаз или нет фокуса'}),
             (5, {'short': 'Слишком маленький зрачок', 'desc': 'Затемните помещение'}),
             (6, {'short': 'Слишком большой зрачок', 'desc': 'Отрегулируйте яркость'}),
             (7, {'short': 'Веко перекрывает зрачок', 'desc': 'Расширьте глаза'}),
-            (8, {'short': 'Ресница в области зрачка', 'desc': 'Расширьте глаза'}),
+            (8, {'short': 'Ресница в области зрачка', 'desc': 'Сбрейте ресницы'}),
             (9, {'short': 'Измерения не полные', 'desc': 'Возникла иная ошибка'}),
             (10, {'short': 'Монокулярное измерение', 'desc': 'Закройте второй глаз'}),])
+
+class SharpDOM(DOM):
+    def __init__(self, width=3, sharpness_threshold=2.5, edge_threshold=0.0001):
+        super().__init__()
+        self.width = width
+        self.sharpness_threshold = sharpness_threshold
+        self.edge_threshold = edge_threshold
+        self.min = 0.009
+        self.max = 0.07
+
+    def get_sharpness(self, img, *args, **kwargs):
+        sh = super().get_sharpness(img, width=self.width,
+                                   sharpness_threshold=self.sharpness_threshold, edge_threshold=self.edge_threshold)
+        return min(max((sh - self.min) / (self.max - self.min), 0), 1)
 
 class CollectedEyeData:
     def __init__(self):
@@ -38,9 +53,11 @@ class CollectedEyeData:
             'right_eye_d': [],
             'left_eye_d': [],
             'eye_positions': [],
-            'img_num': []
+            'img_num': [],
+            'left_sharpness': [],
+            'right_sharpness': []
                              }
-        self.to_upload_data = ['interocular_dist', 'right_eye_d', 'left_eye_d']
+        self.to_upload_data = ['interocular_dist', 'right_eye_d', 'left_eye_d', 'left_sharpness', 'right_sharpness']
 
     def update(self, data_dct: dict):
         for k in self.collect_data:
@@ -64,6 +81,7 @@ class EyeAnalyzer:
         self.verbose = verbose
         self.data_collector = CollectedEyeData()
         self.errors = ErrorsEyeMeter()
+        self.sharp_meter = SharpDOM()
         if backend_type == 'rknn':
             from rknn_pupil_detection import PupilDetectRKNN
             self.pd = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path), conf=conf, iou=0.5, imgsz=640)
@@ -75,7 +93,6 @@ class EyeAnalyzer:
         elif backend_type == 'torch':
             self.pd = PupilDetect(path_to_chck=self.adj_os(path_to_chck), conf=conf,
                                   cfg_root=self.adj_os(cfg_root), load_model_path=self.adj_os(load_model_path))
-
         self.num_imgs = num_imgs
         self.pix2mm = 0.09267 #/1.012 #/0.95 #/0.966
         self.pd_step = 0.2  # цена деления
@@ -93,20 +110,6 @@ class EyeAnalyzer:
         self.ref_net.load_state_dict(torch.load(self.adj_os(ref_weights_path)))
         self.ref_net.eval()
         self.fast = True
-        # self.pseudo_run()
-
-    def pseudo_run(self):
-        print('Start pre run')
-        with torch.jit.optimized_execution(False):
-            with torch.inference_mode():
-                result = self.pd.model.predict([np.random.randint(0, 255, (416, 640))[:, :, None].repeat(3, axis=-1)],
-                                               save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
-        # if not self.pd.reinit_succ:
-        #     print('Try to save model')
-        #     self.pd.save_model()
-        #     print('Model successfuly saved')
-
-        print('Pre run finished')
 
     def adj_os(self, path_file: str):
         if 'Linux' in platform.system():
@@ -249,6 +252,13 @@ class EyeAnalyzer:
                                 rotation, eye])
         return info_storage, out_lst
 
+    def get_pupils(self, img, metadata):
+        pupil_position = metadata[0].round().int().detach().cpu().numpy()
+        right_pupil = img[pupil_position[1]:pupil_position[3], pupil_position[0]:pupil_position[2]]
+        pupil_position = metadata[1].round().int().detach().cpu().numpy()
+        left_pupil = img[pupil_position[1]:pupil_position[3], pupil_position[0 ]:pupil_position[2]]
+        return left_pupil, right_pupil
+
     def process_image(self, img: np.ndarray) -> dict:
         with torch.jit.optimized_execution(False):
             with torch.inference_mode():
@@ -280,13 +290,18 @@ class EyeAnalyzer:
                 tmp = [boxes[0], boxes[1], masks[0], masks[1]]
             else:
                 tmp = [boxes[1], boxes[0], masks[1], masks[0]]
-            result_dict = {'result': tmp, 'interocular_dist': self.get_interocular_dist(tmp)}
+            left_pupil, right_pupil = self.get_pupils(img, tmp)
+            left_pupil_fr, flick_pos_l = remove_flick(left_pupil)
+            right_pupil_fr, flick_pos_r = remove_flick(right_pupil)
+            result_dict = {'result': tmp, 'interocular_dist': self.get_interocular_dist(tmp), 'error_msg': 'none'}
             l, r = self.get_eye_diameter(tmp)
             result_dict['right_eye_d'] = r
             result_dict['left_eye_d'] = l
             result_dict['eye_positions'] = self.get_eye_positions(tmp)
+            result_dict['left_sharpness'] = self.sharp_meter.get_sharpness(left_pupil_fr)
+            result_dict['right_sharpness'] = self.sharp_meter.get_sharpness(right_pupil_fr)
             return result_dict
-        return {'result': self.errors.error_priority_dct[1]['short']}
+        return {'error_msg':  self.errors.error_priority_dct[1]['short']}
 
     def process_array(self, img_array):
         result_dict = {'error_msg': 'none'}
