@@ -1,3 +1,4 @@
 
-# Чего доделать к 14.11.24
-1. 90 Гц
+1. Error code enum
+2. Frame ready result struct
+
