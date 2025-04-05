@@ -46,7 +46,7 @@ class SharpDOM(DOM):
         img = (img - img.mean()) / img.std()
         sh = super().get_sharpness(img, width=self.width,
                                    sharpness_threshold=self.sharpness_threshold, edge_threshold=self.edge_threshold)
-        return round(min(max((sh - self.min) / (self.max - self.min), 0), 1), 2) * 100
+        return round(sh, 2) * 100 # round(min(max((sh - self.min) / (self.max - self.min), 0), 1), 2) * 100
 
 class CollectedEyeData:
     def __init__(self):
