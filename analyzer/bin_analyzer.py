@@ -42,6 +42,8 @@ class SharpDOM(DOM):
         self.max = 0.53
 
     def get_sharpness(self, img, *args, **kwargs):
+        img = img.astype(np.float32)
+        img = (img - img.mean()) / img.std()
         sh = super().get_sharpness(img, width=self.width,
                                    sharpness_threshold=self.sharpness_threshold, edge_threshold=self.edge_threshold)
         return round(min(max((sh - self.min) / (self.max - self.min), 0), 1), 2) * 100
