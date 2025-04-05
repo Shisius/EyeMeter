@@ -65,7 +65,7 @@ class CollectedEyeData:
                 self.collect_data[k].append(data_dct[k])
 
     def upload(self):
-        return {k :np.array(self.collect_data[k]).mean() for k in self.to_upload_data}
+        return {k :float(np.array(self.collect_data[k]).mean()) for k in self.to_upload_data}
 
     def clear(self):
         for k in self.collect_data:
@@ -204,7 +204,7 @@ class EyeAnalyzer:
         return (round(ll * self.pix2mm / self.pd_step) * self.pd_step,
                 round(rr * self.pix2mm / self.pd_step) * self.pd_step)
 
-    def get_eye_positions(self, nn_boxes_list):
+    def get_eye_positions(self, nn_boxes_list, num_frame=0):
         right = nn_boxes_list[0]
         left = nn_boxes_list[1]
         left_x = int((left[2] + left[0]) / 2)
@@ -214,7 +214,7 @@ class EyeAnalyzer:
         right_r = int(((right[2] - right[0] + right[3] - right[1]) / 4).round())
         left_r = int(((left[2] - left[0] + left[3] - left[1]) / 4).round())
 
-        return {'n_frame': 0,
+        return {'n_frame': num_frame,
                 'left_x': left_x,
                 'left_y': left_y,
                 'left_r': left_r,
@@ -259,7 +259,7 @@ class EyeAnalyzer:
         left_pupil = img[pupil_position[1]:pupil_position[3], pupil_position[0 ]:pupil_position[2]]
         return left_pupil, right_pupil
 
-    def process_image(self, img: np.ndarray) -> dict:
+    def process_image(self, img: np.ndarray, num_frame: int=0) -> dict:
         with torch.jit.optimized_execution(False):
             with torch.inference_mode():
                 result = self.pd.model.predict([img[:, :, None].repeat(3, axis=-1)],
@@ -297,7 +297,7 @@ class EyeAnalyzer:
             l, r = self.get_eye_diameter(tmp)
             result_dict['right_eye_d'] = r
             result_dict['left_eye_d'] = l
-            result_dict['eye_positions'] = self.get_eye_positions(tmp)
+            result_dict['eye_positions'] = self.get_eye_positions(tmp, num_frame=num_frame)
             result_dict['left_sharpness'] = self.sharp_meter.get_sharpness(left_pupil_fr)
             result_dict['right_sharpness'] = self.sharp_meter.get_sharpness(right_pupil_fr)
             return result_dict
@@ -314,7 +314,7 @@ class EyeAnalyzer:
             div = 4
         detection_result = {'result': 'Empty array!'}
         for img_num in range(0, self.num_imgs, div):
-            detection_result = self.process_image(img_array[img_num])
+            detection_result = self.process_image(img_array[img_num], num_frame=img_num)
             if not isinstance(detection_result['result'], str):
                 tmp.append([img_num] + detection_result['result'])
                 detection_result['img_num'] = img_num
