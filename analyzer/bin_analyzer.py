@@ -67,7 +67,7 @@ class CollectedEyeData:
                 self.collect_data[k].append(data_dct[k])
 
     def upload(self):
-        return {k :float(np.array(self.collect_data[k]).mean()) for k in self.to_upload_data}
+        return {k :float((np.array(self.collect_data[k])[np.array(self.collect_data['img_num'])%4 == 0]).mean()) for k in self.to_upload_data}
 
     def clear(self):
         for k in self.collect_data:
