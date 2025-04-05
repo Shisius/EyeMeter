@@ -99,8 +99,8 @@ class UdsUniCommAI:
                 # self.meas_result = MeasResult(out_dict['sph_left'], out_dict['cyl_left'], out_dict['angle_left'], out_dict['left_eye_d'], 
                 #                             out_dict['sph_right'], out_dict['cyl_right'], out_dict['angle_right'], out_dict['right_eye_d'], 
                 #                             out_dict['interocular_dist'])
-                self.meas_result = MeasResult(out_dict['sph_left'], out_dict['cyl_left'], int(out_dict['left_sharpness']*100), out_dict['left_eye_d'], 
-                                            out_dict['sph_right'], out_dict['cyl_right'], int(out_dict['right_sharpness']*100), out_dict['right_eye_d'], 
+                self.meas_result = MeasResult(out_dict['sph_left'], out_dict['cyl_left'], out_dict['left_sharpness']*100.0, out_dict['left_eye_d'], 
+                                            out_dict['sph_right'], out_dict['cyl_right'], out_dict['right_sharpness']*100.0, out_dict['right_eye_d'], 
                                             out_dict['interocular_dist'])
                 self.meas_result.add_circle(out_dict['eye_positions']['left_x'], out_dict['eye_positions']['left_y'], out_dict['eye_positions']['left_r'], 
                     out_dict['eye_positions']['right_x'], out_dict['eye_positions']['right_y'], out_dict['eye_positions']['right_r'], out_dict['eye_positions']['n_frame'])
