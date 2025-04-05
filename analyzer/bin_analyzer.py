@@ -44,7 +44,7 @@ class SharpDOM(DOM):
     def get_sharpness(self, img, *args, **kwargs):
         sh = super().get_sharpness(img, width=self.width,
                                    sharpness_threshold=self.sharpness_threshold, edge_threshold=self.edge_threshold)
-        return min(max((sh - self.min) / (self.max - self.min), 0), 1)
+        return sh # min(max((sh - self.min) / (self.max - self.min), 0), 1)
 
 class CollectedEyeData:
     def __init__(self):
@@ -301,7 +301,7 @@ class EyeAnalyzer:
             result_dict['left_sharpness'] = self.sharp_meter.get_sharpness(left_pupil_fr)
             result_dict['right_sharpness'] = self.sharp_meter.get_sharpness(right_pupil_fr)
             return result_dict
-        return {'error_msg':  self.errors.error_priority_dct[1]['short']}
+        return {'error_msg':  self.errors.error_priority_dct[1]['short'], 'result': 'not_today'}
 
     def process_array(self, img_array):
         result_dict = {'error_msg': 'none'}
@@ -365,7 +365,7 @@ if __name__ == '__main__':
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:
-        fname = 'D:\Projects\eye_blinks\data_24\\10_11_24\in_motion\\991_2024_11_10_00_26_07.bin'
+        fname = 'D:\Projects\eye_blinks\data_25\\04\\_2025_04_05_18_14_57.bin'
     # fname = '777_2024_06_12_20_34_55.bin'
 
     with open(fname, 'rb') as f:
