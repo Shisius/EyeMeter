@@ -368,7 +368,7 @@ if __name__ == '__main__':
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:
-        fname = 'D:\Projects\eye_blinks\data_25\\04\\_2025_04_07_21_07_40.bin'
+        fname = 'D:\Projects\eye_blinks\data_25\\04\\_2025_04_07_23_18_29.bin'
     # fname = '777_2024_06_12_20_34_55.bin'
 
     with open(fname, 'rb') as f:

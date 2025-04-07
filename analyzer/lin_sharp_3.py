@@ -50,9 +50,9 @@ class PupilSharp:
             else:
                 break
         prop = peak_widths(abs(res1), peaks[[cl, cr]])
-        # plt.plot(peaks, abs(res1)[peaks], "x")
-        # plt.plot(abs(res1))
-        # plt.show()
+        plt.plot(peaks, abs(res1)[peaks], "x")
+        plt.plot(abs(res1))
+        plt.show()
         return prop[0]
 
 
@@ -77,7 +77,7 @@ class PupilSharp:
         line_135 = self.get_image_slice(img, 90+ang)
         sh_45 = self.sharpness_1d_mod(line_45)
         sh_135 = self.sharpness_1d_mod(line_135)
-        return 100 - min(max((round((sh_45.mean() + sh_135.mean())/2, 2) - 2.5) / (6.5 - 2.5), 0), 1) * 100.
+        return 100 - min(max((round((sh_45.mean() + sh_135.mean())/2, 2) - 3.2) / (6.1 - 3.2), 0), 1) * 100.
 
 
 
