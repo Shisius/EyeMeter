@@ -5,8 +5,8 @@ import pickle
 from scipy.signal import find_peaks, peak_widths
 import torch
 from torch.nn import functional as F
-from src.components.sharpness.linear_sharp import both_side_line
-from matplotlib import pyplot as plt
+# from src.components.sharpness.linear_sharp import both_side_line
+# from matplotlib import pyplot as plt
 
 
 def get_pickle_file(path):
@@ -54,32 +54,6 @@ class PupilSharp:
         # plt.plot(abs(res1))
         # plt.show()
         return prop[0]
-
-    def sharpness_1d(self, y_arr):
-
-        self.diff_line(y_arr)
-        x_arr = np.arange(len(y_arr))
-        point_l, point_r = 0, len(y_arr) - 1
-        left_stop_num, right_stop_num, slope, offset, std = both_side_line(x_arr, y_arr, point_l, point_r,
-                                                                           self.num_collect, self.sigma_gap)
-        # for i in range(right_stop_num - left_stop_num):
-        #     if y_arr[left_stop_num + i] / y_arr[left_stop_num:right_stop_num].mean() > 1:
-        #         break
-        # left_slope = i
-        # for i in range(right_stop_num - left_stop_num):
-        #     if y_arr[right_stop_num - i] / y_arr[left_stop_num:right_stop_num].mean() > 1:
-        #         break
-        # right_slope = i - 1
-        left_slope = 0
-        right_slope = 0
-        x_arr_new = x_arr[left_stop_num + left_slope: right_stop_num - right_slope]
-        y_arr_new = y_arr[left_stop_num + left_slope: right_stop_num - right_slope]
-        fam = np.histogram(y_arr_new, self.num_bins)
-        real_lvl = fam[1][fam[0].argmax()]
-        plt.plot(x_arr, y_arr)
-        plt.plot(x_arr_new, y_arr_new)
-        plt.plot(x_arr, real_lvl * np.ones_like(x_arr))
-        plt.show()
 
 
     def get_image_slice(self, image, angle):
