@@ -14,6 +14,7 @@ from matplotlib import pyplot as plt
 from collections import OrderedDict
 import matplotlib.patches as patches
 from dom import DOM
+from lin_sharp_3 import PupilSharp
 # from src.neural_refraction.train import eval_list
 # from scipy.optimize import curve_fit
 
@@ -83,7 +84,7 @@ class EyeAnalyzer:
         self.verbose = verbose
         self.data_collector = CollectedEyeData()
         self.errors = ErrorsEyeMeter()
-        self.sharp_meter = SharpDOM()
+        self.sharp_meter = PupilSharp()
         if backend_type == 'rknn':
             from rknn_pupil_detection import PupilDetectRKNN
             self.pd = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path), conf=conf, iou=0.5, imgsz=640)
@@ -363,11 +364,11 @@ class EyeAnalyzer:
 
 
 if __name__ == '__main__':
-    ea_inst = EyeAnalyzer(verbose=False , backend_type='torch')
+    ea_inst = EyeAnalyzer(verbose=True , backend_type='torch')
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:
-        fname = 'D:\Projects\eye_blinks\data_25\\04\\_2025_04_05_18_14_57.bin'
+        fname = 'D:\Projects\eye_blinks\data_25\\04\\_2025_04_05_21_38_29.bin'
     # fname = '777_2024_06_12_20_34_55.bin'
 
     with open(fname, 'rb') as f:
