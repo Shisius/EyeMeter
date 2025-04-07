@@ -50,9 +50,9 @@ class PupilSharp:
             else:
                 break
         prop = peak_widths(abs(res1), peaks[[cl, cr]])
-        plt.plot(peaks, abs(res1)[peaks], "x")
-        plt.plot(abs(res1))
-        plt.show()
+        # plt.plot(peaks, abs(res1)[peaks], "x")
+        # plt.plot(abs(res1))
+        # plt.show()
         return prop[0]
 
 
