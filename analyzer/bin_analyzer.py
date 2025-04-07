@@ -294,15 +294,15 @@ class EyeAnalyzer:
             else:
                 tmp = [boxes[1], boxes[0], masks[1], masks[0]]
             left_pupil, right_pupil = self.get_pupils(img, tmp)
-            left_pupil_fr, flick_pos_l = remove_flick(left_pupil)
-            right_pupil_fr, flick_pos_r = remove_flick(right_pupil)
+            # left_pupil_fr, flick_pos_l = remove_flick(left_pupil)
+            # right_pupil_fr, flick_pos_r = remove_flick(right_pupil)
             result_dict = {'result': tmp, 'interocular_dist': self.get_interocular_dist(tmp), 'error_msg': 'none'}
             l, r = self.get_eye_diameter(tmp)
             result_dict['right_eye_d'] = r
             result_dict['left_eye_d'] = l
             result_dict['eye_positions'] = self.get_eye_positions(tmp, num_frame=num_frame)
-            result_dict['left_sharpness'] = self.sharp_meter.get_sharpness(left_pupil_fr)
-            result_dict['right_sharpness'] = self.sharp_meter.get_sharpness(right_pupil_fr)
+            result_dict['left_sharpness'] = self.sharp_meter.get_sharpness(left_pupil)
+            result_dict['right_sharpness'] = self.sharp_meter.get_sharpness(right_pupil)
             return result_dict
         return {'error_msg':  self.errors.error_priority_dct[1]['short'], 'result': 'not_today'}
 
