@@ -68,7 +68,7 @@ class CollectedEyeData:
                 self.collect_data[k].append(data_dct[k])
 
     def upload(self):
-        return {k :float((np.array(self.collect_data[k])[np.array(self.collect_data['img_num'])%4 == 0]).mean()) for k in self.to_upload_data}
+        return {k :round(float((np.array(self.collect_data[k])[np.array(self.collect_data['img_num'])%4 == 0]).mean()), 2) for k in self.to_upload_data}
 
     def clear(self):
         for k in self.collect_data:
@@ -364,11 +364,11 @@ class EyeAnalyzer:
 
 
 if __name__ == '__main__':
-    ea_inst = EyeAnalyzer(verbose=True , backend_type='torch')
+    ea_inst = EyeAnalyzer(verbose=False , backend_type='torch')
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:
-        fname = 'D:\Projects\eye_blinks\data_25\\04\\_2025_04_05_21_38_29.bin'
+        fname = 'D:\Projects\eye_blinks\data_25\\04\\_2025_04_07_21_07_40.bin'
     # fname = '777_2024_06_12_20_34_55.bin'
 
     with open(fname, 'rb') as f:

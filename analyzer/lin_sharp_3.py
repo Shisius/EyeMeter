@@ -6,7 +6,7 @@ from scipy.signal import find_peaks, peak_widths
 import torch
 from torch.nn import functional as F
 # from src.components.sharpness.linear_sharp import both_side_line
-# from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 
 
 def get_pickle_file(path):
@@ -77,7 +77,7 @@ class PupilSharp:
         line_135 = self.get_image_slice(img, 90+ang)
         sh_45 = self.sharpness_1d_mod(line_45)
         sh_135 = self.sharpness_1d_mod(line_135)
-        return round((sh_45.mean() + sh_135.mean())/2, 2)
+        return 100 - min(max((round((sh_45.mean() + sh_135.mean())/2, 2) - 2.5) / (6.5 - 2.5), 0), 1) * 100.
 
 
 
