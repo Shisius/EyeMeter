@@ -14,7 +14,7 @@ from matplotlib import pyplot as plt
 from collections import OrderedDict
 import matplotlib.patches as patches
 from dom import DOM
-from neural_sharp_line.net_sharp import PupilSharp
+from net_sharp import PupilSharp
 # from src.neural_refraction.train import eval_list
 # from scipy.optimize import curve_fit
 
