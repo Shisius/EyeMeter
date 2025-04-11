@@ -62,6 +62,17 @@ class CollectedEyeData:
                              }
         self.to_upload_data = ['interocular_dist', 'right_eye_d', 'left_eye_d', 'left_sharpness', 'right_sharpness']
 
+    def flush(self):
+        self.collect_data = {
+            'interocular_dist': [],
+            'right_eye_d': [],
+            'left_eye_d': [],
+            'eye_positions': [],
+            'img_num': [],
+            'left_sharpness': [],
+            'right_sharpness': []
+                             }
+
     def update(self, data_dct: dict):
         for k in self.collect_data:
             if k in data_dct:
@@ -113,6 +124,9 @@ class EyeAnalyzer:
         self.ref_net.load_state_dict(torch.load(self.adj_os(ref_weights_path)))
         self.ref_net.eval()
         self.fast = True
+
+    def flush(self):
+        self.data_collector.flush()
 
     def adj_os(self, path_file: str):
         if 'Linux' in platform.system():
@@ -368,7 +382,7 @@ if __name__ == '__main__':
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:
-        fname = 'D:\Projects\eye_blinks\data_25\\04\\_2025_04_11_18_06_27.bin'
+        fname = 'D:\Projects\eye_blinks\data_25\\04\\_2025_04_11_18_14_18.bin'
     # fname = '777_2024_06_12_20_34_55.bin'
 
     with open(fname, 'rb') as f:
