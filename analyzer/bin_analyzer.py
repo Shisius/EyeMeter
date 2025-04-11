@@ -277,7 +277,7 @@ class EyeAnalyzer:
         return left_pupil, right_pupil
 
     def process_image(self, img: np.ndarray, num_frame: int=0) -> dict:
-        self.flush()
+
         with torch.jit.optimized_execution(False):
             with torch.inference_mode():
                 result = self.pd.model.predict([img[:, :, None].repeat(3, axis=-1)],
@@ -322,6 +322,7 @@ class EyeAnalyzer:
         return {'error_msg':  self.errors.error_priority_dct[1]['short'], 'result': 'not_today'}
 
     def process_array(self, img_array):
+        self.flush()
         result_dict = {'error_msg': 'none'}
         assert len(img_array) == self.num_imgs, f'NDArray should have {self.num_imgs} elements'
         img_array = img_array[1:, :, :] if len(img_array) == 41 else img_array
