@@ -100,7 +100,7 @@ class PupilSharp:
         sh_130 = self.sharpness_1d_mod(line_130)
         sh_140 = self.sharpness_1d_mod(line_140)
         sh_mean = (2*sh_45.mean() + 2*sh_135.mean() + sh_40.mean() + sh_50.mean()+sh_130.mean() + sh_140.mean())/8
-        return 100 - min(max((round(sh_mean, 2) - 1.0) / (5.0 - 1.0), 0), 1) * 100.
+        return 100 - min(max((round(sh_mean, 2) - 0.5) / (3.0 - 0.5), 0), 1) * 100.
 
 
 
