@@ -60,13 +60,8 @@ class PupilSharp:
 
     def net_init(self, path_to_weights):
         self.net = SharpNet().to(self.device)
-        wab = None
-        try:
-            wab = torch.load(path_to_weights)
-        except:
-            raise NotImplementedError('Impossible to found proper weights')
-        if wab is not None:
-            self.net.load_state_dict(wab, strict=True)
+        wab = torch.load(path_to_weights)
+        self.net.load_state_dict(wab, strict=True)
         self.net.eval()
 
     @torch.no_grad()
