@@ -277,6 +277,7 @@ class EyeAnalyzer:
         return left_pupil, right_pupil
 
     def process_image(self, img: np.ndarray, num_frame: int=0) -> dict:
+        self.flush()
         with torch.jit.optimized_execution(False):
             with torch.inference_mode():
                 result = self.pd.model.predict([img[:, :, None].repeat(3, axis=-1)],
