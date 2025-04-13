@@ -28,8 +28,10 @@ class ErrorsEyeMeter:
                  'error_code': 3}),
             (4, {'short': 'Рефлекс не яркий', 'desc': 'Дефект глаз или нет фокуса', 'ready': True, 'range': (150, 256),
                  'error_code': 4}),
-            (5, {'short': 'Слишком маленький зрачок', 'desc': 'Затемните помещение'}),
-            (6, {'short': 'Слишком большой зрачок', 'desc': 'Отрегулируйте яркость'}),
+            (5, {'short': 'Слишком маленький зрачок', 'desc': 'Затемните помещение', 'ready': True, 'range': (2, 1000), # less than 4mm in +Op
+                 'error_code': 5}),
+            (6, {'short': 'Слишком большой зрачок', 'desc': 'Отрегулируйте яркость', 'ready': True, 'range': (0, 10), # more than 8mm in +Op
+                 'error_code': 6}),
             (7, {'short': 'Веко перекрывает зрачок', 'desc': 'Расширьте глаза'}),
             (8, {'short': 'Ресница в области зрачка', 'desc': 'Сбрейте ресницы'}),
             (9, {'short': 'Измерения не полные', 'desc': 'Возникла иная ошибка'}),
@@ -445,6 +447,18 @@ class EyeAnalyzer:
             result_dict['cyl_right'] = 'nan'
             result_dict['angle_right'] = 'nan'
             result_dict['error_msg'] = self.errors.error_priority_dct[4]['error_code']
+            return result_dict
+        # Pupil small
+        pupil_min_d = self.errors.error_priority_dct[5]['range']
+        if (not (pupil_min_d[0] < result_dict['right_eye_d'] <= pupil_min_d[1]) or
+                not (pupil_min_d[0] < result_dict['left_eye_d'] <= pupil_min_d[1])):
+            result_dict['error_msg'] = self.errors.error_priority_dct[5]['error_code']
+            return result_dict
+        # Pupil big
+        pupil_max_d = self.errors.error_priority_dct[6]['range']
+        if (not (pupil_max_d[0] < result_dict['right_eye_d'] <= pupil_max_d[1]) or
+                not (pupil_max_d[0] < result_dict['left_eye_d'] <= pupil_max_d[1])):
+            result_dict['error_msg'] = self.errors.error_priority_dct[6]['error_code']
             return result_dict
         return result_dict
 
