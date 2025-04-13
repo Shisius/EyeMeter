@@ -20,10 +20,14 @@ class ErrorsEyeMeter:
     def __init__(self):
         self.error_priority_dct = OrderedDict([
             (0, {'short': 'Фоновая ИК засветка', 'desc': 'Затемните помещение'}),  # graphical
-            (1, {'short': 'Зрачки не обнаружены', 'desc': 'Направьте прибор на пациента', 'ready': True}),   #    # graphical
-            (2, {'short': 'Изображение вне фокуса', 'desc': 'Отрегулируйте дальность', 'ready': True, 'range': (0, 100)}),   # graphical
-            (3, {'short': 'Нет фиксации взгляда', 'desc': 'Необходимо смотреть в камеру', 'ready': True, 'range': (0, 7)}),
-            (4, {'short': 'Рефлекс не яркий', 'desc': 'Дефект глаз или нет фокуса', 'ready': True, 'range': (150, 256)}),
+            (1, {'short': 'Зрачки не обнаружены', 'desc': 'Направьте прибор на пациента', 'ready': True,
+                 'error_code': 1}),   #    # graphical
+            (2, {'short': 'Изображение вне фокуса', 'desc': 'Отрегулируйте дальность', 'ready': True, 'range': (0, 100),
+                 'error_code': 2}),   # graphical
+            (3, {'short': 'Нет фиксации взгляда', 'desc': 'Необходимо смотреть в камеру', 'ready': True, 'range': (0, 7),
+                 'error_code': 3}),
+            (4, {'short': 'Рефлекс не яркий', 'desc': 'Дефект глаз или нет фокуса', 'ready': True, 'range': (150, 256),
+                 'error_code': 4}),
             (5, {'short': 'Слишком маленький зрачок', 'desc': 'Затемните помещение'}),
             (6, {'short': 'Слишком большой зрачок', 'desc': 'Отрегулируйте яркость'}),
             (7, {'short': 'Веко перекрывает зрачок', 'desc': 'Расширьте глаза'}),
@@ -314,7 +318,7 @@ class EyeAnalyzer:
             left_pupil, right_pupil = self.get_pupils(img, tmp)
             # left_pupil_fr, flick_pos_l = remove_flick(left_pupil)
             # right_pupil_fr, flick_pos_r = remove_flick(right_pupil)
-            result_dict = {'result': tmp, 'interocular_dist': self.get_interocular_dist(tmp), 'error_msg': 'none'}
+            result_dict = {'result': tmp, 'interocular_dist': self.get_interocular_dist(tmp), 'error_msg': -1}
             l, r = self.get_eye_diameter(tmp)
             result_dict['right_eye_d'] = r
             result_dict['left_eye_d'] = l
@@ -324,7 +328,7 @@ class EyeAnalyzer:
             result_dict['right_flick_intensity'] = right_pupil.max()
             result_dict['left_flick_intensity'] = left_pupil.max()
             return result_dict
-        return {'error_msg':  self.errors.error_priority_dct[1]['short'], 'result': 'not_today'}
+        return {'error_msg':  self.errors.error_priority_dct[1]['error_code'], 'result': 'not_today'}
 
     def process_array(self, img_array):
         self.flush()
@@ -344,7 +348,7 @@ class EyeAnalyzer:
                 detection_result['img_num'] = img_num
                 self.data_collector.update(detection_result)
         if len(tmp) == 0:
-            return {'error_msg', detection_result['result']}
+            return {'error_msg': self.errors.error_priority_dct[1]['error_code']}
 
         try:
             part_collections = self.pack2tries(tmp, use_fast=self.fast, img_array=img_array)
@@ -392,7 +396,7 @@ class EyeAnalyzer:
             result_dict['sph_right'] = 'nan'
             result_dict['cyl_right'] = 'nan'
             result_dict['angle_right'] = 'nan'
-            result_dict['error_msg'] = self.errors.error_priority_dct[2]['short']
+            result_dict['error_msg'] = self.errors.error_priority_dct[2]['error_code']
             return result_dict
 
         # Eye fixation test
@@ -409,7 +413,7 @@ class EyeAnalyzer:
             result_dict['sph_right'] = 'nan'
             result_dict['cyl_right'] = 'nan'
             result_dict['angle_right'] = 'nan'
-            result_dict['error_msg'] = self.errors.error_priority_dct[3]['short']
+            result_dict['error_msg'] = self.errors.error_priority_dct[3]['error_code']
             return result_dict
 
         # Lead eye and strabismus
@@ -440,7 +444,7 @@ class EyeAnalyzer:
             result_dict['sph_right'] = 'nan'
             result_dict['cyl_right'] = 'nan'
             result_dict['angle_right'] = 'nan'
-            result_dict['error_msg'] = self.errors.error_priority_dct[3]['short']
+            result_dict['error_msg'] = self.errors.error_priority_dct[4]['error_code']
             return result_dict
         return result_dict
 
