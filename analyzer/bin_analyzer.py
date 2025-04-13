@@ -14,6 +14,7 @@ from matplotlib import pyplot as plt
 from collections import OrderedDict
 import matplotlib.patches as patches
 from dom import DOM
+from net_sharp import PupilSharp
 # from src.neural_refraction.train import eval_list
 # from scipy.optimize import curve_fit
 
@@ -42,9 +43,11 @@ class SharpDOM(DOM):
         self.max = 0.53
 
     def get_sharpness(self, img, *args, **kwargs):
+        img = img.astype(np.float32)
+        img = (img - img.mean()) / img.std()
         sh = super().get_sharpness(img, width=self.width,
                                    sharpness_threshold=self.sharpness_threshold, edge_threshold=self.edge_threshold)
-        return round(min(max((sh - self.min) / (self.max - self.min), 0), 1), 2) * 100
+        return round(sh, 2) * 100 # round(min(max((sh - self.min) / (self.max - self.min), 0), 1), 2) * 100
 
 class CollectedEyeData:
     def __init__(self):
@@ -59,13 +62,24 @@ class CollectedEyeData:
                              }
         self.to_upload_data = ['interocular_dist', 'right_eye_d', 'left_eye_d', 'left_sharpness', 'right_sharpness']
 
+    def flush(self):
+        self.collect_data = {
+            'interocular_dist': [],
+            'right_eye_d': [],
+            'left_eye_d': [],
+            'eye_positions': [],
+            'img_num': [],
+            'left_sharpness': [],
+            'right_sharpness': []
+                             }
+
     def update(self, data_dct: dict):
         for k in self.collect_data:
             if k in data_dct:
                 self.collect_data[k].append(data_dct[k])
 
     def upload(self):
-        return {k :float(np.array(self.collect_data[k]).mean()) for k in self.to_upload_data}
+        return {k :round(float((np.array(self.collect_data[k])[np.array(self.collect_data['img_num'])%4 == 0]).mean()), 2) for k in self.to_upload_data}
 
     def clear(self):
         for k in self.collect_data:
@@ -81,7 +95,7 @@ class EyeAnalyzer:
         self.verbose = verbose
         self.data_collector = CollectedEyeData()
         self.errors = ErrorsEyeMeter()
-        self.sharp_meter = SharpDOM()
+        self.sharp_meter = PupilSharp(path_to_weights='./weights/best_sharp_net.pth')
         if backend_type == 'rknn':
             from rknn_pupil_detection import PupilDetectRKNN
             self.pd = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path), conf=conf, iou=0.5, imgsz=640)
@@ -110,6 +124,9 @@ class EyeAnalyzer:
         self.ref_net.load_state_dict(torch.load(self.adj_os(ref_weights_path)))
         self.ref_net.eval()
         self.fast = True
+
+    def flush(self):
+        self.data_collector.flush()
 
     def adj_os(self, path_file: str):
         if 'Linux' in platform.system():
@@ -260,6 +277,7 @@ class EyeAnalyzer:
         return left_pupil, right_pupil
 
     def process_image(self, img: np.ndarray, num_frame: int=0) -> dict:
+
         with torch.jit.optimized_execution(False):
             with torch.inference_mode():
                 result = self.pd.model.predict([img[:, :, None].repeat(3, axis=-1)],
@@ -291,19 +309,20 @@ class EyeAnalyzer:
             else:
                 tmp = [boxes[1], boxes[0], masks[1], masks[0]]
             left_pupil, right_pupil = self.get_pupils(img, tmp)
-            left_pupil_fr, flick_pos_l = remove_flick(left_pupil)
-            right_pupil_fr, flick_pos_r = remove_flick(right_pupil)
+            # left_pupil_fr, flick_pos_l = remove_flick(left_pupil)
+            # right_pupil_fr, flick_pos_r = remove_flick(right_pupil)
             result_dict = {'result': tmp, 'interocular_dist': self.get_interocular_dist(tmp), 'error_msg': 'none'}
             l, r = self.get_eye_diameter(tmp)
             result_dict['right_eye_d'] = r
             result_dict['left_eye_d'] = l
             result_dict['eye_positions'] = self.get_eye_positions(tmp, num_frame=num_frame)
-            result_dict['left_sharpness'] = self.sharp_meter.get_sharpness(left_pupil_fr)
-            result_dict['right_sharpness'] = self.sharp_meter.get_sharpness(right_pupil_fr)
+            result_dict['left_sharpness'] = self.sharp_meter.get_sharpness(left_pupil)
+            result_dict['right_sharpness'] = self.sharp_meter.get_sharpness(right_pupil)
             return result_dict
         return {'error_msg':  self.errors.error_priority_dct[1]['short'], 'result': 'not_today'}
 
     def process_array(self, img_array):
+        self.flush()
         result_dict = {'error_msg': 'none'}
         assert len(img_array) == self.num_imgs, f'NDArray should have {self.num_imgs} elements'
         img_array = img_array[1:, :, :] if len(img_array) == 41 else img_array
@@ -365,7 +384,7 @@ if __name__ == '__main__':
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:
-        fname = 'D:\Projects\eye_blinks\data_25\\04\\_2025_04_05_18_14_57.bin'
+        fname = 'D:\Projects\eye_blinks\data_25\\04\\_2025_04_11_18_14_18.bin'
     # fname = '777_2024_06_12_20_34_55.bin'
 
     with open(fname, 'rb') as f:
