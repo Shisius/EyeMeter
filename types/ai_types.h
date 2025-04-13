@@ -47,13 +47,40 @@ typedef struct _eye_meas_parameters
 	//unsigned int n_skew;
 } EyeMeasParameters;
 
+typedef enum
+{
+	DOMINANT_EYE_NONE = 0,
+	DOMINANT_EYE_LEFT,
+	DOMINANT_EYE_RIGHT,
+	DOMINANT_EYE_BOTH
+} DominantEyeOption;
+
 typedef struct _AI_eye_meas_result
 {
 	EyeMeasParameters left;
 	EyeMeasParameters right;
 	float interocular;
 	unsigned int frame4circles;
+	float sharpness;
+	float squint;
+	unsigned int dominant_eye;
+	unsigned int error_word;
 } AIEyeMeasResult;
+
+typedef enum
+{
+	EMRE_BACKGROUNG_IR = 0,
+	EMRE_NO_PUPILS,
+	EMRE_NO_FOCUS,
+	EMRE_NO_EYEFIX,
+	EMRE_DIM_REFLEX,
+	EMRE_PUPIL_TOO_SMALL,
+	EMRE_PUPIL_TOO_BIG,
+	EMRE_EYELID,
+	EMRE_EYELASH,
+	EMRE_OTHER,
+	EMRE_MONOCULAR
+} EyeMeasResultError;
 
 // typedef enum 
 // {
