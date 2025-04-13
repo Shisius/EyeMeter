@@ -61,10 +61,14 @@ typedef struct _AI_eye_meas_result
 	EyeMeasParameters right;
 	float interocular;
 	unsigned int frame4circles;
-	float sharpness;
-	float squint;
+	float strabismus;
 	unsigned int dominant_eye;
 	unsigned int error_word;
+	// Dev tresh here
+	float left_sharpness;
+	float right_sharpness;
+	float left_flick_intensity;
+	float right_flick_intensity;
 } AIEyeMeasResult;
 
 typedef enum
