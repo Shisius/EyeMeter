@@ -9,23 +9,21 @@ from refraction_utils import estimate_coeffs, remove_flick
 from dataset import CustomTestVectorDataset
 from net import RefractionNet
 import platform
-# import pickle
 from matplotlib import pyplot as plt
 from collections import OrderedDict
 import matplotlib.patches as patches
 from dom import DOM
 from net_sharp import PupilSharp
-# from src.neural_refraction.train import eval_list
-# from scipy.optimize import curve_fit
+
 
 class ErrorsEyeMeter:
     def __init__(self):
         self.error_priority_dct = OrderedDict([
             (0, {'short': 'Фоновая ИК засветка', 'desc': 'Затемните помещение'}),  # graphical
-            (1, {'short': 'Зрачки не обнаружены', 'desc': 'Направьте прибор на пациента'}),   #    # graphical
-            (2, {'short': 'Изображение вне фокуса', 'desc': 'Отрегулируйте дальность'}),   # graphical
-            (3, {'short': 'Нет фиксации взгляда', 'desc': 'Необходимо смотреть в камеру'}),
-            (4, {'short': 'Рефлекс не яркий', 'desc': 'Дефект глаз или нет фокуса'}),
+            (1, {'short': 'Зрачки не обнаружены', 'desc': 'Направьте прибор на пациента', 'ready': True}),   #    # graphical
+            (2, {'short': 'Изображение вне фокуса', 'desc': 'Отрегулируйте дальность', 'ready': True, 'range': (0, 100)}),   # graphical
+            (3, {'short': 'Нет фиксации взгляда', 'desc': 'Необходимо смотреть в камеру', 'ready': True, 'range': (0, 7)}),
+            (4, {'short': 'Рефлекс не яркий', 'desc': 'Дефект глаз или нет фокуса', 'ready': True, 'range': (150, 256)}),
             (5, {'short': 'Слишком маленький зрачок', 'desc': 'Затемните помещение'}),
             (6, {'short': 'Слишком большой зрачок', 'desc': 'Отрегулируйте яркость'}),
             (7, {'short': 'Веко перекрывает зрачок', 'desc': 'Расширьте глаза'}),
@@ -58,9 +56,12 @@ class CollectedEyeData:
             'eye_positions': [],
             'img_num': [],
             'left_sharpness': [],
-            'right_sharpness': []
+            'right_sharpness': [],
+            'left_flick_intensity': [],
+            'right_flick_intensity': [],
                              }
-        self.to_upload_data = ['interocular_dist', 'right_eye_d', 'left_eye_d', 'left_sharpness', 'right_sharpness']
+        self.to_upload_data = ['interocular_dist', 'right_eye_d', 'left_eye_d', 'left_sharpness',
+                               'right_sharpness', 'left_flick_intensity', 'right_flick_intensity']
 
     def flush(self):
         self.collect_data = {
@@ -70,7 +71,9 @@ class CollectedEyeData:
             'eye_positions': [],
             'img_num': [],
             'left_sharpness': [],
-            'right_sharpness': []
+            'right_sharpness': [],
+            'left_flick_intensity': [],
+            'right_flick_intensity': [],
                              }
 
     def update(self, data_dct: dict):
@@ -318,6 +321,8 @@ class EyeAnalyzer:
             result_dict['eye_positions'] = self.get_eye_positions(tmp, num_frame=num_frame)
             result_dict['left_sharpness'] = self.sharp_meter.get_sharpness(left_pupil)
             result_dict['right_sharpness'] = self.sharp_meter.get_sharpness(right_pupil)
+            result_dict['right_flick_intensity'] = right_pupil.max()
+            result_dict['left_flick_intensity'] = left_pupil.max()
             return result_dict
         return {'error_msg':  self.errors.error_priority_dct[1]['short'], 'result': 'not_today'}
 
@@ -376,6 +381,67 @@ class EyeAnalyzer:
             pass
         result_dict.update(self.data_collector.upload())
         result_dict['eye_positions'] = self.data_collector.collect_data['eye_positions'][0]
+
+        # Sharpness test
+        sharp_range = self.errors.error_priority_dct[2]['range']
+        if (not (sharp_range[0] < result_dict['left_sharpness'] <= sharp_range[1]) and
+                not (sharp_range[0] < result_dict['left_sharpness'] <= sharp_range[1])):
+            result_dict['sph_left'] = 'nan'
+            result_dict['cyl_left'] = 'nan'
+            result_dict['angle_left'] = 'nan'
+            result_dict['sph_right'] = 'nan'
+            result_dict['cyl_right'] = 'nan'
+            result_dict['angle_right'] = 'nan'
+            result_dict['error_msg'] = self.errors.error_priority_dct[2]['short']
+            return result_dict
+
+        # Eye fixation test
+        left_eye_sight = np.array(result_dict['left_skew'])
+        right_eye_sight = np.array(result_dict['right_skew'])
+        result_dict['left_sight_offset'] = round(((left_eye_sight**2).sum(-1)**0.5).mean(), 0)
+        result_dict['right_sight_offset'] =  round(((right_eye_sight ** 2).sum(-1) ** 0.5).mean(), 0)
+        eyefix_range = self.errors.error_priority_dct[3]['range']
+        if (not (eyefix_range[0] < result_dict['left_sight_offset'] <= eyefix_range[1]) or
+                not (eyefix_range[0] < result_dict['right_sight_offset'] <= eyefix_range[1])):
+            result_dict['sph_left'] = 'nan'
+            result_dict['cyl_left'] = 'nan'
+            result_dict['angle_left'] = 'nan'
+            result_dict['sph_right'] = 'nan'
+            result_dict['cyl_right'] = 'nan'
+            result_dict['angle_right'] = 'nan'
+            result_dict['error_msg'] = self.errors.error_priority_dct[3]['short']
+            return result_dict
+
+        # Lead eye and strabismus
+        result_dict['strabismus'] = round((((right_eye_sight - left_eye_sight) ** 2).sum(-1)**0.5).mean(), 0)
+        if result_dict['left_sight_offset'] > result_dict['right_sight_offset']:
+            result_dict['lead_eye'] = 'right'
+        elif result_dict['left_sight_offset'] < result_dict['right_sight_offset']:
+            result_dict['lead_eye'] = 'left'
+        else:
+            result_dict['lead_eye'] = 'both'
+
+        # Lead eye and strabismus
+        result_dict['strabismus'] = round((((right_eye_sight - left_eye_sight) ** 2).sum(-1)**0.5).mean(), 0)
+        if result_dict['left_sight_offset'] > result_dict['right_sight_offset']:
+            result_dict['lead_eye'] = 'right'
+        elif result_dict['left_sight_offset'] < result_dict['right_sight_offset']:
+            result_dict['lead_eye'] = 'left'
+        else:
+            result_dict['lead_eye'] = 'both'
+
+        # Eye reflex
+        reflex_int_range = self.errors.error_priority_dct[4]['range']
+        if (not (reflex_int_range[0] < result_dict['left_flick_intensity'] <= reflex_int_range[1]) or
+                not (reflex_int_range[0] < result_dict['right_flick_intensity'] <= reflex_int_range[1])):
+            result_dict['sph_left'] = 'nan'
+            result_dict['cyl_left'] = 'nan'
+            result_dict['angle_left'] = 'nan'
+            result_dict['sph_right'] = 'nan'
+            result_dict['cyl_right'] = 'nan'
+            result_dict['angle_right'] = 'nan'
+            result_dict['error_msg'] = self.errors.error_priority_dct[3]['short']
+            return result_dict
         return result_dict
 
 
