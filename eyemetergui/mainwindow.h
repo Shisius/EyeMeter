@@ -10,6 +10,7 @@
 #include "imagebuttons.h"
 #include <QLayout>
 #include "lineedit_keyboard.h"
+#include "guitextlib.h"
 //#include "inputnamedialog.h"
 //#include <QLineEdit>
 //#include <QtVirtualKeyboard>
@@ -26,26 +27,31 @@ class MainWindow : public QMainWindow
     const QString STR_MOSTLIGHT_COLOR = "#fffefe";
     const QString STR_LIGHT_COLOR2 = "#dddde2";
 
+    const QString STR_TITLE = "ВЕДУТСЯ РЕМОНТНЫЕ РАБОТЫ";//"Let you see new horizons";
+
     QTabWidget* d_tab_central;
     enum class tabWidget
     {
+        HOME,
         CARD, //patient card
         MEAS //measure screen
+
     };
+    QSharedPointer<QFrame> *d_frame_home;
     QFrame *d_frame_card;
     QFrame *frame_data_total;
     QFrame *frame_dataResults_total;
 
-    QLineEdit *d_le_firstName;
-    QLineEdit *d_le_lastName;
-    QLineEdit *d_le_middleName;
+    //QLineEdit *d_le_firstName;
+    //QLineEdit *d_le_lastName;
+    //QLineEdit *d_le_middleName;
     QDateEdit *d_de_birthDate;
-    QLineEdit *d_le_id;    
+    QLineEdit *d_le_id;
+    QRadioButton* d_female;
+    QRadioButton* d_male;
+
     LineEdit_Keyboard* d_pte_disease;
 
-    QString d_str_firstName;
-    QString d_str_lastName;
-    QString d_str_middleName;
     QDate d_date_birthDate;    
     QString d_str_id;
     QString d_str_disease;
@@ -63,7 +69,8 @@ class MainWindow : public QMainWindow
     QLabel *d_l_pic_FixLeft;
     QLabel *d_l_pic_FixRight;
     QPicture d_pic_fixGrid;
-
+    QLabel *d_l_error;
+    QLabel *d_l_extrametrics;
     QPushButton *d_pb_shot;
     void setStyle2list(const QList<QLabel*> & list, const QString &style = "", Qt::Alignment = Qt::AlignLeft, const QFont &f = QFont());
     void setStyle2list(const QList<QLineEdit*> & list, const QPalette & p, const QString &style = "", Qt::Alignment = Qt::AlignLeft, const QFont &f = QFont());

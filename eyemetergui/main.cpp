@@ -61,7 +61,8 @@ int main(int argc, char *argv[])
 //        lineedit2.move(100, 100);
 //        window.resize(1024, 768);
 //            window.show();
-    w.show();
+    //w.show();
+    w.showFullScreen();
     return a.exec();
 }
 #ifdef DEBUG2FILE

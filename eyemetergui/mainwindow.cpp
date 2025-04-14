@@ -9,6 +9,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     qDebug() << Q_FUNC_INFO;
 
+/*STYLES*/
+    //STYLE strings
     QString str_dark_color_focusText = STR_MOSTDARK_COLOR;
     QString str_light_color_label = STR_MOSTLIGHT_COLOR;
     QString str_dark_color_label = STR_COLD_DARK_COLOR;    
@@ -26,7 +28,6 @@ MainWindow::MainWindow(QWidget *parent)
     QString str_color_grid = STR_COLD_DARK_COLOR;
     QString str_color_dot = STR_WARM_DARK_COLOR;
 
-    /*STYLES*/
     QString str_labelStyle_title = QString("background-color: transparent;"
                                            "color: %1;"
                                            "font: bold 15px;")
@@ -148,6 +149,8 @@ MainWindow::MainWindow(QWidget *parent)
     //        border-color: rgb(100,100,100);
     //       spacing: 5px;
     //    }
+
+/*SIZE*/
     QSize screenSize = QGuiApplication::primaryScreen()->size();
     setBaseSize(screenSize);
     setFixedSize(screenSize);
@@ -155,6 +158,8 @@ MainWindow::MainWindow(QWidget *parent)
     d_tab_central = new QTabWidget();
     d_tab_central->tabBar()->setExpanding(true);    
     setCentralWidget(d_tab_central);
+/*set HOME tab*/
+    //d_frame_home = new QFrame;
     /*set CARD tab*/
     d_frame_card = new QFrame;
     /*CARD layout*/
@@ -174,46 +179,155 @@ MainWindow::MainWindow(QWidget *parent)
     QVBoxLayout *layout_data = new QVBoxLayout;
     QList<QLabel*> list_labels_caption;
     QList<QLineEdit*> list_lineedits_enterText;
-    /*first name*/
-    d_le_firstName = new QLineEdit;    
-    list_lineedits_enterText << d_le_firstName;
-    d_le_firstName->setPlaceholderText(tr("Введите имя"));
+//    /*first name*/
+//    d_le_firstName = new QLineEdit;
+//    list_lineedits_enterText << d_le_firstName;
+//    d_le_firstName->setPlaceholderText(tr("Введите имя"));
+//    layout_data->addSpacing(15);
+//    layout_data->addWidget(d_le_firstName);
+//    QFrame *line1 = new QFrame;
+//    layout_data->addWidget(line1);
+//    qDebug() << "line1->lineWidth()"<<line1->lineWidth();
+//    qDebug() << "line1->width()"<<line1->width();
+//    decorateLine(line1, str_lineStyle);
+//    QLabel *l_firstName = new QLabel(tr("Имя"));
+//    list_labels_caption << l_firstName;
+//    //layout_data->addWidget(l_firstName);
+//    layout_data->addSpacing(15);
+//    layout_data->addStretch();
+//    /*last name*/
+//    d_le_lastName = new QLineEdit;
+//    d_le_lastName->setPlaceholderText(tr("Введите фамилию"));
+//    list_lineedits_enterText << d_le_lastName;
+//    layout_data->addWidget(d_le_lastName);
+//    QFrame *line2 = new QFrame;
+//    decorateLine(line2, str_lineStyle);
+//    layout_data->addWidget(line2);
+//    QLabel *l_lastName = new QLabel(tr("Фамилия"));
+//    list_labels_caption << l_lastName;
+//    //layout_data->addWidget(l_lastName);
+//    layout_data->addSpacing(15);
+//    layout_data->addStretch();
+//    /*middle name*/
+//    d_le_middleName = new QLineEdit;
+//    d_le_middleName->setPlaceholderText(tr("Введите отчество"));
+//    list_lineedits_enterText << d_le_middleName;
+//    layout_data->addWidget(d_le_middleName);
+//    QFrame *line3 = new QFrame;
+//    decorateLine(line3, str_lineStyle);
+//    layout_data->addWidget(line3);
+//    QLabel *l_fatherName = new QLabel(tr("Отчество"));
+//    list_labels_caption << l_fatherName;
+//    //layout_data->addWidget(l_fatherName);
+//    layout_data->addSpacing(15);
+//    layout_data->addStretch();
+    /*ID*/
+    QHBoxLayout* layout_id = new QHBoxLayout;
+    QLabel *l_id = new QLabel(tr("ID"));
+    //list_labels_caption << l_id;
+    l_id->setStyleSheet(//"QGroupBox {"
+                        //"background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #E0E0E0, stop: 1 #FFFFFF);"
+                //"border: 2px solid gray;"
+                //"border-radius: 0px;"
+                                   //"border-top-left-radius: 15px;"
+                                   // "   border-top-right-radius: 15px;"
+                //"margin-top: 1ex;"/* leave space at the top for the title */
+                                   //"border-bottom-width: 3px;"
+                                    //"   border-bottom-color: #528c83;"
+                                      //" border-bottom-style: solid;" /* just a single line */
+                //"};"
+
+                //"    subcontrol-origin: margin;"
+                //"    subcontrol-position: left;"//top center;" /* position at the top center */
+                "    padding: 10px 10px;"
+                "    background-color: #528c83;"
+                                   "color: white;"
+                "border-top-left-radius: 10px;"
+                 "   border-bottom-left-radius: 10px;"
+                "border-top-right-radius: 0px;"
+                 "   border-bottom-right-radius: 0px;"
+                 //"margin-left: 1ex;"                  //"margin-top: 1ex;" /* leave space at the top for the title */
+                //"    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #FF0ECE, stop: 1 #FFFFFF); "
+                 );
+    layout_id->addWidget(l_id);
+    d_le_id = new QLineEdit;
+    d_le_id->setPlaceholderText(tr("Введите ID"));
+    //list_lineedits_enterText << d_le_id;
+    d_le_id->setStyleSheet("    padding: 10px 10px;"
+                "border-bottom-width: 3px;"
+                           "   border-bottom-color: #528c83;"
+                           " border-bottom-style: solid;" /* just a single line */
+                           "border-radius: 0px;");
+    d_le_id->setInputMethodHints( Qt::ImhDigitsOnly);
+    qDebug() << "ID connect" << connect(d_le_id, SIGNAL(cursorPositionChanged(int, int)), SLOT(slot_idcursorPositionChanged(int, int)));
+    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(editingFinished()),                             SLOT(slot_idEditingFinished()));
+    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(inputRejected()),                               SLOT(slot_idinputRejected()));
+    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(returnPressed()),                               SLOT(slot_idreturnPressed()));
+    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(selectionChanged()),                            SLOT(slot_idselectionChanged()));
+    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(textChanged(const QString &)),                  SLOT(slot_idtextChanged(const QString &)));
+    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(textEdited(const QString &)),                   SLOT(slot_idtextEdited(const QString &)));
+    layout_id->addWidget(d_le_id);
+    //layout_data->addWidget(d_le_id);
+    layout_data->addLayout(layout_id);
+    QFrame *line5 = new QFrame;
+    decorateLine(line5, str_lineStyle);
+    //layout_data->addWidget(line5);
+    //QLabel *l_id = new QLabel(tr("ID"));
+    //list_labels_caption << l_id;
+    //layout_data->addWidget(l_id);
+    //setStyle2list(list_lineedits_enterText, palette_lineedit, str_lineeditStyle, align_lineedit, font_lineedit);
     layout_data->addSpacing(15);
-    layout_data->addWidget(d_le_firstName);
-    QFrame *line1 = new QFrame;    
+    layout_data->addStretch();
+
+    /*SEX*/
+    QGroupBox *gbx_sex = new QGroupBox(tr("Пол"));
+    //QGroupBox {
+    gbx_sex->setStyleSheet(//"QGroupBox {"
+                //"background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #E0E0E0, stop: 1 #FFFFFF);"
+        //"border: 2px solid gray;"
+        //"border-radius: 0px;"
+                           //"border-top-left-radius: 15px;"
+                           // "   border-top-right-radius: 15px;"
+        //"margin-top: 1ex;"/* leave space at the top for the title */
+                           //"border-bottom-width: 3px;"
+                            //"   border-bottom-color: #528c83;"
+                              //" border-bottom-style: solid;" /* just a single line */
+        //"};"
+        "QGroupBox::title {"
+        "    subcontrol-origin: margin;"
+        "    subcontrol-position: left;"//top center;" /* position at the top center */
+        "    padding: 10px 10px;"
+        "    background-color: #528c83;"
+                           "color: white;"
+        "border-top-left-radius: 10px;"
+         "   border-bottom-left-radius: 10px;"
+         //"margin-left: 1ex;"                  //"margin-top: 1ex;" /* leave space at the top for the title */
+        //"    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #FF0ECE, stop: 1 #FFFFFF); "
+        "}; "
+                              );
+    //};
+
+//    QGroupBox::title {
+//        subcontrol-origin: margin;
+//        subcontrol-position: top center; /* position at the top center */
+//        padding: 0 3px;
+//        background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+//                                          stop: 0 #FF0ECE, stop: 1 #FFFFFF);
+//    }
+    d_female = new QRadioButton(tr("Женский"));
+    d_male = new QRadioButton(tr("Мужской"));
+    d_female->setChecked(true);
+    QHBoxLayout* layout_sex = new QHBoxLayout;
+    layout_sex->addSpacing(50);
+    layout_sex->addWidget(d_female);
+    layout_sex->addWidget(d_male);
+    gbx_sex->setLayout(layout_sex);
+    layout_data->addWidget(gbx_sex);
+    QFrame *line1 = new QFrame;
     layout_data->addWidget(line1);
     qDebug() << "line1->lineWidth()"<<line1->lineWidth();
     qDebug() << "line1->width()"<<line1->width();
     decorateLine(line1, str_lineStyle);
-    QLabel *l_firstName = new QLabel(tr("Имя"));
-    list_labels_caption << l_firstName;
-    //layout_data->addWidget(l_firstName);
-    layout_data->addSpacing(15);
-    layout_data->addStretch();
-    /*last name*/
-    d_le_lastName = new QLineEdit;
-    d_le_lastName->setPlaceholderText(tr("Введите фамилию"));
-    list_lineedits_enterText << d_le_lastName;    
-    layout_data->addWidget(d_le_lastName);
-    QFrame *line2 = new QFrame;
-    decorateLine(line2, str_lineStyle);
-    layout_data->addWidget(line2);
-    QLabel *l_lastName = new QLabel(tr("Фамилия"));
-    list_labels_caption << l_lastName;    
-    //layout_data->addWidget(l_lastName);
-    layout_data->addSpacing(15);
-    layout_data->addStretch();
-    /*middle name*/
-    d_le_middleName = new QLineEdit;
-    d_le_middleName->setPlaceholderText(tr("Введите отчество"));
-    list_lineedits_enterText << d_le_middleName;
-    layout_data->addWidget(d_le_middleName);
-    QFrame *line3 = new QFrame;
-    decorateLine(line3, str_lineStyle);
-    layout_data->addWidget(line3);
-    QLabel *l_fatherName = new QLabel(tr("Отчество"));
-    list_labels_caption << l_fatherName;    
-    //layout_data->addWidget(l_fatherName);
     layout_data->addSpacing(15);
     layout_data->addStretch();
     /*birth date*/
@@ -231,28 +345,7 @@ MainWindow::MainWindow(QWidget *parent)
     //layout_data->addWidget(l_birthDate);
     layout_data->addSpacing(15);
     layout_data->addStretch();
-    /*ID*/
-    d_le_id = new QLineEdit;
-    d_le_id->setPlaceholderText(tr("Введите ID"));
-    list_lineedits_enterText << d_le_id;
-    d_le_id->setInputMethodHints( Qt::ImhDigitsOnly);
-    qDebug() << "ID connect" << connect(d_le_id, SIGNAL(cursorPositionChanged(int, int)), SLOT(slot_idcursorPositionChanged(int, int)));
-    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(editingFinished()),                             SLOT(slot_idEditingFinished()));
-    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(inputRejected()),                               SLOT(slot_idinputRejected()));
-    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(returnPressed()),                               SLOT(slot_idreturnPressed()));
-    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(selectionChanged()),                            SLOT(slot_idselectionChanged()));
-    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(textChanged(const QString &)),                  SLOT(slot_idtextChanged(const QString &)));
-    //qDebug() << "ID connect" << connect(d_le_id, SIGNAL(textEdited(const QString &)),                   SLOT(slot_idtextEdited(const QString &)));
-    layout_data->addWidget(d_le_id);
-    QFrame *line5 = new QFrame;
-    decorateLine(line5, str_lineStyle);
-    layout_data->addWidget(line5);
-    QLabel *l_id = new QLabel(tr("ID"));
-    list_labels_caption << l_id;    
-    //layout_data->addWidget(l_id);
-    //setStyle2list(list_lineedits_enterText, palette_lineedit, str_lineeditStyle, align_lineedit, font_lineedit);
-    layout_data->addSpacing(15);
-    layout_data->addStretch();
+
     /*diseases*/
     d_pte_disease = new LineEdit_Keyboard();
     d_pte_disease->setPlaceholderText(tr("Введите сопутствующие заболевания"));
@@ -352,9 +445,18 @@ MainWindow::MainWindow(QWidget *parent)
     layout_fixRight->addWidget(d_l_pic_FixRight);
     layout_dataResults->addLayout(layout_fixRight);    
     layout_dataResults->addLayout(layout_digitsDataResults);
-    layout_dataResults->addLayout(layout_fixLeft);    
+    layout_dataResults->addLayout(layout_fixLeft);
+
     frame_dataResults->setLayout(layout_dataResults);
+
     layout_dataResults_total->addWidget(frame_dataResults);
+    layout_dataResults_total->addSpacing(10);
+    d_l_error = new QLabel("error");
+    layout_dataResults_total->addWidget(d_l_error);
+    layout_dataResults_total->addSpacing(30);
+    d_l_extrametrics = new QLabel("extrametrics");
+    layout_dataResults_total->addWidget(d_l_extrametrics);
+    layout_dataResults_total->addSpacing(30);
     layout_dataResults_total->addStretch();
     frame_dataResults_total->setLayout(layout_dataResults_total);
     layout_data_and_results->addWidget(frame_dataResults_total);    
@@ -383,10 +485,13 @@ MainWindow::MainWindow(QWidget *parent)
     d_l_eyes->setStyleSheet(str_bgStyle_eye);
     d_l_eyes->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     layout_results->addWidget(d_l_eyes);
+
     //layout_results->addLayout(layout_dataResults);
     //layout_results->addStretch();
     layout_card->addLayout(layout_results);
     d_frame_card->setLayout(layout_card);
+    //d_frame_home = QSharedPointer<QFrame>::create(frame_data_total);
+    d_tab_central->insertTab(static_cast<int>(tabWidget::HOME), frame_data_total, tr("Дом"));
     d_tab_central->insertTab(static_cast<int>(tabWidget::CARD), d_frame_card, tr("Карточка"));
     qDebug() << "d_l_pic_FixLeft->size()"<<d_l_pic_FixLeft->size();
     //d_l_picLeftDataResults->setAlignment()
@@ -569,10 +674,11 @@ QFontDatabase base;
     //d_but_close.setGraphicsEffect(&eff);
 
     //QWidget* dummy = new QWidget();
-    QLabel* title = new QLabel("Let you see the new horizons");
+    QLabel* title = new QLabel(STR_TITLE);
     title->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
     title->setFont(base.families().at(2));
-    QString str_labelStyle_wintitle = QString("border-style: none ; color: %1; ").arg(str_dark_color_label);
+    //QString str_labelStyle_wintitle = QString("border-style: none ; color: %1; ").arg(str_dark_color_label);
+    QString str_labelStyle_wintitle = QString("font: bold 14px; color: red; ").arg(str_dark_color_label);//font: bold 14px;
     title->setStyleSheet(str_labelStyle_wintitle);
     d_topToolbar->addWidget(title);
 
@@ -696,6 +802,12 @@ void MainWindow::slot_start()
     if(d_measReviewButs != nullptr)
         d_measReviewButs->hide(true);
 #ifdef TEST_snapshot
+    if(d_measReviewButs != nullptr)
+    {
+    d_measReviewButs->resize(d_l_snapshot.width(),d_l_snapshot.height());
+    d_measReviewButs->hide(false);
+    //d_measReviewButs->setImageCount(d_vec_snapshots.size());
+    }
     d_snapshotParams.frame_height = 1216;
     d_snapshotParams.frame_width = 1936;
     d_snapshotParams.size = d_snapshotParams.frame_height * d_snapshotParams.frame_width;
@@ -754,6 +866,11 @@ void MainWindow::slot_start()
     measResult.right.cylinder = 5.3;
     measResult.right.angle = 6.3;
     measResult.right.diameter = 7.3;
+    measResult.error_word = 64;
+    measResult.left_sharpness = 1;
+    measResult.right_sharpness = 2;
+    measResult.left_flick_intensity = 3;
+    measResult.right_flick_intensity = 4;
     QString measResLeft_str = QString("%1   %2   %3º   %4")
             .arg(measResult.left.sphere)   //2
             .arg(measResult.left.cylinder) //3
@@ -768,6 +885,21 @@ void MainWindow::slot_start()
     d_l_refractionLeft->setText(measResLeft_str);
     d_l_refractionRight->setText(measResRightt_str);
     d_l_interocularRes->setText("10");
+    std::wstring error_text;
+    std::wstring error_description;
+    qDebug()<<"eyeMeasResultErrorText";
+    if(eyeMeasResultErrorText(measResult.error_word,EYEGUILANG_RUS,error_text,error_description))
+    {
+         qDebug() << QString::fromStdWString(error_text);
+        d_l_error->setText(QString::fromStdWString(error_text));
+    }
+    QString extrametrics_str = QString("%1,   %2,   %3,   %4")
+            .arg(measResult.left_sharpness)
+            .arg(measResult.right_sharpness)
+            .arg(measResult.left_flick_intensity)
+            .arg(measResult.right_flick_intensity);
+    d_l_extrametrics->setText(extrametrics_str);
+    qDebug()<<"eyeMeasResultErrorText_end";
     measFinished("TEST");
 #endif
 }
@@ -793,7 +925,10 @@ void MainWindow::slot_measure()
     d_vec_snapshots.clear();
     //d_vec_snapshots.reserve(CONST_MEASURE_SHOTS_COUNT);
     if(d_measReviewButs != nullptr)
+    {
         d_measReviewButs->hide(true);
+        d_measReviewButs->resize(d_l_snapshot.width(),d_l_snapshot.height());
+    }
     d_isMeasurStarted = false;
     /*Clear results*/
     d_l_pic_FixLeft->setPicture(d_pic_fixGrid);
@@ -804,6 +939,8 @@ void MainWindow::slot_measure()
     d_l_leftEye->clear();
     d_l_rightEye->clear();
     d_l_eyes->clear();
+    d_l_error->clear();
+    d_l_extrametrics->clear();
 }
 
 void MainWindow::slot_showMeasImg(uint num)
@@ -925,7 +1062,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
 
         measFinished(tr("СНЯТО"));
         if(d_measReviewButs != nullptr)
-        {
+        {            
             d_measReviewButs->hide(false);
             d_measReviewButs->setImageCount(d_vec_snapshots.size());
         }
@@ -934,8 +1071,8 @@ void MainWindow::slot_readUds(UdsUniPack pack)
     }
         break;
     case UDSUNI_TITLE_MEAS_RESULT_FAILED:
-        qDebug() << "UDSUNI_TITLE_MEAS_RESULT_FAILED";
-        measFinished(tr("Ошибка измерения"));
+        qDebug() << "UDSUNI_TITLE_MEAS_RESULT_FAILED";        
+        measFinished(tr("Ошибка измерения"));//+описание
         break;
     case UDSUNI_TITLE_MEAS_FAILED:
         qDebug() << "UDSUNI_TITLE_MEAS_FAILED";
@@ -961,8 +1098,18 @@ void MainWindow::slot_readUds(UdsUniPack pack)
         d_l_refractionLeft->setText(measResLeft_str);
         d_l_refractionRight->setText(measResRight_str);
 
-        d_l_interocularRes->setText(QString::number(measResult.interocular));
+        d_l_interocularRes->setText(QString::number(measResult.interocular));        
 
+        std::wstring error_text;
+        std::wstring error_description;
+        if(eyeMeasResultErrorText(measResult.error_word,EYEGUILANG_RUS,error_text,error_description))
+            d_l_error->setText(QString::fromStdWString(error_text));
+        QString extrametrics_str = QString("%1,   %2,   %3,   %4")
+                .arg(measResult.left_sharpness)
+                .arg(measResult.right_sharpness)
+                .arg(measResult.left_flick_intensity)
+                .arg(measResult.right_flick_intensity);
+        d_l_extrametrics->setText(extrametrics_str);
         if(d_measResultShmemReader != nullptr)
         {
             /*SKEW*/
@@ -1020,6 +1167,7 @@ void MainWindow::slot_readUds(UdsUniPack pack)
             }
 
         }
+
     }
         break;
     default:
