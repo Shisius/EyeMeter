@@ -105,15 +105,16 @@ class MeasResult:
 		self.frame4circles = 0
 		self.strabismus = strab
 		self.dominant_eye = DOMINANT_EYE_NONE
-		if dom[0] == 'r'
+		if dom[0] == 'r':
 			self.dominant_eye = DOMINANT_EYE_RIGHT
 		elif dom[0] == 'l':
 			self.dominant_eye = DOMINANT_EYE_LEFT
 		elif dom[0] == 'b':
 			self.dominant_eye = DOMINANT_EYE_BOTH
 		self.error_word = 0
-		if err > 0:
-			self.error_word = 1 << (err-1)
+		if type(err) is int:
+			if err >= 0:
+				self.error_word = 1 << err
 		# Dev tresh
 		self.lsharp = lsharp
 		self.rsharp = rsharp
