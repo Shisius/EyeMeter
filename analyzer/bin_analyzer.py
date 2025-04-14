@@ -334,7 +334,7 @@ class EyeAnalyzer:
 
     def process_array(self, img_array):
         self.flush()
-        result_dict = {'error_msg': 'none'}
+        result_dict = {'error_msg': -1}
         assert len(img_array) == self.num_imgs, f'NDArray should have {self.num_imgs} elements'
         img_array = img_array[1:, :, :] if len(img_array) == 41 else img_array
         tmp = []
