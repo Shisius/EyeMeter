@@ -105,7 +105,7 @@ class MeasResult:
 		self.frame4circles = 0
 		self.strabismus = strab
 		self.dominant_eye = DOMINANT_EYE_NONE
-		if dom[0] == 'r'
+		if dom[0] == 'r':
 			self.dominant_eye = DOMINANT_EYE_RIGHT
 		elif dom[0] == 'l':
 			self.dominant_eye = DOMINANT_EYE_LEFT
