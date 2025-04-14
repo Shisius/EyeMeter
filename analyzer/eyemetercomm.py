@@ -52,6 +52,11 @@ UDSUNI_TYPE_MEASURE_RESULT = 0x22
 
 UDSUNI_TYPE_UNKNOWN = 0xFF
 
+DOMINANT_EYE_NONE = 0
+DOMINANT_EYE_LEFT = 1
+DOMINANT_EYE_RIGHT = 2
+DOMINANT_EYE_BOTH = 3
+
 class MeasSettings:
 
 	def __init__(self, w = 1936, h = 1216, nbit = 8, nled = 8, repeat = 5):
@@ -93,11 +98,27 @@ class EyeParams:
 
 class MeasResult:
 
-	def __init__(self, ls, lc, la, ld, rs, rc, ra, rd, io):
+	def __init__(self, ls, lc, la, ld, rs, rc, ra, rd, io, strab, dom, err, lsharp, rsharp, lflick, rflick):
 		self.left = EyeParams(ls, lc, la, ld)
 		self.right = EyeParams(rs, rc, ra, rd)
 		self.interocular = io
 		self.frame4circles = 0
+		self.strabismus = strab
+		self.dominant_eye = DOMINANT_EYE_NONE
+		if dom[0] == 'r'
+			self.dominant_eye = DOMINANT_EYE_RIGHT
+		elif dom[0] == 'l':
+			self.dominant_eye = DOMINANT_EYE_LEFT
+		elif dom[0] == 'b':
+			self.dominant_eye = DOMINANT_EYE_BOTH
+		self.error_word = 0
+		if err > 0:
+			self.error_word = 1 << (err-1)
+		# Dev tresh
+		self.lsharp = lsharp
+		self.rsharp = rsharp
+		self.lflick = lflick
+		self.rflick = rflick
 
 	def add_circle(self, lh, lv, lr, rh, rv, rr, fc):
 		self.left.position.horiz = lh
@@ -109,5 +130,6 @@ class MeasResult:
 		self.frame4circles = fc
 
 	def pack(self):
-		return self.left.pack() + self.right.pack() + struct.pack('fI', self.interocular, self.frame4circles)
+		return self.left.pack() + self.right.pack() + struct.pack('fIfII', self.interocular, self.frame4circles, 
+			self.strabismus, self.dominant_eye, self.error_word) + struct.pack('4f', self.lsharp, self.rsharp, self.lflick, self.rflick)
 	

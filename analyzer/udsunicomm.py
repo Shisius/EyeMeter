@@ -94,14 +94,13 @@ class UdsUniCommAI:
             try:
                 out_dict = self.analyzer.process_array(data)
                 # print(out_dict)
-                if out_dict.get('error_msg', 'none') != 'none':
-                    raise NotImplementedError  # TODO realize interruption and sending to GUI an error msg
-                # self.meas_result = MeasResult(out_dict['sph_left'], out_dict['cyl_left'], out_dict['angle_left'], out_dict['left_eye_d'], 
-                #                             out_dict['sph_right'], out_dict['cyl_right'], out_dict['angle_right'], out_dict['right_eye_d'], 
-                #                             out_dict['interocular_dist'])
-                self.meas_result = MeasResult(out_dict['sph_left'], out_dict['cyl_left'], out_dict['left_sharpness'], out_dict['left_eye_d'],
-                                            out_dict['sph_right'], out_dict['cyl_right'], out_dict['right_sharpness'], out_dict['right_eye_d'],
-                                            out_dict['interocular_dist'])
+                # if out_dict.get('error_msg', 'none') != 'none':
+                #     raise NotImplementedError  # TODO realize interruption and sending to GUI an error msg
+                self.meas_result = MeasResult(out_dict['sph_left'], out_dict['cyl_left'], out_dict['angle_left'], out_dict['left_eye_d'], 
+                                            out_dict['sph_right'], out_dict['cyl_right'], out_dict['angle_right'], out_dict['right_eye_d'], 
+                                            out_dict['interocular_dist'], out_dict['strabismus'], out_dict['lead_eye'], out_dict['error_msg'],
+                                            out_dict['left_sharpness'], out_dict['right_sharpness'], out_dict['left_flick_intensity'], 
+                                            out_dict['right_flick_intensity'])
                 self.meas_result.add_circle(out_dict['eye_positions']['left_x'], out_dict['eye_positions']['left_y'], out_dict['eye_positions']['left_r'], 
                     out_dict['eye_positions']['right_x'], out_dict['eye_positions']['right_y'], out_dict['eye_positions']['right_r'], out_dict['eye_positions']['n_frame'])
                 self.share_skew(out_dict['left_skew'], out_dict['right_skew'])
