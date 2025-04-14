@@ -28,6 +28,9 @@ class MainWindow : public QMainWindow
     const QString STR_LIGHT_COLOR2 = "#dddde2";
 
     const QString STR_TITLE = "ВЕДУТСЯ РЕМОНТНЫЕ РАБОТЫ";//"Let you see new horizons";
+    const QString STR_error = "error";
+    const QString STR_extrametrics = "lsharp, rsharp, lflisk, rflick";
+    const QString STR_strabismus = "strabismus";
 
     QTabWidget* d_tab_central;
     enum class tabWidget
@@ -71,6 +74,7 @@ class MainWindow : public QMainWindow
     QPicture d_pic_fixGrid;
     QLabel *d_l_error;
     QLabel *d_l_extrametrics;
+    QLabel *d_l_strabismus;
     QPushButton *d_pb_shot;
     void setStyle2list(const QList<QLabel*> & list, const QString &style = "", Qt::Alignment = Qt::AlignLeft, const QFont &f = QFont());
     void setStyle2list(const QList<QLineEdit*> & list, const QPalette & p, const QString &style = "", Qt::Alignment = Qt::AlignLeft, const QFont &f = QFont());
