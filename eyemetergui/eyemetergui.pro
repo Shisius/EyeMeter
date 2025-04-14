@@ -26,7 +26,8 @@ SOURCES += \
     lineedit_keyboard.cpp \
     main.cpp \
     mainwindow.cpp \
-    udsunisocket.cpp
+    udsunisocket.cpp \
+    ../types/emre_textlib.cpp
 
 HEADERS += \
     ../ipc/eye_shmem.h \
@@ -35,7 +36,8 @@ HEADERS += \
     imagebuttons.h \
     lineedit_keyboard.h \
     mainwindow.h \
-    udsunisocket.h
+    udsunisocket.h \
+    ../types/guitextlib.h
 INCLUDEPATH += ../ipc \
                ../types
 

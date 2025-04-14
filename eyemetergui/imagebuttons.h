@@ -12,12 +12,14 @@ class ImageButtons: public QWidget
     QPushButton *d_but_next;
     uint d_imageNum;
     uint d_imageCount;
+    bool d_isResized=false;
 public:
     explicit ImageButtons(QWidget *parent);
     virtual ~ImageButtons(){}
 
     void hide(bool);
     void resize(int w, int h);
+    //void setButtons(uint imageCount);
     void setImageCount(uint imageCount);
     void setHotKeys(QString prevPB,
                     QString rightPB);
@@ -28,6 +30,8 @@ signals:
 private slots:
     void slot_imagePrev();
     void slot_imageNext();
+//private:
+//    void setImageCount(uint imageCount);
 };
 
 #endif // IMAGEBUTTONS_H

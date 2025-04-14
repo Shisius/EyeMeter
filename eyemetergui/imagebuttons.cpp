@@ -11,9 +11,10 @@ ImageButtons::ImageButtons(QWidget *parent) :
 //                              "border-width: 2px;"
 //                             " border-radius: 10px;"
 //                              "border-color: beige;");
-    d_but_prev->setIcon(QIcon(":/img/prev.png"));
+    //d_but_prev->setIcon(QIcon(":/img/prev.png"));
     d_but_prev->setStyleSheet(//"color: grey;"
-                              //"border-image: url(:/img/close.png) 50 50 50 50;"
+                              "border-image: url(:/img/prev.png) 50 50 50 50;"
+                              "border-radius: 10px;"
                               "border-top: transparent;"
                               "border-bottom: transparent;"
                               "border-right: transparent;"
@@ -24,19 +25,22 @@ ImageButtons::ImageButtons(QWidget *parent) :
     connect(d_but_prev, SIGNAL(clicked()), SLOT(slot_imagePrev()));
 
     d_but_next = new QPushButton(parent);
-    d_but_next->setIcon(QIcon(":/img/next.png"));
-    d_but_next->setStyleSheet(//"color: grey;"
-                              //"border-image: url(:/img/close.png) 50 50 50 50;"
+    //d_but_next->setIcon(QIcon(":/img/next.png"));
+    d_but_next->setStyleSheet(//"background-color: #414447;"
+                              "border-image: url(:/img/next.png) 50 50 50 50;"
+                              "border-radius: 10px;"
                               "border-top: transparent;"
                               "border-bottom: transparent;"
                               "border-right: transparent;"
                               "border-left: transparent;"
+                              //"border-margin: 20 20 20 20;"
                               );
     //d_but_next->setStyleSheet("border: none");
+    //d_but_next->setBaseSize(150,150);
     d_but_next->setIconSize(QSize(shortSide, longSide));
     connect(d_but_next, SIGNAL(clicked()), SLOT(slot_imageNext()));
 
-    resize(parent->width(), parent->height());
+    //resize(parent->width(), parent->height());
 //    d_but_prev->setStyleSheet(" color: white;"
 //                  "background-color: #27a9e3;"
 //                  "border-width: 0px;"
@@ -65,6 +69,7 @@ void ImageButtons::setImageCount(uint imageCount)
     qDebug()<<Q_FUNC_INFO << imageCount;
     d_imageNum = imageCount;
     d_imageCount = imageCount;
+//#ifndef TEST_snapshot
     if(imageCount < 2)
     {
         qDebug()<<Q_FUNC_INFO << "imageCount < 2";
@@ -73,6 +78,7 @@ void ImageButtons::setImageCount(uint imageCount)
         d_but_prev->setVisible(false);
         d_but_next->setVisible(false);
     } else
+//        #endif
     {
 //        if(imageCount == 2)
 //        {
@@ -109,12 +115,16 @@ void ImageButtons::setHotKeys(QString prevPB,
 void ImageButtons::resize(int width, int height)
 {
     qDebug()<<Q_FUNC_INFO;
+    if(d_isResized) return;
+    qDebug()<< "width" <<width;
+    qDebug()<< "height" <<height;
 
     const uint x = width/2-5 - longSide/2;
     const uint y = height/2-5 - longSide/2;
 
-    d_but_prev->setGeometry(0+shortSide, y, shortSide, longSide);
-    d_but_next->setGeometry(width-2*shortSide, y, shortSide, longSide);
+    d_but_prev->setGeometry(0+shortSide/2, y, shortSide, longSide);
+    d_but_next->setGeometry(width-1.5*shortSide, y, shortSide, longSide);
+    d_isResized = true;
 }
 
 void ImageButtons::slot_imagePrev()
