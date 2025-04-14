@@ -27,7 +27,7 @@ class UdsUniCommAI:
         self.shmeasres = shared_memory.SharedMemory(name=MEAS_RESULT_SHBUF_NAME)
         self.analyzer = bin_analyzer.EyeAnalyzer()
         self.meas_settings = MeasSettings()
-        self.meas_result = MeasResult(0,0,0,0,0,0,0,0,0)
+        self.meas_result = MeasResult(0,0,0,0,0,0,0,0,0,0,'b',0,0,0,0,0)
 
     def __del__(self):
         self.is_alive = False
