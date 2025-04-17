@@ -1,6 +1,9 @@
 #ifndef _AI_TYPES_H_
 #define _AI_TYPES_H_
 
+#define EYE_SHARPNESS_MAX 100.0
+#define EYE_SHARPNESS_MIN 0.0
+
 typedef struct _eye_frame_position
 {
 	float horiz;
