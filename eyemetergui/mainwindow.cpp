@@ -365,8 +365,8 @@ MainWindow::MainWindow(QWidget *parent)
     layout_data_total->addWidget(frame_data);
     //layout_data_total->addStretch();
     frame_data_total->setLayout(layout_data_total);
-    layout_data_and_results->addWidget(frame_data_total);
-    layout_data_and_results->addStretch();
+    //layout_data_and_results->addWidget(frame_data_total);
+    //layout_data_and_results->addStretch();
     /*PushButton START*/
     d_pb_start = new QPushButton (tr("Начать сеанс"));    
     //d_pb_start->setStyleSheet(str_butStyle);
@@ -451,11 +451,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     layout_dataResults_total->addWidget(frame_dataResults);
     layout_dataResults_total->addSpacing(10);
-    d_l_error = new QLabel("error");
+    d_l_error = new QLabel(STR_error);
     layout_dataResults_total->addWidget(d_l_error);
     layout_dataResults_total->addSpacing(30);
-    d_l_extrametrics = new QLabel("extrametrics");
+    d_l_extrametrics = new QLabel(STR_extrametrics);
     layout_dataResults_total->addWidget(d_l_extrametrics);
+    layout_dataResults_total->addSpacing(30);
+    d_l_strabismus = new QLabel(STR_strabismus);
+    layout_dataResults_total->addWidget(d_l_strabismus);
     layout_dataResults_total->addSpacing(30);
     layout_dataResults_total->addStretch();
     frame_dataResults_total->setLayout(layout_dataResults_total);
@@ -484,13 +487,13 @@ MainWindow::MainWindow(QWidget *parent)
     d_l_eyes = new QLabel;
     d_l_eyes->setStyleSheet(str_bgStyle_eye);
     d_l_eyes->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    d_l_eyes->setFixedSize(eyeSide*2,eyeSide);
     layout_results->addWidget(d_l_eyes);
 
     //layout_results->addLayout(layout_dataResults);
     //layout_results->addStretch();
     layout_card->addLayout(layout_results);
-    d_frame_card->setLayout(layout_card);
-    //d_frame_home = QSharedPointer<QFrame>::create(frame_data_total);
+    d_frame_card->setLayout(layout_card);    
     d_tab_central->insertTab(static_cast<int>(tabWidget::HOME), frame_data_total, tr("Дом"));
     d_tab_central->insertTab(static_cast<int>(tabWidget::CARD), d_frame_card, tr("Карточка"));
     qDebug() << "d_l_pic_FixLeft->size()"<<d_l_pic_FixLeft->size();
@@ -871,6 +874,7 @@ void MainWindow::slot_start()
     measResult.right_sharpness = 2;
     measResult.left_flick_intensity = 3;
     measResult.right_flick_intensity = 4;
+    measResult.strabismus = 5.5;
     QString measResLeft_str = QString("%1   %2   %3º   %4")
             .arg(measResult.left.sphere)   //2
             .arg(measResult.left.cylinder) //3
@@ -891,15 +895,19 @@ void MainWindow::slot_start()
     if(eyeMeasResultErrorText(measResult.error_word,EYEGUILANG_RUS,error_text,error_description))
     {
          qDebug() << QString::fromStdWString(error_text);
-        d_l_error->setText(QString::fromStdWString(error_text));
+        d_l_error->setText(STR_error+": "+QString::fromStdWString(error_text));
     }
-    QString extrametrics_str = QString("%1,   %2,   %3,   %4")
+    QString extrametrics_str = QString("%1: %2, %3, %4, %5")
+            .arg(STR_extrametrics)
             .arg(measResult.left_sharpness)
             .arg(measResult.right_sharpness)
             .arg(measResult.left_flick_intensity)
             .arg(measResult.right_flick_intensity);
-    d_l_extrametrics->setText(extrametrics_str);
-    qDebug()<<"eyeMeasResultErrorText_end";
+    d_l_extrametrics->setText(extrametrics_str);    
+    QString strabismus_str = QString("%1: %2")
+            .arg(STR_strabismus)
+            .arg(measResult.strabismus);
+    d_l_strabismus->setText(strabismus_str);
     measFinished("TEST");
 #endif
 }
@@ -941,6 +949,7 @@ void MainWindow::slot_measure()
     d_l_eyes->clear();
     d_l_error->clear();
     d_l_extrametrics->clear();
+    d_l_strabismus->clear();
 }
 
 void MainWindow::slot_showMeasImg(uint num)
@@ -1102,14 +1111,23 @@ void MainWindow::slot_readUds(UdsUniPack pack)
 
         std::wstring error_text;
         std::wstring error_description;
+
         if(eyeMeasResultErrorText(measResult.error_word,EYEGUILANG_RUS,error_text,error_description))
-            d_l_error->setText(QString::fromStdWString(error_text));
-        QString extrametrics_str = QString("%1,   %2,   %3,   %4")
+        {
+             qDebug() << QString::fromStdWString(error_text);
+            d_l_error->setText(STR_error+": "+QString::fromStdWString(error_text));
+        }
+        QString extrametrics_str = QString("%1: %2, %3, %4, %5")
+                .arg(STR_extrametrics)
                 .arg(measResult.left_sharpness)
                 .arg(measResult.right_sharpness)
                 .arg(measResult.left_flick_intensity)
                 .arg(measResult.right_flick_intensity);
         d_l_extrametrics->setText(extrametrics_str);
+        QString strabismus_str = QString("%1: %2")
+                .arg(STR_strabismus)
+                .arg(measResult.strabismus);
+        d_l_strabismus->setText(strabismus_str);
         if(d_measResultShmemReader != nullptr)
         {
             /*SKEW*/

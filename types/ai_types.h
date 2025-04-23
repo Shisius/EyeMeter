@@ -1,6 +1,9 @@
 #ifndef _AI_TYPES_H_
 #define _AI_TYPES_H_
 
+#define EYE_SHARPNESS_MAX 100.0
+#define EYE_SHARPNESS_MIN 0.0
+
 typedef struct _eye_frame_position
 {
 	float horiz;
@@ -19,14 +22,11 @@ typedef struct _eye_circle_position
 typedef struct _AI_stream_result
 {
 	unsigned int id;
-
-	unsigned char no_face; // > 0 - Ошибка Лицо за кадром
-	unsigned char no_eyefix; // > 0 - Ошибка Отсутствие фиксации взгляда
-	unsigned char change_distance; // > 0 - Ошибка Слишком близко. < 0 - Ошибка Слишком далеко
-	unsigned char reserve; // Ничего не значит пока
-
-	EyeFramePos eye_left;
-	EyeFramePos eye_right;
+	unsigned int error_word;
+	float left_sharpness;
+	float right_sharpness;
+	EyeCirclePos eye_left;
+	EyeCirclePos eye_right;
 } AIStreamResult;
 
 typedef struct _eye_skew_coords 
