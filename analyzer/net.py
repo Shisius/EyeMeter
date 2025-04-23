@@ -50,3 +50,114 @@ class RefractionNet(nn.Module):
         x = self.fc2(x)
         x = self.fc3(x)
         return x
+
+
+class Encoder(nn.Module):
+    def __init__(self, hidden_sz=256, do_rate=0.3):
+        super().__init__()
+        self.encode = nn.Sequential(
+            DownSampler(1, 16), # 64
+            DownSampler(16, 32), # 32
+            DownSampler(32, 64), # 16
+            DownSampler(64, 128),  # 8
+            DownSampler(128, 128),  # 4
+            nn.MaxPool2d(kernel_size=4)
+        )
+
+    def forward(self, image, mask=None):
+        y = self.encode(image[:, None, :, :])
+        return y[:, :, 0, 0]
+
+
+class DownSampler(nn.Module):
+    def __init__(self, in_ch, out_ch):
+        super().__init__()
+        self.one_part = nn.Sequential(
+            nn.Conv2d(in_ch, out_ch, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(out_ch),
+            nn.ReLU(),
+        )
+        self.another_part = nn.Sequential(
+            nn.Conv2d(out_ch, out_ch, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(out_ch),
+            nn.ReLU(),
+        )
+
+    def forward(self, in_ten):
+        x = self.one_part(in_ten)
+        return self.another_part(x)
+
+
+class UpSampler(nn.Module):
+    def __init__(self, in_ch, out_ch, kernel_size, stride):
+        super().__init__()
+        self.one_part = nn.Sequential(
+            nn.ConvTranspose2d(in_ch, out_ch, kernel_size=kernel_size, stride=stride),
+            nn.BatchNorm2d(out_ch),
+            nn.ReLU(),
+        )
+        self.another_part = nn.Sequential(
+            nn.Conv2d(out_ch, out_ch, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(out_ch),
+            nn.ReLU(),
+        )
+
+    def forward(self, in_ten):
+        x = self.one_part(in_ten)
+        return self.another_part(x)
+
+
+class Decoder(nn.Module):
+    def __init__(self, hidden_sz=256, do_rate=0.3):
+        super().__init__()
+        self.decode = nn.Sequential(
+            UpSampler(128, 128, kernel_size=4, stride=1),  # 4
+            UpSampler(128, 128, kernel_size=2, stride=2),  # 8
+            UpSampler(128, 64, kernel_size=2, stride=2),  # 16
+            UpSampler(64, 32, kernel_size=2, stride=2),  # 32
+            UpSampler(32, 16, kernel_size=2, stride=2),  # 64
+            nn.ConvTranspose2d(16, 1, kernel_size=2, stride=2),  # 128
+        )
+
+    def forward(self, embd):
+        y = self.decode(embd[:, :, None, None])
+        return y
+
+
+class RefAED(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.encoder = Encoder()
+        self.decoder = Decoder()
+
+    def forward(self, image, mask=None):
+        embed = self.encoder(image, mask)
+        return self.decoder(embed)
+
+class RefClass(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.encoder = Encoder()
+        self.classifier = nn.Sequential(
+            nn.Linear(640 + 64, 64),
+            nn.BatchNorm1d(64),
+            nn.ReLU(),
+            nn.Dropout(0.4),
+            nn.Linear(64, 16),
+            nn.BatchNorm1d(16),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(16, 3),
+        )
+        self.eye_emb = nn.Embedding(2, 32)
+        self.rot_emb = nn.Embedding(2, 32)
+
+
+    def forward(self, image, rot, eye, mask=None):
+        with torch.no_grad():
+
+            embed = self.encoder(image.view(-1, 128, 128).contiguous(), mask.view(-1, 128, 128).contiguous()).detach()
+            embed = embed.view(-1, 5*128).contiguous()
+        r_emb = self.rot_emb(rot)
+        e_emb = self.eye_emb(eye)
+        return self.classifier(torch.cat([embed, r_emb, e_emb], dim=1))

@@ -6,8 +6,8 @@ import torch
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from refraction_utils import estimate_coeffs, remove_flick
-from dataset import CustomTestVectorDataset
-from net import RefractionNet
+from dataset import CustomTestVectorDataset, RefDataset
+from net import RefractionNet, RefClass
 import platform
 from matplotlib import pyplot as plt
 from collections import OrderedDict
@@ -100,7 +100,8 @@ class EyeAnalyzer:
                  ref_weights_path='.\\weights\\weights_common.pt',
                  load_model_path='.\\weights\\yolo_eye.pt',
                  rknn_model_path='.\\weights\\yolov8_seg.rknn',
-                 verbose=False, reverse=-1, conf=0.5, backend_type='rknn'):
+                 verbose=False, reverse=-1, conf=0.5, backend_type='rknn', pipeline_version='2'):
+        self.pipeline_version = pipeline_version
         self.verbose = verbose
         self.data_collector = CollectedEyeData()
         self.errors = ErrorsEyeMeter()
@@ -125,12 +126,17 @@ class EyeAnalyzer:
         do_rate = 0.2
         num_layers = 10
         self.reverse = reverse  # -1 if predict shoul be inversed
-        self.ref_net = RefractionNet(input_sz,
-                                     num_cls,
-                                     hidden_sz=hidden_sz,
-                                     do_rate=do_rate,
-                                     num_layers=num_layers)
-        self.ref_net.load_state_dict(torch.load(self.adj_os(ref_weights_path)))
+        if self.pipeline_version == '1':
+            self.ref_net = RefractionNet(input_sz,
+                                         num_cls,
+                                         hidden_sz=hidden_sz,
+                                         do_rate=do_rate,
+                                         num_layers=num_layers)
+            self.ref_net.load_state_dict(torch.load(self.adj_os(ref_weights_path)))
+        elif self.pipeline_version == '2':
+            self.ref_net = RefClass()
+            ref_weights_path = ref_weights_path.replace('weights_common', 'weight_best_AED')
+            self.ref_net.load_state_dict(torch.load(self.adj_os(ref_weights_path)))
         self.ref_net.eval()
         self.fast = True
 
@@ -251,6 +257,7 @@ class EyeAnalyzer:
 
 
     def calculate_refraction(self, part_collections, img_array):
+
         info_storage = []
         for part in part_collections:
             try:
@@ -267,15 +274,25 @@ class EyeAnalyzer:
                         plt.show()
             except Exception as e:
                 print(f'An error during Zernike getting: {e}')
-        val_dataset = CustomTestVectorDataset(info_storage)
-        dataloader = DataLoader(val_dataset, batch_size=128, shuffle=False)
-        out_lst = []
+        if self.pipeline_version == '1':
+            val_dataset = CustomTestVectorDataset(info_storage)
+            dataloader = DataLoader(val_dataset, batch_size=128, shuffle=False)
+            out_lst = []
 
-        for rotation, Zernicke_coef, eye, pupil_rad, flick_rad in tqdm(dataloader, total=len(dataloader)):
-            with torch.no_grad():
-                out_lst.append([self.ref_net(Zernicke_coef, eye, rotation,
-                                             pupil_rad, flick_rad).detach().cpu().numpy(),
-                                rotation, eye])
+            for rotation, Zernicke_coef, eye, pupil_rad, flick_rad in tqdm(dataloader, total=len(dataloader)):
+                with torch.no_grad():
+                    out_lst.append([self.ref_net(Zernicke_coef, eye, rotation,
+                                                 pupil_rad, flick_rad).detach().cpu().numpy(),
+                                    rotation, eye])
+        elif self.pipeline_version == '2':
+            val_dataset =  RefDataset(info_storage, subset='val')
+            dataloader = DataLoader(val_dataset, batch_size=128, shuffle=False, collate_fn=RefDataset.collate)
+            out_lst = []
+            for image, mask, rot, eye in tqdm(dataloader, total=len(dataloader)):
+                with torch.no_grad():
+                    out_lst.append([self.ref_net(image, rot, eye, mask).detach().cpu().numpy(),
+                                    rot, eye])
+
         return info_storage, out_lst
 
     def get_pupils(self, img, metadata):
@@ -379,10 +396,10 @@ class EyeAnalyzer:
             right = out_lst[0][0][out_lst[0][2] == 1].mean(0)
             result_dict['sph_left'] = self.reverse * round(left[0] / 0.25) * 0.25
             result_dict['cyl_left'] = self.reverse * round(left[1] / 0.25) * 0.25
-            result_dict['angle_left'] = round(left[2] / 30) * 30
+            result_dict['angle_left'] = round(left[2] / 6) * 6
             result_dict['sph_right'] = self.reverse * round(right[0] / 0.25) * 0.25
             result_dict['cyl_right'] = self.reverse * round(right[1] / 0.25) * 0.25
-            result_dict['angle_right'] = round(right[2] / 30) * 30
+            result_dict['angle_right'] = round(right[2] / 6) * 6
         except:
             pass
         result_dict.update(self.data_collector.upload())
@@ -464,7 +481,7 @@ class EyeAnalyzer:
 
 
 if __name__ == '__main__':
-    ea_inst = EyeAnalyzer(verbose=False , backend_type='torch')
+    ea_inst = EyeAnalyzer(verbose=False , backend_type='torch', pipeline_version='2')
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:
