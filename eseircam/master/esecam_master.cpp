@@ -50,10 +50,12 @@ EseCamMaster::EseCamMaster()
 
 	d_meas_settings.n_led_pos = LED_DEFAULT_POS_PER_CYCLE;
 	d_meas_settings.n_repeat = LED_DEFAULT_CYCLE_NUM;
+	d_meas_settings.n_black = 1;
+	d_meas_settings.n_frames = d_meas_settings.n_led_pos * d_meas_settings.n_repeat + d_meas_settings.n_black;
 
 	d_stream_settings.cam_format = 0;
 	d_stream_settings.cam_shutter_us = 10000;
-	d_stream_settings.frame_queue_depth = d_meas_settings.n_led_pos * d_meas_settings.n_repeat;
+	d_stream_settings.frame_queue_depth = d_meas_settings.n_frames; 
 	d_stream_settings.fps_max = 30;
 
 #ifdef ESECAM_90HZ
@@ -222,11 +224,11 @@ int EseCamMaster::start_meas()
 
 	d_meas_error.store(0);
 	d_meas_frame_number.store(0);
-	d_meas_frame_idx.store(d_meas_settings.n_led_pos * d_meas_settings.n_repeat + 1);
+	d_meas_frame_idx.store(d_meas_settings.n_frames + 1);
 	d_in_stream.store(false);
 	d_in_meas.store(true);
 
-	d_meas_settings.stream.frame_queue_depth = d_meas_settings.n_led_pos * d_meas_settings.n_repeat;
+	d_meas_settings.stream.frame_queue_depth = d_meas_settings.n_frames;
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
@@ -295,11 +297,33 @@ void EseCamMaster::meas_routine()
 
 bool EseCamMaster::meas_trigger_cycle()
 {
+	unsigned int shoot_delay_ms = 25;
 	bool meas_failed = false;
-	while (d_meas_frame_idx.load() < d_meas_settings.n_repeat*d_meas_settings.n_led_pos)
+	// Do black
+	for (unsigned char i_black = 0; i_black < d_meas_settings.n_black; i_black++) {
+		printf("EseCamMaster:: black %d\n", i_black);
+		if (!(d_in_meas.load())) break;
+		if (led_control(0) < 0) {
+			printf("EseCamMaster:: meas failed on black led\n");
+			stop_meas();
+			break;
+		}
+		if (get_frame_soft_trigger() < 0) {
+			printf("EseCamMaster:: meas failed on trigger\n");
+			stop_meas();
+			break;
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(shoot_delay_ms));
+		if (!(d_frame_ready_flag.load())) {
+			printf("EseCamMaster::meas black frame %d is not finished after delay\n", i_black);
+			stop_meas();
+			break;
+		}
+	}
+	while (d_meas_frame_idx.load() < d_meas_settings.n_frames)
 	{
-		unsigned char i_led = d_meas_frame_idx.load() % d_meas_settings.n_led_pos;
-		unsigned char i_repeat = floor(d_meas_frame_idx.load() / d_meas_settings.n_led_pos);
+		unsigned char i_led = (d_meas_frame_idx.load() - d_meas_settings.n_black) % d_meas_settings.n_led_pos;
+		unsigned char i_repeat = floor((d_meas_frame_idx.load() - d_meas_settings.n_black) / d_meas_settings.n_led_pos);
 		printf("EseCamMaster:: meas %d, %d\n", i_repeat, i_led);
 		if (!(d_in_meas.load())) break;
 		// Set led
@@ -316,27 +340,22 @@ bool EseCamMaster::meas_trigger_cycle()
 			break;
 		}
 		// Do shot
-		while (d_in_meas.load()) {
-			if (get_frame_soft_trigger() < 0) {
-				printf("EseCamMaster:: meas failed on trigger\n");
-				stop_meas();
-				break;
-			}
-			// get_frame_hard_trigger();
-			// Wait
-			// {
-			// 	unique_lock<mutex> lk(d_frame_ready_mut);
-			// 	d_frame_ready_cond.wait(lk,[this]{return (d_frame_ready_flag.load() || !(d_in_meas.load()));});
-			// }
-			std::this_thread::sleep_for(std::chrono::milliseconds(25));
-			if (d_frame_ready_flag.load()) {
-				// std::this_thread::sleep_for(std::chrono::milliseconds(15));
-				break;
-			} else {
-				printf("EseCamMaster::meas frame %d, %d repeat\n", i_repeat, i_led);
-				stop_meas();
-				break;
-			}
+		if (get_frame_soft_trigger() < 0) {
+			printf("EseCamMaster:: meas failed on trigger\n");
+			stop_meas();
+			break;
+		}
+		// get_frame_hard_trigger();
+		// Wait
+		// {
+		// 	unique_lock<mutex> lk(d_frame_ready_mut);
+		// 	d_frame_ready_cond.wait(lk,[this]{return (d_frame_ready_flag.load() || !(d_in_meas.load()));});
+		// }
+		std::this_thread::sleep_for(std::chrono::milliseconds(shoot_delay_ms));
+		if (!(d_frame_ready_flag.load())) {
+			printf("EseCamMaster::meas frame %d, %d is not finished after delay\n", i_repeat, i_led);
+			stop_meas();
+			break;
 		}
 		if (d_n_bad_meas_frames.load() > 4) {
 			printf("EseCamMaster:: %d bad frames detected\n", d_n_bad_meas_frames.load());
@@ -353,7 +372,7 @@ bool EseCamMaster::meas_trigger_cycle()
 bool EseCamMaster::meas_wait_cycle()
 {
 	bool meas_failed = false;
-	int n_wait = d_meas_settings.n_repeat*d_meas_settings.n_led_pos*2 + EYEMETER_MEAS_N_FRAME_DELAY;
+	int n_wait = d_meas_settings.n_frames*2 + EYEMETER_MEAS_N_FRAME_DELAY;
 	int i_wait = 0;
 	int wait_time_ms = 11;	
 	// Reset Frame cnt
@@ -388,7 +407,7 @@ bool EseCamMaster::meas_wait_cycle()
 	while (d_in_meas.load() && (i_wait < n_wait)) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(wait_time_ms));
 		i_wait++;
-		if (d_meas_frame_idx.load() >= d_meas_settings.n_repeat*d_meas_settings.n_led_pos) {
+		if (d_meas_frame_idx.load() >= d_meas_settings.n_frames) {
 			break;
 		}
 	}
@@ -808,7 +827,7 @@ void EseCamMaster::frame_ready_event(SharedFrame & frame, unsigned char* frame_p
 		bool alloc_perm = false;
 		if (d_in_meas.load()) {
 			if ((d_frame_number.load() >= d_meas_frame_number.load()) && 
-				(d_meas_frame_idx.load() < d_meas_settings.n_repeat*d_meas_settings.n_led_pos)) {
+				(d_meas_frame_idx.load() < d_meas_settings.n_frames)) {
 				d_meas_frame_idx++;
 				alloc_perm = true;
 			}
