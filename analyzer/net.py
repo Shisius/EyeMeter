@@ -61,7 +61,9 @@ class Encoder(nn.Module):
             DownSampler(32, 64), # 16
             DownSampler(64, 128),  # 8
             DownSampler(128, 128),  # 4
-            nn.MaxPool2d(kernel_size=4)
+            DownSampler(128, 128),  # 2
+            DownSampler(128, 128, last=True),  # 1
+            # nn.MaxPool2d(kernel_size=4)
         )
 
     def forward(self, image, mask=None):
@@ -70,7 +72,7 @@ class Encoder(nn.Module):
 
 
 class DownSampler(nn.Module):
-    def __init__(self, in_ch, out_ch):
+    def __init__(self, in_ch, out_ch, last=False):
         super().__init__()
         self.one_part = nn.Sequential(
             nn.Conv2d(in_ch, out_ch, kernel_size=3, stride=1, padding=1),
@@ -80,7 +82,7 @@ class DownSampler(nn.Module):
         self.another_part = nn.Sequential(
             nn.Conv2d(out_ch, out_ch, kernel_size=3, stride=2, padding=1),
             nn.BatchNorm2d(out_ch),
-            nn.ReLU(),
+            nn.ReLU() if not last else nn.Identity(),
         )
 
     def forward(self, in_ten):
@@ -111,7 +113,8 @@ class Decoder(nn.Module):
     def __init__(self, hidden_sz=256, do_rate=0.3):
         super().__init__()
         self.decode = nn.Sequential(
-            UpSampler(128, 128, kernel_size=4, stride=1),  # 4
+            UpSampler(128, 128, kernel_size=2, stride=2),  # 2
+            UpSampler(128, 128, kernel_size=2, stride=2),  # 4
             UpSampler(128, 128, kernel_size=2, stride=2),  # 8
             UpSampler(128, 64, kernel_size=2, stride=2),  # 16
             UpSampler(64, 32, kernel_size=2, stride=2),  # 32
@@ -139,18 +142,23 @@ class RefClass(nn.Module):
         super().__init__()
         self.encoder = Encoder()
         self.classifier = nn.Sequential(
-            nn.Linear(640 + 64, 64),
-            nn.BatchNorm1d(64),
-            nn.ReLU(),
-            nn.Dropout(0.4),
-            nn.Linear(64, 16),
-            nn.BatchNorm1d(16),
+            nn.Linear(640 + 16 * 2, 256),
+            nn.BatchNorm1d(256),
             nn.ReLU(),
             nn.Dropout(0.2),
-            nn.Linear(16, 3),
+            nn.Linear(256, 128),
+            nn.BatchNorm1d(128),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(128, 32),
+            nn.BatchNorm1d(32),
+            nn.ReLU(),
+            nn.Dropout(0.1),
+            nn.Linear(32, 3),
         )
-        self.eye_emb = nn.Embedding(2, 32)
-        self.rot_emb = nn.Embedding(2, 32)
+        self.eye_emb = nn.Embedding(5, 16)
+        self.rot_emb = nn.Embedding(5, 16)
+        self.age_emb = nn.Embedding(10, 16)
 
 
     def forward(self, image, rot, eye, mask=None):
