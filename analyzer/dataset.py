@@ -269,8 +269,13 @@ class RefDataset(AEDDataset):
 
         shapes = np.array([d.shape for d in  imgs])
         ph = np.zeros((len(imgs), shapes[:, 0].max(), shapes[:, 1].max()))
+        # from matplotlib import pyplot as plt
+
         for idx, im in enumerate(imgs):
+            # plt.subplot(1, 5, idx+1)
+            # plt.imshow(im)
             ph[idx, :im.shape[0], :im.shape[1]] = im
+        # plt.show()
         # if self.subset == 'train':
         #     ph = self.noise_add(ph)
         return 0, ph, rotation, eye_n

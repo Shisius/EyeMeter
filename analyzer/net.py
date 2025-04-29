@@ -142,7 +142,7 @@ class RefClass(nn.Module):
         super().__init__()
         self.encoder = Encoder()
         self.classifier = nn.Sequential(
-            nn.Linear(640 + 16 * 2, 256),
+            nn.Linear(640 + 32 * 2, 256),
             nn.BatchNorm1d(256),
             nn.ReLU(),
             nn.Dropout(0.2),
@@ -156,9 +156,8 @@ class RefClass(nn.Module):
             nn.Dropout(0.1),
             nn.Linear(32, 3),
         )
-        self.eye_emb = nn.Embedding(5, 16)
-        self.rot_emb = nn.Embedding(5, 16)
-        self.age_emb = nn.Embedding(10, 16)
+        self.eye_emb = nn.Embedding(5, 32)
+        self.rot_emb = nn.Embedding(5, 32)
 
 
     def forward(self, image, rot, eye, mask=None):
@@ -169,3 +168,4 @@ class RefClass(nn.Module):
         r_emb = self.rot_emb(rot)
         e_emb = self.eye_emb(eye)
         return self.classifier(torch.cat([embed, r_emb, e_emb], dim=1))
+

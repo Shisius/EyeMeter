@@ -100,7 +100,9 @@ class EyeAnalyzer:
                  ref_weights_path='.\\weights\\weights_common.pt',
                  load_model_path='.\\weights\\yolo_eye.pt',
                  rknn_model_path='.\\weights\\yolov8_seg.rknn',
-                 verbose=False, reverse=-1, conf=0.5, backend_type='rknn', pipeline_version='2'):
+                 verbose=False, reverse=1, conf=0.4, backend_type='rknn', pipeline_version='2'):
+        if pipeline_version =='1':
+            assert reverse==-1, 'Reverse was abnormal previously'
         self.pipeline_version = pipeline_version
         self.verbose = verbose
         self.data_collector = CollectedEyeData()
@@ -308,25 +310,25 @@ class EyeAnalyzer:
             with torch.inference_mode():
                 result = self.pd.model.predict([img[:, :, None].repeat(3, axis=-1)],
                                                save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
-                # if self.verbose:
-                #     fig, ax = plt.subplots()
-                #     ax.imshow(result[-1].orig_img[:, :,])
-                #     # ax.imshow(out[-1].orig_img)
-                #     if True:
-                #         for b in result[-1].boxes:
-                #             x, y, width, height = (int(b.xyxy[0, 0].item()), int(b.xyxy[0, 1].item()),
-                #                                    int(b.xyxy[0, 2].item() - b.xyxy[0, 0].item()),
-                #                                    int(b.xyxy[0, 3].item() - b.xyxy[0, 1].item()))
-                #             patch = patches.Rectangle((x, y), width, height, facecolor='none', edgecolor='red', linewidth=2)
-                #             ax.add_patch(patch)
-                #     colors = ['red', 'green', 'blue', ]
-                #     if True:
-                #         for b in result[-1].masks:
-                #
-                #             poly = patches.Polygon(list(zip(b.xy[0][:, 0], b.xy[0][:, 1])), facecolor='none',
-                #                            edgecolor=colors[2])
-                #             ax.add_patch(poly)
-                #     plt.show()
+                if self.verbose:
+                    fig, ax = plt.subplots()
+                    ax.imshow(result[-1].orig_img[:, :,])
+                    # ax.imshow(out[-1].orig_img)
+                    if True:
+                        for b in result[-1].boxes:
+                            x, y, width, height = (int(b.xyxy[0, 0].item()), int(b.xyxy[0, 1].item()),
+                                                   int(b.xyxy[0, 2].item() - b.xyxy[0, 0].item()),
+                                                   int(b.xyxy[0, 3].item() - b.xyxy[0, 1].item()))
+                            patch = patches.Rectangle((x, y), width, height, facecolor='none', edgecolor='red', linewidth=2)
+                            ax.add_patch(patch)
+                    colors = ['red', 'green', 'blue', ]
+                    if True:
+                        for b in result[-1].masks:
+
+                            poly = patches.Polygon(list(zip(b.xy[0][:, 0], b.xy[0][:, 1])), facecolor='none',
+                                           edgecolor=colors[2])
+                            ax.add_patch(poly)
+                    plt.show()
         if result[0].boxes.xyxy.size(0) == 2:
             boxes = result[0].boxes.xyxy
             masks = result[0].masks.xy
@@ -352,8 +354,9 @@ class EyeAnalyzer:
     def process_array(self, img_array):
         self.flush()
         result_dict = {'error_msg': -1}
-        assert len(img_array) == self.num_imgs, f'NDArray should have {self.num_imgs} elements'
+
         img_array = img_array[1:, :, :] if len(img_array) == 41 else img_array
+        assert len(img_array) == self.num_imgs, f'NDArray should have {self.num_imgs} elements'
         tmp = []
         if self.fast:
             div = 1
@@ -485,7 +488,7 @@ if __name__ == '__main__':
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:
-        fname = 'D:\Projects\eye_blinks\data_25\\04\\_2025_04_11_18_14_18.bin'
+        fname = 'D:\\Projects\\eye_blinks\\data_25\\04\\_2025_04_11_18_14_18.bin'
     # fname = '777_2024_06_12_20_34_55.bin'
 
     with open(fname, 'rb') as f:
