@@ -16,7 +16,7 @@ typedef struct _shared_frame
 	unsigned char pixel_bits;
 	unsigned char busy;
 	unsigned short led_state;
-	unsigned short distance_mm;
+	// unsigned short distance_mm;
 } SharedFrame;
 
 typedef struct _stream_settings
@@ -25,6 +25,7 @@ typedef struct _stream_settings
 	unsigned int frame_height;
 	unsigned int frame_size;
 	unsigned short cam_shutter_us;
+	unsigned short reserve_s1;
 	unsigned char pixel_bits;
 	unsigned char cam_format;
 	unsigned char frame_queue_depth;
@@ -36,6 +37,8 @@ typedef struct _measure_settings
 	StreamSettings stream;
 	unsigned char n_led_pos;
 	unsigned char n_repeat;
+	unsigned char n_black;
+	unsigned char n_frames;
 } MeasureSettings;
 
 #endif //_CAM_TYPES_H_
