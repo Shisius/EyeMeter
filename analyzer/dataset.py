@@ -219,8 +219,6 @@ class RefDataset(AEDDataset):
         super().__init__(datalist, transform, target_transform, subset)
         self.eye2idx = {'left': 0, 'right': 1}
         self.pix2mm = 0.09267
-        self.all_data = [d for d in self.all_data if
-                         4<max(d['processed_eyes'][0][d['eye']]['init_pupil'].shape) * 0.09267 < 8]
 
     @staticmethod
     def collate(batch):
@@ -245,10 +243,6 @@ class RefDataset(AEDDataset):
         eye = torch.tensor([sz[3] for sz in batch])
         return place_holder, mask, rot, eye
 
-    def noise_add(self, img):
-        if np.random.random() < 0.3:
-            return (torch.tensor(img) + torch.randn_like(torch.tensor(img)) * 4).numpy()
-        return img
 
     def __getitem__(self, idx):
         data = deepcopy(self.all_data[idx])
@@ -276,6 +270,5 @@ class RefDataset(AEDDataset):
             # plt.imshow(im)
             ph[idx, :im.shape[0], :im.shape[1]] = im
         # plt.show()
-        # if self.subset == 'train':
-        #     ph = self.noise_add(ph)
+
         return 0, ph, rotation, eye_n

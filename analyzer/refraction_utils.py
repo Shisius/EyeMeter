@@ -51,8 +51,8 @@ def get_zernicke_from_image(gray_img, radial_order=6, rad_cut=1.0, norm=False, o
     return cart, Phi, c1
 
 
-def remove_flick(pup_1_l, gap = 6, cut_sz = 12):
-    flick_pos = np.unravel_index(np.argmax(pup_1_l), np.array(pup_1_l).shape)
+def remove_flick(pup_1_l, flick_pos, gap = 6, cut_sz = 12):
+
     x1, y1, x2, y2 = flick_pos[1], flick_pos[0], flick_pos[1], flick_pos[0]
     x1, y1, x2, y2 = x1 - cut_sz, y1 - cut_sz, x2 + cut_sz, y2 + cut_sz
     if x1 < 0 and x2 - x1 < 2:
@@ -86,18 +86,24 @@ def remove_flick(pup_1_l, gap = 6, cut_sz = 12):
     pupil = F.interpolate(torch.tensor(pupil[None, None, :, :]).float(), size=(33, 33), mode='bilinear')[0][0].numpy()
     # pupil[(pupil.mean() * 0.85 < pupil) * (pupil > pupil.mean() * 1.15)] = pupil.mean()
     # pupil = pick_filter(pupil)
-    return pupil, flick_pos
+    return pupil
 
-def process_pupil(pup_1_l, rel2deg=60):
-    pupil, flick_pos = remove_flick(pup_1_l)
+def process_pupil(pup_1_l, rel2deg=60, plan_a=True):
+    flick_pos = np.unravel_index(np.argmax(pup_1_l), np.array(pup_1_l).shape)
+    pupil = None
+    if plan_a:
+        pupil = remove_flick(pup_1_l, flick_pos)
     flick_pos_rel = (flick_pos[1] / pup_1_l.shape[1] - 0.5) * rel2deg, \
                     (flick_pos[0] / pup_1_l.shape[0] - 0.5) * rel2deg
 
     # plt.imshow(pupil)
     # plt.show()
-    res = get_zernicke_from_image(pupil, offset=0)
+    zernike= None
+    if plan_a:
+        res = get_zernicke_from_image(pupil, offset=0)
+        zernike = res[2].astype(np.float32)
     return {'flickless_pupil': pupil,
-            'zernicke_c': res[2].astype(np.float32),
+            'zernicke_c': zernike,
             'init_pupil': np.array(pup_1_l),
             'flick_position': flick_pos,
             'flick_pos_rel': flick_pos_rel,}
@@ -140,7 +146,7 @@ def speed_estimation(start, end):
     return shift_l, shift_r
 
 
-def estimate_coeffs(a, part):
+def estimate_coeffs(a, part, plan_a=True):
     # outs = pd.model(img)
     start_coord = get_eye_box(part['start_box_left'], part['start_box_right'])
     end_coord = get_eye_box(part['end_box_left'], part['end_box_right'])
@@ -182,8 +188,8 @@ def estimate_coeffs(a, part):
         pup_1_l = img_1[int(x_min_l):int(x_max_l), int(y_min_l):int(y_max_l)]
         pup_1_r = img_1[int(x_min_r):int(x_max_r), int(y_min_r):int(y_max_r)]
 
-        left_res = process_pupil(pup_1_l)
-        right_res = process_pupil(pup_1_r)
+        left_res = process_pupil(pup_1_l, plan_a=plan_a)
+        right_res = process_pupil(pup_1_r, plan_a=plan_a)
         if left_res is None or right_res is None:
             return None
         result_lst.append({'left': left_res, 'right': right_res})
