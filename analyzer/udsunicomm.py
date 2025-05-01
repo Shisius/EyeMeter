@@ -28,6 +28,9 @@ class UdsUniCommAI:
         self.analyzer = bin_analyzer.EyeAnalyzer()
         self.meas_settings = MeasSettings()
         self.meas_result = MeasResult(0,0,0,0,0,0,0,0,0,0,'b',0,0,0,0,0)
+        self.shared_frame = SharedFrame()
+        self.stream_result = StreamResult(0,0,0,0)
+        self.stream_settings = StreamSettings()
 
     def __del__(self):
         self.is_alive = False
@@ -116,6 +119,31 @@ class UdsUniCommAI:
                 self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_GUI])
         print("\n")
 
+    def stream_processing(self):
+        try:
+            if self.stream_settings.pixel_bits == 8:
+                data = np.ndarray([1, self.stream_settings.frame_height, self.stream_settings.frame_width], 
+                                  dtype=np.uint8, 
+                                  buffer=self.shframe.buf[self.shared_frame.id*self.shared_frame.size:(self.shared_frame.id+1)*self.shared_frame.size])
+                out_dict = self.analyzer.process_image(data)
+                if 'right_eye_d' in out_dict.keys():
+                    self.stream_result = StreamResult(self.shared_frame.id, None, out_dict['left_sharpness'], out_dict['right_sharpness'])
+                    self.meas_result.add_circle(out_dict['eye_positions']['left_x'], out_dict['eye_positions']['left_y'], out_dict['eye_positions']['left_r'],
+                        out_dict['eye_positions']['right_x'], out_dict['eye_positions']['right_y'], out_dict['eye_positions']['right_r'])
+                else:
+                    self.stream_result = StreamResult(self.shared_frame.id, out_dict['error_msg'], 0, 0)
+                resmsg = self.stream_result.pack()
+                msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_FRAME_PROCESSED, UDSUNI_TYPE_STREAM_RESULT, len(resmsg))
+                msg += resmsg
+                self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_GUI])
+        except Exception as e:
+            print("AI stream error:", e)
+        msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_FRAME_FREE, UDSUNI_TYPE_INT, struct.calcsize('i'))
+        msg += struct.pack('i', self.shared_frame.id)
+        self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_CAM])
+        msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_FRAME_BUSY, 0, 0)
+        self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_CAM])
+
     def recv_process(self):
         while self.is_alive:
             try:
@@ -133,10 +161,21 @@ class UdsUniCommAI:
                     elif _title == UDSUNI_TITLE_MEAS_SHOOT_DONE:
                         self.meas_shoot_done()
                         #continue
-                    # TODO realize next
-                    # elif _title == UDSUNI_TITLE_FRAME_READY:
-                    #     use self.analyzer.process_image(data)
-                    elif _title == UDSUNI_TITLE_STREAM_START or _title == UDSUNI_TITLE_STREAM_RUNNING or _title == UDSUNI_TITLE_MEAS_START or _title == UDSUNI_TITLE_FRAME_READY:
+                    elif _title == UDSUNI_TITLE_FRAME_4AI:
+                        if _type == UDSUNI_TYPE_SHARED_FRAME and _size == struct.calcsize(SHARED_FRAME_RULE):
+                            self.shared_frame.unpack(msg[4:])
+                            self.stream_processing()
+                    elif _title == UDSUNI_TITLE_STREAM_RUNNING:
+                        print("UdsUniCommAI: Stream settings:", hex(_type), _size)
+                        if _type == UDSUNI_TYPE_STREAM_SETTINGS and _size == struct.calcsize(STREAM_SETTINGS_RULE):
+                            self.stream_settings.unpack(msg[4:])
+                            print("UdsUniCommAI: Stream settings:", self.stream_settings.frame_queue_depth, self.stream_settings.pixel_bits)
+                            msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_FRAME_BUSY, 0, 0)
+                            self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_CAM])
+                            #continue
+                        else:
+                            print("UdsUniCommAI: Wrong size or type: ", hex(_proto), hex(_title), hex(_type), _size)
+                    elif _title == UDSUNI_TITLE_STREAM_START or _title == UDSUNI_TITLE_MEAS_START or _title == UDSUNI_TITLE_FRAME_READY:
                         pass
                     else:
                         print("UdsUniCommAI: Wrong title: ", hex(_proto), hex(_title), hex(_type), _size)

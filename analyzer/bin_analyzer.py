@@ -22,15 +22,15 @@ class ErrorsEyeMeter:
             (0, {'short': 'Фоновая ИК засветка', 'desc': 'Затемните помещение'}),  # graphical
             (1, {'short': 'Зрачки не обнаружены', 'desc': 'Направьте прибор на пациента', 'ready': True,
                  'error_code': 1}),   #    # graphical
-            (2, {'short': 'Изображение вне фокуса', 'desc': 'Отрегулируйте дальность', 'ready': True, 'range': (0, 100),
+            (2, {'short': 'Изображение вне фокуса', 'desc': 'Отрегулируйте дальность', 'ready': True, 'range': (50, 100),
                  'error_code': 2}),   # graphical
             (3, {'short': 'Нет фиксации взгляда', 'desc': 'Необходимо смотреть в камеру', 'ready': True, 'range': (0, 7),
                  'error_code': 3}),
-            (4, {'short': 'Рефлекс не яркий', 'desc': 'Дефект глаз или нет фокуса', 'ready': True, 'range': (150, 256),
+            (4, {'short': 'Рефлекс не яркий', 'desc': 'Дефект глаз или нет фокуса', 'ready': True, 'range': (128, 256),
                  'error_code': 4}),
-            (5, {'short': 'Слишком маленький зрачок', 'desc': 'Затемните помещение', 'ready': True, 'range': (2, 1000), # less than 4mm in +Op
+            (5, {'short': 'Слишком маленький зрачок', 'desc': 'Затемните помещение', 'ready': True, 'range': (3.5, 1000), # less than 4mm in +Op
                  'error_code': 5}),
-            (6, {'short': 'Слишком большой зрачок', 'desc': 'Отрегулируйте яркость', 'ready': True, 'range': (0, 10), # more than 8mm in +Op
+            (6, {'short': 'Слишком большой зрачок', 'desc': 'Отрегулируйте яркость', 'ready': True, 'range': (0, 9), # more than 8mm in +Op
                  'error_code': 6}),
             (7, {'short': 'Веко перекрывает зрачок', 'desc': 'Расширьте глаза'}),
             (8, {'short': 'Ресница в области зрачка', 'desc': 'Сбрейте ресницы'}),
@@ -120,7 +120,7 @@ class EyeAnalyzer:
             self.pd = PupilDetect(path_to_chck=self.adj_os(path_to_chck), conf=conf,
                                   cfg_root=self.adj_os(cfg_root), load_model_path=self.adj_os(load_model_path))
         self.num_imgs = num_imgs
-        self.pix2mm = 0.09267 #/1.012 #/0.95 #/0.966
+        self.pix2mm = 0.0966 #/1.012 #/0.95 #/0.966
         self.pd_step = 0.2  # цена деления
         input_sz = 28
         num_cls = 3
@@ -229,14 +229,13 @@ class EyeAnalyzer:
                       (arr_form[:, 1, 0] + arr_form[:, 1, 2]) / 2) ** 2 +
                      (((arr_form[:, 0, 1] + arr_form[:, 0, 3]) / 2) -
                       (arr_form[:, 1, 1] + arr_form[:, 1, 3]) / 2) ** 2) ** 0.5).mean()
-        return round((intra_oc * self.pix2mm) / self.pd_step) * self.pd_step
+        return intra_oc
 
     def get_eye_diameter(self, nn_boxes_list):
         arr_form = np.array([[nn_boxes_list[0].detach().cpu().numpy(), nn_boxes_list[1].detach().cpu().numpy()]])
         rr = ((arr_form[:, 0, 2] - arr_form[:, 0, 0]).mean() + (arr_form[:, 0, 3] - arr_form[:, 0, 1]).mean()) / 2
         ll = ((arr_form[:, 1, 2] - arr_form[:, 1, 0]).mean() + (arr_form[:, 1, 3] - arr_form[:, 1, 1]).mean()) / 2
-        return (round(ll * self.pix2mm / self.pd_step) * self.pd_step,
-                round(rr * self.pix2mm / self.pd_step) * self.pd_step)
+        return ll,  rr
 
     def get_eye_positions(self, nn_boxes_list, num_frame=0):
         right = nn_boxes_list[0]
@@ -261,13 +260,14 @@ class EyeAnalyzer:
     def calculate_refraction(self, part_collections, img_array):
 
         info_storage = []
+
         for part in part_collections:
             try:
-                zer_res = estimate_coeffs(img_array, part)
+                zer_res = estimate_coeffs(img_array, part, plan_a= True if self.pipeline_version == '1' else False)
                 info_storage.append({'processed_eyes': zer_res,
                                      'metadata': part,
                                      'subset': 'val'})
-                if self.verbose:
+                if self.verbose and self.pipeline_version == '1':
                     for z in zer_res:
                         plt.subplot(121)
                         plt.imshow(z['left']['flickless_pupil'])
@@ -372,40 +372,42 @@ class EyeAnalyzer:
         if len(tmp) == 0:
             return {'error_msg': self.errors.error_priority_dct[1]['error_code']}
 
-        try:
-            part_collections = self.pack2tries(tmp, use_fast=self.fast, img_array=img_array)
-            info_storage, out_lst = self.calculate_refraction(part_collections, img_array)
-            try:
-                left_pupil = info_storage[-1]['processed_eyes'][-1]['left']['flickless_pupil']
-                left_pupil = F.interpolate(torch.tensor(left_pupil[None, None, :, :]).float(),
-                                           size=(256, 256), mode='bilinear')[0][0].numpy().astype(np.uint8)
-                right_pupil = info_storage[-1]['processed_eyes'][-1]['right']['flickless_pupil']
-                right_pupil = F.interpolate(torch.tensor(right_pupil[None, None, :, :]).float(),
-                                            size=(256, 256), mode='bilinear')[0][0].numpy().astype(np.uint8)
-                result_dict['left_pupil'] = left_pupil
-                result_dict['right_pupil'] = right_pupil
-            except Exception as e:
-                print(f'An error during pupil getting: {e}')
 
-            try:
-                left_skew = [d1['left']['flick_pos_rel'] for d in info_storage for d1 in d['processed_eyes']]
-                right_skew = [d1['right']['flick_pos_rel'] for d in info_storage for d1 in d['processed_eyes']]
-                result_dict['left_skew'] = left_skew
-                result_dict['right_skew'] = right_skew
-            except Exception as e:
-                print(f'An error during skew getting: {e}')
+        part_collections = self.pack2tries(tmp, use_fast=self.fast, img_array=img_array)
+        info_storage, out_lst = self.calculate_refraction(part_collections, img_array)
 
-            left = out_lst[0][0][out_lst[0][2] == 0].mean(0)
-            right = out_lst[0][0][out_lst[0][2] == 1].mean(0)
-            result_dict['sph_left'] = self.reverse * round(left[0] / 0.25) * 0.25
-            result_dict['cyl_left'] = self.reverse * round(left[1] / 0.25) * 0.25
-            result_dict['angle_left'] = round(left[2] / 6) * 6
-            result_dict['sph_right'] = self.reverse * round(right[0] / 0.25) * 0.25
-            result_dict['cyl_right'] = self.reverse * round(right[1] / 0.25) * 0.25
-            result_dict['angle_right'] = round(right[2] / 6) * 6
-        except:
-            pass
+        left_pupil = info_storage[-1]['processed_eyes'][-1]['left']['flickless_pupil'] \
+            if self.pipeline_version == '1' else info_storage[-1]['processed_eyes'][-1]['left']['init_pupil']
+        left_pupil = F.interpolate(torch.tensor(left_pupil[None, None, :, :]).float(),
+                                   size=(256, 256), mode='bilinear')[0][0].numpy().astype(np.uint8)
+        right_pupil = info_storage[-1]['processed_eyes'][-1]['right']['flickless_pupil'] \
+            if self.pipeline_version == '1' else info_storage[-1]['processed_eyes'][-1]['right']['init_pupil']
+        right_pupil = F.interpolate(torch.tensor(right_pupil[None, None, :, :]).float(),
+                                    size=(256, 256), mode='bilinear')[0][0].numpy().astype(np.uint8)
+        result_dict['left_pupil'] = left_pupil
+        result_dict['right_pupil'] = right_pupil
+
+
+
+        left_skew = [d1['left']['flick_pos_rel'] for d in info_storage for d1 in d['processed_eyes']]
+        right_skew = [d1['right']['flick_pos_rel'] for d in info_storage for d1 in d['processed_eyes']]
+        result_dict['left_skew'] = left_skew
+        result_dict['right_skew'] = right_skew
+
+        left = out_lst[0][0][out_lst[0][2] == 0].mean(0)
+        right = out_lst[0][0][out_lst[0][2] == 1].mean(0)
+        result_dict['sph_left'] = self.reverse * round(left[0] / 0.25) * 0.25
+        result_dict['cyl_left'] = self.reverse * round(left[1] / 0.25) * 0.25
+        result_dict['angle_left'] = round(left[2] / 6) * 6
+        result_dict['sph_right'] = self.reverse * round(right[0] / 0.25) * 0.25
+        result_dict['cyl_right'] = self.reverse * round(right[1] / 0.25) * 0.25
+        result_dict['angle_right'] = round(right[2] / 6) * 6
+
         result_dict.update(self.data_collector.upload())
+        result_dict['left_eye_d'] = round(result_dict['left_eye_d'] * self.pix2mm / self.pd_step) * self.pd_step
+        result_dict['right_eye_d'] = round(result_dict['right_eye_d'] * self.pix2mm / self.pd_step) * self.pd_step
+        result_dict['interocular_dist'] = round(round((result_dict['interocular_dist'] * self.pix2mm) /
+                                                self.pd_step) * self.pd_step, 2)
         result_dict['eye_positions'] = self.data_collector.collect_data['eye_positions'][0]
 
         # Sharpness test
@@ -427,8 +429,8 @@ class EyeAnalyzer:
         result_dict['left_sight_offset'] = round(((left_eye_sight**2).sum(-1)**0.5).mean(), 0)
         result_dict['right_sight_offset'] =  round(((right_eye_sight ** 2).sum(-1) ** 0.5).mean(), 0)
         eyefix_range = self.errors.error_priority_dct[3]['range']
-        if (not (eyefix_range[0] < result_dict['left_sight_offset'] <= eyefix_range[1]) or
-                not (eyefix_range[0] < result_dict['right_sight_offset'] <= eyefix_range[1])):
+        if (not (eyefix_range[0] <= result_dict['left_sight_offset'] <= eyefix_range[1]) or
+                not (eyefix_range[0] <= result_dict['right_sight_offset'] <= eyefix_range[1])):
             result_dict['sph_left'] = 'nan'
             result_dict['cyl_left'] = 'nan'
             result_dict['angle_left'] = 'nan'
@@ -488,7 +490,7 @@ if __name__ == '__main__':
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:
-        fname = 'D:\\Projects\\eye_blinks\\data_25\\04\\_2025_04_11_18_14_18.bin'
+        fname = 'D:\Projects\eye_blinks\data_24\\24_11_29\\7642\\7642_2024_11_30_17_14_27.bin'
     # fname = '777_2024_06_12_20_34_55.bin'
 
     with open(fname, 'rb') as f:
