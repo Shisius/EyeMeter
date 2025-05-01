@@ -15,7 +15,9 @@ SHARED_PUPIL_IMAGE_HEIGHT = 256
 SHARED_PUPIL_IMAGE_SIZE = (SHARED_PUPIL_IMAGE_WIDTH*SHARED_PUPIL_IMAGE_HEIGHT)
 MEAS_RESULT_ANGLE_INVAL = 1000.0
 MEASURE_RESULT_RULE = '9f'
-MEASURE_SETTINGS_RULE = '3IH10B'
+MEASURE_SETTINGS_RULE = '3I2H8B'
+STREAM_SETTINGS_RULE = '3I2H4B'
+SHARED_FRAME_RULE = 'i3I2BH'
 
 UDSUNI_PROTO_PTTS4 = 0xAF
 
@@ -32,6 +34,7 @@ UDSUNI_TITLE_MEAS_RESULT_FAILED = 0x2E
 UDSUNI_TITLE_MEAS_STOP = 0x2A
 
 UDSUNI_TITLE_FRAME_READY = 0x30
+UDSUNI_TITLE_FRAME_4AI = 0x31
 UDSUNI_TITLE_FRAME_BUSY = 0x32
 UDSUNI_TITLE_FRAME_PROCESSED = 0x34
 UDSUNI_TITLE_FRAME_FREE = 0x36
@@ -49,6 +52,7 @@ UDSUNI_TYPE_STREAM_SETTINGS = 0x11
 UDSUNI_TYPE_MEASURE_SETTINGS = 0x12
 
 UDSUNI_TYPE_MEASURE_RESULT = 0x22
+UDSUNI_TYPE_STREAM_RESULT = 0x23
 
 UDSUNI_TYPE_UNKNOWN = 0xFF
 
@@ -57,22 +61,53 @@ DOMINANT_EYE_LEFT = 1
 DOMINANT_EYE_RIGHT = 2
 DOMINANT_EYE_BOTH = 3
 
-class MeasSettings:
+class SharedFrame:
 
-	def __init__(self, w = 1936, h = 1216, nbit = 8, nled = 8, repeat = 5):
+	def __init__(self):
+		self.id = 0
+		self.width = 0
+		self.height = 0
+		self.size = 0
+		self.pixel_bits = 0
+		self.busy = 0
+		self.led_state = 0
+
+	def unpack(self, msg):
+		self.id, self.width, self.height, self.size, self.pixel_bits, self.busy, self.led_state = struct.unpack(SHARED_FRAME_RULE, msg)
+
+class StreamSettings:
+
+	def __init__(self, w = 1936, h = 1216, nbit = 8, nframes = 41):
 		self.frame_width = w
 		self.frame_height = h
 		self.frame_size = w*h*nbit/8
 		self.cam_shutter_us = 10
 		self.pixel_bits = nbit
 		self.cam_format = 0
-		self.frame_queue_depth = nled*repeat
+		self.frame_queue_depth = nframes
+		self.fps_max = 30
+
+	def unpack(self, msg):
+		self.frame_width, self.frame_height, self.frame_size, self.cam_shutter_us, reserve, self.pixel_bits, self.cam_format, self.frame_queue_depth, self.fps_max = struct.unpack(STREAM_SETTINGS_RULE, msg)
+
+class MeasSettings:
+
+	def __init__(self, w = 1936, h = 1216, nbit = 8, nled = 8, repeat = 5, nblack = 1, nframes = 41):
+		self.frame_width = w
+		self.frame_height = h
+		self.frame_size = w*h*nbit/8
+		self.cam_shutter_us = 10
+		self.pixel_bits = nbit
+		self.cam_format = 0
+		self.frame_queue_depth = nframes
 		self.fps_max = 30
 		self.n_led_pos = nled
 		self.n_repeat = repeat
+		self.n_black = nblack
+		self.n_frames = nframes
 
 	def unpack(self, msg):
-		self.frame_width, self.frame_height, self.frame_size, self.cam_shutter_us, self.pixel_bits, self.cam_format, self.frame_queue_depth, self.fps_max, _uu0, _uu1, self.n_led_pos, self.n_repeat, _uu2, uu3 = struct.unpack(MEASURE_SETTINGS_RULE, msg)
+		self.frame_width, self.frame_height, self.frame_size, self.cam_shutter_us, reserve, self.pixel_bits, self.cam_format, self.frame_queue_depth, self.fps_max, self.n_led_pos, self.n_repeat, self.n_black, self.n_frames = struct.unpack(MEASURE_SETTINGS_RULE, msg)
 
 class EyeCirclePos:
 
@@ -134,3 +169,26 @@ class MeasResult:
 		return self.left.pack() + self.right.pack() + struct.pack('fIfII', self.interocular, self.frame4circles, 
 			self.strabismus, self.dominant_eye, self.error_word) + struct.pack('4f', self.lsharp, self.rsharp, self.lflick, self.rflick)
 	
+class StreamResult:
+
+	def __init__(self, fid, err, lsh, rsh):
+		self.fid = fid
+		self.error_word = 0
+		if type(err) is int:
+			if err >= 0:
+				self.error_word = 1 << err
+		self.left_sharp = lsh
+		self.right_sharp = rsh
+		self.left_eye = EyeCirclePos(0,0,0)
+		self.right_eye = EyeCirclePos(0,0,0)
+
+	def add_circle(self, lh, lv, lr, rh, rv, rr):
+		self.left_eye.horiz = lh
+		self.left_eye.vert = lv
+		self.left_eye.radius = lr
+		self.right_eye.horiz = rh
+		self.right_eye.vert = rv
+		self.right_eye.radius = rr
+
+	def pack(self):
+		return struct.pack('IIff', self.fid, self.error_word, self.left_sharp, self.right_sharp) + self.left_eye.pack() + self.right_eye.pack()
