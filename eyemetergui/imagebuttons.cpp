@@ -11,14 +11,21 @@ ImageButtons::ImageButtons(QWidget *parent) :
 //                              "border-width: 2px;"
 //                             " border-radius: 10px;"
 //                              "border-color: beige;");
+    //d_but_prev->setIcon(QIcon(":/img/prev1.png"));
     //d_but_prev->setIcon(QIcon(":/img/prev.png"));
-    d_but_prev->setStyleSheet(//"color: grey;"
-                              "border-image: url(:/img/prev.png) 50 50 50 50;"
-                              "border-radius: 10px;"
+    d_but_prev->setStyleSheet("QPushButton { "//"color: grey;"
+                              //"border-image: url(:/img/prev.png) 5 5 5 5 ;"
+                              "border-image: url(:/img/angle-left.svg) ;"
+                              "background: none;"
+                              //"border-image: url(:/img/angle-circle-left.svg) 0 0 0 0;"
+                              //"border-radius: 10px;"
                               "border-top: transparent;"
                               "border-bottom: transparent;"
                               "border-right: transparent;"
-                              "border-left: transparent;"
+                              "border-left: transparent;}"
+                              "QPushButton::disabled { "
+                              "border-image: url(:/img/angle-left_disabled.svg) ;"
+                              "}"
                               );
     //d_but_prev->setStyleSheet("border: none");
     d_but_prev->setIconSize(QSize(shortSide, longSide));
@@ -26,20 +33,29 @@ ImageButtons::ImageButtons(QWidget *parent) :
 
     d_but_next = new QPushButton(parent);
     //d_but_next->setIcon(QIcon(":/img/next.png"));
-    d_but_next->setStyleSheet(//"background-color: #414447;"
-                              "border-image: url(:/img/next.png) 50 50 50 50;"
+    d_but_next->setStyleSheet("QPushButton { "//"background-color: #414447;"
+                              //"border-image: url(:/img/next.png) 50 50 50 50;"
+                              "border-image: url(:/img/angle-right.svg) 5 5 5 5;"
+                              "background: none;"
                               "border-radius: 10px;"
                               "border-top: transparent;"
                               "border-bottom: transparent;"
                               "border-right: transparent;"
-                              "border-left: transparent;"
+                              "border-left: transparent;}"
+                              "QPushButton::disabled { "
+                              "border-image: url(:/img/angle-right_disabled.svg) ;"
+                              "}"
                               //"border-margin: 20 20 20 20;"
                               );
+
     //d_but_next->setStyleSheet("border: none");
     //d_but_next->setBaseSize(150,150);
     d_but_next->setIconSize(QSize(shortSide, longSide));
     connect(d_but_next, SIGNAL(clicked()), SLOT(slot_imageNext()));
-
+#ifdef TEST_snapshot
+    //d_but_next->setDisabled(true);
+        d_but_prev->setDisabled(true);
+#endif
     //resize(parent->width(), parent->height());
 //    d_but_prev->setStyleSheet(" color: white;"
 //                  "background-color: #27a9e3;"
@@ -69,7 +85,9 @@ void ImageButtons::setImageCount(uint imageCount)
     qDebug()<<Q_FUNC_INFO << imageCount;
     d_imageNum = imageCount;
     d_imageCount = imageCount;
-//#ifndef TEST_snapshot
+#ifndef TEST_snapshot
+
+#endif
     if(imageCount < 2)
     {
         qDebug()<<Q_FUNC_INFO << "imageCount < 2";
@@ -96,8 +114,11 @@ void ImageButtons::setImageCount(uint imageCount)
             qDebug()<<Q_FUNC_INFO << "imageCount >= 2 end";
         }
     }
-    d_but_prev->setEnabled(true);
-    d_but_next->setDisabled(true);
+    //d_but_prev->setEnabled(true);
+    //d_but_next->setDisabled(true);
+    d_but_prev->setDisabled(true);
+    d_but_next->setEnabled(true);
+
     qDebug()<<Q_FUNC_INFO << "end";
 }
 
@@ -119,10 +140,10 @@ void ImageButtons::resize(int width, int height)
     qDebug()<< "width" <<width;
     qDebug()<< "height" <<height;
 
-    const uint x = width/2-5 - longSide/2;
-    const uint y = height/2-5 - longSide/2;
+    //const uint x = width/2-5 - longSide/2;
+    const uint y = height/2.-5 - shortSide/2;
 
-    d_but_prev->setGeometry(0+shortSide/2, y, shortSide, longSide);
+    d_but_prev->setGeometry(0+shortSide/2., y, shortSide, longSide);
     d_but_next->setGeometry(width-1.5*shortSide, y, shortSide, longSide);
     d_isResized = true;
 }
