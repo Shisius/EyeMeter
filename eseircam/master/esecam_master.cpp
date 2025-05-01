@@ -50,7 +50,7 @@ EseCamMaster::EseCamMaster()
 
 	d_meas_settings.n_led_pos = LED_DEFAULT_POS_PER_CYCLE;
 	d_meas_settings.n_repeat = LED_DEFAULT_CYCLE_NUM;
-	d_meas_settings.n_black = 1;
+	d_meas_settings.n_black = 0; //1;
 	d_meas_settings.n_frames = d_meas_settings.n_led_pos * d_meas_settings.n_repeat + d_meas_settings.n_black;
 
 	d_stream_settings.cam_format = 0;

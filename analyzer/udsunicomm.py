@@ -92,8 +92,8 @@ class UdsUniCommAI:
     def meas_shoot_done(self):
         print("UdsUniCommAI: shoot done!")
         if self.meas_settings.pixel_bits == 8:
-            data = np.ndarray([self.meas_settings.n_frames - self.meas_settings.n_black, self.meas_settings.frame_height, self.meas_settings.frame_width], 
-                              dtype=np.uint8, buffer=self.shframe.buf[self.meas_settings.frame_size:])
+            data = np.ndarray([self.meas_settings.n_led_pos * self.meas_settings.n_repeat, self.meas_settings.frame_height, self.meas_settings.frame_width], 
+                              dtype=np.uint8, buffer=self.shframe.buf)
             try:
                 out_dict = self.analyzer.process_array(data)
                 # print(out_dict)
