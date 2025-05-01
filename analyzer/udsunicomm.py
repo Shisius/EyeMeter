@@ -92,8 +92,8 @@ class UdsUniCommAI:
     def meas_shoot_done(self):
         print("UdsUniCommAI: shoot done!")
         if self.meas_settings.pixel_bits == 8:
-            data = np.ndarray([self.meas_settings.n_led_pos * self.meas_settings.n_repeat, self.meas_settings.frame_height, self.meas_settings.frame_width], 
-                              dtype=np.uint8, buffer=self.shframe.buf)
+            data = np.ndarray([self.meas_settings.n_frames - self.meas_settings.n_black, self.meas_settings.frame_height, self.meas_settings.frame_width], 
+                              dtype=np.uint8, buffer=self.shframe.buf[self.meas_settings.frame_size:])
             try:
                 out_dict = self.analyzer.process_array(data)
                 # print(out_dict)
@@ -171,7 +171,7 @@ class UdsUniCommAI:
                             self.stream_settings.unpack(msg[4:])
                             print("UdsUniCommAI: Stream settings:", self.stream_settings.frame_queue_depth, self.stream_settings.pixel_bits)
                             msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_FRAME_BUSY, 0, 0)
-                            self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_CAM])
+                            # self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_CAM])
                             #continue
                         else:
                             print("UdsUniCommAI: Wrong size or type: ", hex(_proto), hex(_title), hex(_type), _size)
