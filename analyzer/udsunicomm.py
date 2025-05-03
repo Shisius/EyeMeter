@@ -171,7 +171,7 @@ class UdsUniCommAI:
                             self.stream_settings.unpack(msg[4:])
                             print("UdsUniCommAI: Stream settings:", self.stream_settings.frame_queue_depth, self.stream_settings.pixel_bits)
                             msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_FRAME_BUSY, 0, 0)
-                            self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_CAM])
+                            # self.sock.sendto(msg, self.other_socks[EYEMETER_ROLE_CAM])
                             #continue
                         else:
                             print("UdsUniCommAI: Wrong size or type: ", hex(_proto), hex(_title), hex(_type), _size)
