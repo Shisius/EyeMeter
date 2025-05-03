@@ -12,7 +12,7 @@
 #include "lineedit_keyboard.h"
 #include "guitextlib.h"
 #include "shotbuttons.h"
-#include "styles.h"
+//#include "styles.h"
 //#include <QLineEdit>
 //#include <QtVirtualKeyboard>
 #ifdef TEST_snapshot

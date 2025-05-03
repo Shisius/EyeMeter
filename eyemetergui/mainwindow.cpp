@@ -204,11 +204,11 @@ MainWindow::MainWindow(QWidget *parent)
                                         //"border-bottom-style: solid;" /* just a single line */
                                         "border-radius: 8px;}"
                                         "QDateEdit::drop-down{ "
-                                        "background-color : %5;"
+                                        //"background-color : %5;"
                                         "border-radius: 8px;"
                                         "border-style: none ;"
                                         "padding: 0px 0px;"
-                                        " width: 32px; }"
+                                        " width: 28px; }"
                                         ////"QDateEdit::down-button { "
                                         ////" width: 16px; }"
                                         "QDateEdit::down-arrow"
@@ -220,6 +220,7 @@ MainWindow::MainWindow(QWidget *parent)
                                         //    //                                              //"border : 2px solid black;"
                                         //"background-color : %5;"
                                         "border-image: url(:/img/calendar.svg);}"
+
                                         )//"border-style: none ; font: bold 12px; text-align: center;";)
             .arg(str_fontSize_px_mainText)
             .arg(str_paddings)

@@ -1,25 +1,12 @@
 <RCC>
     <qresource prefix="/">
-        <file>img/prev.png</file>
-        <file>img/next.png</file>
-        <file>img/close.png</file>
-        <file>img/down_arr.png</file>
-        <file>img/up_arr.png</file>
-        <file>img/down_butt.png</file>
-        <file>img/up_butt.png</file>
-        <file>img/next1.png</file>
         <file>img/user.svg</file>
         <file>img/eye.svg</file>
         <file>img/pupils.svg</file>
         <file>img/album-collection.svg</file>
-        <file>img/prev1.png</file>
-        <file>img/angle-circle-left.svg</file>
-        <file>img/angle-circle-right.svg</file>
         <file>img/angle-left.svg</file>
         <file>img/angle-right.svg</file>
         <file>img/lightbulb-off.svg</file>
-        <file>img/lightbulb-on.svg</file>
-        <file>img/lightbulb-on.png</file>
         <file>img/sound.svg</file>
         <file>img/exit.svg</file>
         <file>img/camera.svg</file>

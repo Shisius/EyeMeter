@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 #ifdef TEST_snapshot
     w.setFixedSize(screen_w,screen_h);
     w.show();
-#elif
+#else
     w.showFullScreen();
 #endif
     return a.exec();
