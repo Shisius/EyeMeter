@@ -22,9 +22,9 @@ class ErrorsEyeMeter:
             (0, {'short': 'Фоновая ИК засветка', 'desc': 'Затемните помещение'}),  # graphical
             (1, {'short': 'Зрачки не обнаружены', 'desc': 'Направьте прибор на пациента', 'ready': True,
                  'error_code': 1}),   #    # graphical
-            (2, {'short': 'Изображение вне фокуса', 'desc': 'Отрегулируйте дальность', 'ready': True, 'range': (50, 100),
+            (2, {'short': 'Изображение вне фокуса', 'desc': 'Отрегулируйте дальность', 'ready': True, 'range': (0, 100),
                  'error_code': 2}),   # graphical
-            (3, {'short': 'Нет фиксации взгляда', 'desc': 'Необходимо смотреть в камеру', 'ready': True, 'range': (0, 7),
+            (3, {'short': 'Нет фиксации взгляда', 'desc': 'Необходимо смотреть в камеру', 'ready': True, 'range': (0, 15),
                  'error_code': 3}),
             (4, {'short': 'Рефлекс не яркий', 'desc': 'Дефект глаз или нет фокуса', 'ready': True, 'range': (128, 256),
                  'error_code': 4}),
@@ -35,7 +35,14 @@ class ErrorsEyeMeter:
             (7, {'short': 'Веко перекрывает зрачок', 'desc': 'Расширьте глаза'}),
             (8, {'short': 'Ресница в области зрачка', 'desc': 'Сбрейте ресницы'}),
             (9, {'short': 'Измерения не полные', 'desc': 'Возникла иная ошибка'}),
-            (10, {'short': 'Монокулярное измерение', 'desc': 'Закройте второй глаз'}),])
+            (10, {'short': 'Монокулярное измерение', 'desc': 'Закройте второй глаз'}),
+            (11, {'short': 'Измерения не полные', 'desc': 'Большой разброс направлений взгляда', 'ready': True,
+                  'std': 30, 'error_code': 9}),  # TODO 5
+            (12, {'short': 'Измерения не полные', 'desc': 'Большой разброс измерений рефракции', 'ready': True,
+                  'std': 1.0, 'error_code': 9}),  # TODO 0.5
+            (13, {'short': 'Измерения не полные', 'desc': 'Маленькая выборка для sph, cul', 'ready': True,
+                  'min_ratio': 0.5, 'error_code': 9}),
+        ])
 
 class SharpDOM(DOM):
     def __init__(self, width=3, sharpness_threshold=2.5, edge_threshold=0.0001):
@@ -88,7 +95,14 @@ class CollectedEyeData:
                 self.collect_data[k].append(data_dct[k])
 
     def upload(self):
-        return {k :round(float((np.array(self.collect_data[k])[np.array(self.collect_data['img_num'])%4 == 0]).mean()), 2) for k in self.to_upload_data}
+        return {
+            k :round(float((np.array(self.collect_data[k])[np.array(self.collect_data['img_num'])%4 == 0]).mean()), 2)
+            for k in self.to_upload_data}
+
+    def get_std(self):
+        return {
+            k: round(float((np.array(self.collect_data[k])[np.array(self.collect_data['img_num']) % 4 == 0]).std()), 2)
+            for k in self.to_upload_data}
 
     def clear(self):
         for k in self.collect_data:
@@ -396,6 +410,8 @@ class EyeAnalyzer:
 
         left = out_lst[0][0][out_lst[0][2] == 0].mean(0)
         right = out_lst[0][0][out_lst[0][2] == 1].mean(0)
+        left_std = out_lst[0][0][out_lst[0][2] == 0].std(0)
+        right_std = out_lst[0][0][out_lst[0][2] == 1].std(0)
         result_dict['sph_left'] = self.reverse * round(left[0] / 0.25) * 0.25
         result_dict['cyl_left'] = self.reverse * round(left[1] / 0.25) * 0.25
         result_dict['angle_left'] = round(left[2] / 6) * 6
@@ -412,7 +428,7 @@ class EyeAnalyzer:
 
         # Sharpness test
         sharp_range = self.errors.error_priority_dct[2]['range']
-        if (not (sharp_range[0] < result_dict['left_sharpness'] <= sharp_range[1]) and
+        if (not (sharp_range[0] < result_dict['left_sharpness'] <= sharp_range[1]) or
                 not (sharp_range[0] < result_dict['left_sharpness'] <= sharp_range[1])):
             result_dict['sph_left'] = 'nan'
             result_dict['cyl_left'] = 'nan'
@@ -429,7 +445,7 @@ class EyeAnalyzer:
         result_dict['left_sight_offset'] = round(((left_eye_sight**2).sum(-1)**0.5).mean(), 0)
         result_dict['right_sight_offset'] =  round(((right_eye_sight ** 2).sum(-1) ** 0.5).mean(), 0)
         eyefix_range = self.errors.error_priority_dct[3]['range']
-        if (not (eyefix_range[0] <= result_dict['left_sight_offset'] <= eyefix_range[1]) or
+        if (not (eyefix_range[0] <= result_dict['left_sight_offset'] <= eyefix_range[1]) and
                 not (eyefix_range[0] <= result_dict['right_sight_offset'] <= eyefix_range[1])):
             result_dict['sph_left'] = 'nan'
             result_dict['cyl_left'] = 'nan'
@@ -439,15 +455,6 @@ class EyeAnalyzer:
             result_dict['angle_right'] = 'nan'
             result_dict['error_msg'] = self.errors.error_priority_dct[3]['error_code']
             return result_dict
-
-        # Lead eye and strabismus
-        result_dict['strabismus'] = round((((right_eye_sight - left_eye_sight) ** 2).sum(-1)**0.5).mean(), 0)
-        if result_dict['left_sight_offset'] > result_dict['right_sight_offset']:
-            result_dict['lead_eye'] = 'right'
-        elif result_dict['left_sight_offset'] < result_dict['right_sight_offset']:
-            result_dict['lead_eye'] = 'left'
-        else:
-            result_dict['lead_eye'] = 'both'
 
         # Lead eye and strabismus
         result_dict['strabismus'] = round((((right_eye_sight - left_eye_sight) ** 2).sum(-1)**0.5).mean(), 0)
@@ -482,6 +489,40 @@ class EyeAnalyzer:
                 not (pupil_max_d[0] < result_dict['left_eye_d'] <= pupil_max_d[1])):
             result_dict['error_msg'] = self.errors.error_priority_dct[6]['error_code']
             return result_dict
+        # Eye sight dispersion error
+        eye_sight_std = self.errors.error_priority_dct[11]['std']
+        if (any(np.array(result_dict['left_skew']).std(0) > eye_sight_std) or
+                any(np.array(result_dict['right_skew']).std(0) > eye_sight_std)):
+            result_dict['sph_left'] = 'nan'
+            result_dict['cyl_left'] = 'nan'
+            result_dict['angle_left'] = 'nan'
+            result_dict['sph_right'] = 'nan'
+            result_dict['cyl_right'] = 'nan'
+            result_dict['angle_right'] = 'nan'
+            result_dict['error_msg'] = self.errors.error_priority_dct[11]['error_code']
+            return result_dict
+        # Cyl and sph std err
+        ref_std = self.errors.error_priority_dct[12]['std']
+        if (any(left_std[:2] > ref_std) or any(right_std[:2] > ref_std)):
+            result_dict['sph_left'] = 'nan'
+            result_dict['cyl_left'] = 'nan'
+            result_dict['angle_left'] = 'nan'
+            result_dict['sph_right'] = 'nan'
+            result_dict['cyl_right'] = 'nan'
+            result_dict['angle_right'] = 'nan'
+            result_dict['error_msg'] = self.errors.error_priority_dct[12]['error_code']
+            return result_dict
+        # Small support
+        min_support = self.errors.error_priority_dct[13]['min_ratio'] * 10
+        if min_support > len(out_lst[0][0]):
+            result_dict['sph_left'] = 'nan'
+            result_dict['cyl_left'] = 'nan'
+            result_dict['angle_left'] = 'nan'
+            result_dict['sph_right'] = 'nan'
+            result_dict['cyl_right'] = 'nan'
+            result_dict['angle_right'] = 'nan'
+            result_dict['error_msg'] = self.errors.error_priority_dct[12]['error_code']
+            return result_dict
         return result_dict
 
 
@@ -490,7 +531,7 @@ if __name__ == '__main__':
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:
-        fname = 'D:\Projects\eye_blinks\data_24\\24_11_29\\7642\\7642_2024_11_30_17_14_27.bin'
+        fname = 'D:\Projects\eye_blinks\data_25\\04\\_2025_04_28_21_42_50.bin'
     # fname = '777_2024_06_12_20_34_55.bin'
 
     with open(fname, 'rb') as f:
