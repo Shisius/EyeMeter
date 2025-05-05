@@ -50,13 +50,17 @@ EseCamMaster::EseCamMaster()
 
 	d_meas_settings.n_led_pos = LED_DEFAULT_POS_PER_CYCLE;
 	d_meas_settings.n_repeat = LED_DEFAULT_CYCLE_NUM;
-	d_meas_settings.n_black = 1;
+	d_meas_settings.n_black = 0; //1;
 	d_meas_settings.n_frames = d_meas_settings.n_led_pos * d_meas_settings.n_repeat + d_meas_settings.n_black;
 
 	d_stream_settings.cam_format = 0;
 	d_stream_settings.cam_shutter_us = 10000;
 	d_stream_settings.frame_queue_depth = d_meas_settings.n_frames; 
 	d_stream_settings.fps_max = 30;
+
+	d_frame_busy_start.store(0);
+	d_frame_busy_vec.resize(d_stream_settings.frame_queue_depth);
+	std::fill(d_frame_busy_vec.begin(), d_frame_busy_vec.end(), 0);
 
 #ifdef ESECAM_90HZ
 	d_trigger = ESECAM_TRIGGER_NONE; //ESECAM_TRIGGER_SOFT_STREAM;
@@ -191,6 +195,10 @@ int EseCamMaster::start_stream()
 		return -1;
 	}
 	tic();
+
+	d_frame_busy_start.store(0);
+	d_frame_busy_vec.resize(d_stream_settings.frame_queue_depth);
+	std::fill(d_frame_busy_vec.begin(), d_frame_busy_vec.end(), 0);
 
 	d_uds->send(UDSUNI_TITLE_STREAM_RUNNING, d_stream_settings);
 
@@ -470,6 +478,14 @@ int EseCamMaster::frame_free(UdsUniPack & pack)
 		if (pack.fetch_data(sf) == 0) {
 			block_id = sf.id;
 		}
+	} else {
+		printf("EseCamMaster::frame_free worng msg type");
+		return -1;
+	}
+	// Find it in shframes
+	if (d_frame_busy_vec[block_id] > 0) {
+		d_frame_busy_vec[block_id]--;
+		return 0;
 	}
 	// if (d_in_stream.load())
 		d_shmem->block_free(block_id);
@@ -764,6 +780,9 @@ void EseCamMaster::comm_process()
 				case UDSUNI_TITLE_FRAME_FREE:
 					frame_free(pack);
 					break;
+				case UDSUNI_TITLE_FRAME_BUSY:
+					d_frame_busy_start = 1;
+					break;
 				case UDSUNI_TITLE_LED_PWR:
 					set_led_pwr(pack);
 					break;
@@ -811,7 +830,12 @@ void EseCamMaster::frame_ready_event(SharedFrame & frame, unsigned char* frame_p
 			if (d_shmem->block_alloc(block) == 0) {
 				frame.id = block.id;
 				memcpy(block.ptr, frame_ptr, frame.size);
-				d_uds->send(UDSUNI_TITLE_FRAME_READY, frame);
+				if (d_frame_busy_start.load() > 0) {
+					d_frame_busy_vec[frame.id] = d_frame_busy_start.load();
+					d_frame_busy_start.store(0);
+					d_uds->send(UDSUNI_TITLE_FRAME_4AI, frame, EYEMETER_ROLE_AI);
+				}
+				d_uds->send(UDSUNI_TITLE_FRAME_READY, frame, EYEMETER_ROLE_GUI);
 				printf("EseCamMaster:: frame id %d\n", frame.id);
 			} else {
 				printf("EseCamMaster:: shmem overflow\n");
@@ -836,7 +860,12 @@ void EseCamMaster::frame_ready_event(SharedFrame & frame, unsigned char* frame_p
 			if (d_shmem->block_alloc(block) == 0) {
 				frame.id = block.id;
 				memcpy(block.ptr, frame_ptr, frame.size);
-				d_uds->send(UDSUNI_TITLE_FRAME_READY, frame);
+				if (d_frame_busy_start.load() > 0) {
+					d_frame_busy_vec[frame.id] = d_frame_busy_start.load();
+					d_frame_busy_start.store(0);
+					d_uds->send(UDSUNI_TITLE_FRAME_4AI, frame, EYEMETER_ROLE_AI);
+				}
+				d_uds->send(UDSUNI_TITLE_FRAME_READY, frame, EYEMETER_ROLE_GUI);
 				printf("EseCamMaster:: frame id %d num %d\n", frame.id, d_frame_number.load());
 			} else {
 				printf("EseCamMaster:: shmem overflow\n");

@@ -26,6 +26,7 @@ SOURCES += \
     lineedit_keyboard.cpp \
     main.cpp \
     mainwindow.cpp \
+    shotbuttons.cpp \
     udsunisocket.cpp \
     ../types/emre_textlib.cpp
 
@@ -36,6 +37,7 @@ HEADERS += \
     imagebuttons.h \
     lineedit_keyboard.h \
     mainwindow.h \
+    shotbuttons.h \
     udsunisocket.h \
     ../types/guitextlib.h
 INCLUDEPATH += ../ipc \
@@ -53,7 +55,10 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 #DEFINES += START_BY_ID
 #DEFINES += TEST_snapshot
 DEFINES += DEBUG2FILE
+#DEFINES += SCREENSHOTSFORVIDEO
 RESOURCES += \
     images.qrc
 LIBS += -lrt -lm
+
+
 

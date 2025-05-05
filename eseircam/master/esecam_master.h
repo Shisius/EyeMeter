@@ -1,6 +1,7 @@
 #ifndef _ESECAM_MASTER_H_
 #define _ESECAM_MASTER_H_
 
+#include <algorithm>
 #include <memory>
 #include <condition_variable>
 #include "cam_types.h"
@@ -61,6 +62,7 @@ protected:
 	StreamSettings d_stream_settings;
 	MeasureSettings d_meas_settings;
 	unsigned char d_trigger;
+	std::atomic<unsigned char> d_frame_busy_start;
 
 	// Objects
 	std::unique_ptr<ShmemBlockAllocator> d_shmem;
@@ -70,6 +72,10 @@ protected:
 	std::unique_ptr<SerialComm> d_serial;
 #endif
 	std::vector<std::unique_ptr<SysPwm>> d_irleds;
+
+	// Storage
+	// std::map<unsigned int, SharedFrame> d_shframes;
+	std::vector<unsigned char> d_frame_busy_vec;
 
 	// Synch
 	std::thread d_comm_thread;
