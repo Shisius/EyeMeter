@@ -12,9 +12,19 @@ import platform
 from matplotlib import pyplot as plt
 from collections import OrderedDict
 import matplotlib.patches as patches
+from typing import Dict, List, Tuple
 from dom import DOM
 from net_sharp import PupilSharp
 
+
+def measurements_invalid(dct):
+    dct['sph_left'] = 'nan'
+    dct['cyl_left'] = 'nan'
+    dct['angle_left'] = 'nan'
+    dct['sph_right'] = 'nan'
+    dct['cyl_right'] = 'nan'
+    dct['angle_right'] = 'nan'
+    return dct
 
 class ErrorsEyeMeter:
     def __init__(self):
@@ -40,9 +50,75 @@ class ErrorsEyeMeter:
                   'std': 30, 'error_code': 9}),  # TODO 5
             (12, {'short': 'Измерения не полные', 'desc': 'Большой разброс измерений рефракции', 'ready': True,
                   'std': 1.0, 'error_code': 9}),  # TODO 0.5
-            (13, {'short': 'Измерения не полные', 'desc': 'Маленькая выборка для sph, cul', 'ready': True,
+            (13, {'short': 'Измерения не полные', 'desc': 'Маленькая выборка для sph, cyl', 'ready': True,
                   'min_ratio': 0.5, 'error_code': 9}),
         ])
+
+    def pre_check_list(self, result_dict: Dict) -> Dict:
+        return result_dict
+
+    def post_check_list(self, result_dict: Dict) -> Dict:
+        # Small support
+        min_support = self.error_priority_dct[13]['min_ratio'] * 10
+        if min_support > result_dict['valid_len']:
+            result_dict = measurements_invalid(result_dict)
+            result_dict['error_msg'] = self.error_priority_dct[12]['error_code']
+            return result_dict
+
+        # Sharpness test
+        sharp_range = self.error_priority_dct[2]['range']
+        if (not (sharp_range[0] < result_dict['left_sharpness'] <= sharp_range[1]) or
+                not (sharp_range[0] < result_dict['left_sharpness'] <= sharp_range[1])):
+            result_dict = measurements_invalid(result_dict)
+            result_dict['error_msg'] = self.error_priority_dct[2]['error_code']
+            return result_dict
+
+        # Eye fixation test
+        eyefix_range = self.error_priority_dct[3]['range']
+        if (not (eyefix_range[0] <= result_dict['left_sight_offset'] <= eyefix_range[1]) and
+                not (eyefix_range[0] <= result_dict['right_sight_offset'] <= eyefix_range[1])):
+            result_dict = measurements_invalid(result_dict)
+            result_dict['error_msg'] = self.error_priority_dct[3]['error_code']
+            return result_dict
+
+        # Eye reflex
+        reflex_int_range = self.error_priority_dct[4]['range']
+        if (not (reflex_int_range[0] < result_dict['left_flick_intensity'] <= reflex_int_range[1]) or
+                not (reflex_int_range[0] < result_dict['right_flick_intensity'] <= reflex_int_range[1])):
+            result_dict = measurements_invalid(result_dict)
+            result_dict['error_msg'] = self.error_priority_dct[4]['error_code']
+            return result_dict
+
+        # Pupil small
+        pupil_min_d = self.error_priority_dct[5]['range']
+        if (not (pupil_min_d[0] < result_dict['right_eye_d'] <= pupil_min_d[1]) or
+                not (pupil_min_d[0] < result_dict['left_eye_d'] <= pupil_min_d[1])):
+            result_dict['error_msg'] = self.error_priority_dct[5]['error_code']
+            return result_dict
+
+        # Pupil big
+        pupil_max_d = self.error_priority_dct[6]['range']
+        if (not (pupil_max_d[0] < result_dict['right_eye_d'] <= pupil_max_d[1]) or
+                not (pupil_max_d[0] < result_dict['left_eye_d'] <= pupil_max_d[1])):
+            result_dict['error_msg'] = self.error_priority_dct[6]['error_code']
+            return result_dict
+
+        # Eye sight dispersion error
+        eye_sight_std = self.error_priority_dct[11]['std']
+        if (any(np.array(result_dict['left_skew']).std(0) > eye_sight_std) or
+                any(np.array(result_dict['right_skew']).std(0) > eye_sight_std)):
+            result_dict = measurements_invalid(result_dict)
+            result_dict['error_msg'] = self.error_priority_dct[11]['error_code']
+            return result_dict
+
+        # Cyl and sph std err
+        ref_std = self.error_priority_dct[12]['std']
+        if (any(result_dict['left_std'][:2] > ref_std) or any(result_dict['right_std'][:2] > ref_std)):
+            result_dict = measurements_invalid(result_dict)
+            result_dict['error_msg'] = self.error_priority_dct[12]['error_code']
+            return result_dict
+        return result_dict
+
 
 class SharpDOM(DOM):
     def __init__(self, width=3, sharpness_threshold=2.5, edge_threshold=0.0001):
@@ -53,7 +129,7 @@ class SharpDOM(DOM):
         self.min = 0.47
         self.max = 0.53
 
-    def get_sharpness(self, img, *args, **kwargs):
+    def get_sharpness(self, img: np.ndarray, *args, **kwargs) -> float:
         img = img.astype(np.float32)
         img = (img - img.mean()) / img.std()
         sh = super().get_sharpness(img, width=self.width,
@@ -136,6 +212,8 @@ class EyeAnalyzer:
         self.num_imgs = num_imgs
         self.pix2mm = 0.0966 #/1.012 #/0.95 #/0.966
         self.pd_step = 0.2  # цена деления
+        self.ref_step = 0.25
+        self.angle_step = 6
         input_sz = 28
         num_cls = 3
         hidden_sz = 32
@@ -302,6 +380,8 @@ class EyeAnalyzer:
                                     rotation, eye])
         elif self.pipeline_version == '2':
             val_dataset =  RefDataset(info_storage, subset='val')
+            if len(val_dataset) == 0:
+                return info_storage, 'error'
             dataloader = DataLoader(val_dataset, batch_size=128, shuffle=False, collate_fn=RefDataset.collate)
             out_lst = []
             for image, mask, rot, eye in tqdm(dataloader, total=len(dataloader)):
@@ -311,12 +391,65 @@ class EyeAnalyzer:
 
         return info_storage, out_lst
 
-    def get_pupils(self, img, metadata):
+    def get_pupils(self, img: np.ndarray, metadata: List) -> Tuple:
         pupil_position = metadata[0].round().int().detach().cpu().numpy()
         right_pupil = img[pupil_position[1]:pupil_position[3], pupil_position[0]:pupil_position[2]]
         pupil_position = metadata[1].round().int().detach().cpu().numpy()
         left_pupil = img[pupil_position[1]:pupil_position[3], pupil_position[0 ]:pupil_position[2]]
         return left_pupil, right_pupil
+
+    def ref_array_processing(self, out_lst: List, result_dict: Dict) -> Dict:
+        left = out_lst[0][0][out_lst[0][2] == 0].mean(0)
+        right = out_lst[0][0][out_lst[0][2] == 1].mean(0)
+        result_dict['left_std'] = out_lst[0][0][out_lst[0][2] == 0].std(0)
+        result_dict['right_std'] = out_lst[0][0][out_lst[0][2] == 1].std(0)
+        result_dict['sph_left'] = self.reverse * round(left[0] / self.ref_step) * self.ref_step
+        result_dict['cyl_left'] = self.reverse * round(left[1] / self.ref_step) * self.ref_step
+        result_dict['angle_left'] = round(left[2] / self.angle_step) * self.angle_step
+        result_dict['sph_right'] = self.reverse * round(right[0] / self.ref_step) * self.ref_step
+        result_dict['cyl_right'] = self.reverse * round(right[1] / self.ref_step) * self.ref_step
+        result_dict['angle_right'] = round(right[2] / self.angle_step) * self.angle_step
+        return result_dict
+
+    def eye_sight_processing(self, info_storage: List, result_dict: Dict) -> Dict:
+        left_skew = [d1['left']['flick_pos_rel'] for d in info_storage for d1 in d['processed_eyes']]
+        right_skew = [d1['right']['flick_pos_rel'] for d in info_storage for d1 in d['processed_eyes']]
+        result_dict['left_skew'] = left_skew
+        result_dict['right_skew'] = right_skew
+        left_eye_sight = np.array(result_dict['left_skew'])
+        right_eye_sight = np.array(result_dict['right_skew'])
+        result_dict['left_sight_offset'] = round(((left_eye_sight**2).sum(-1)**0.5).mean(), 0)
+        result_dict['right_sight_offset'] =  round(((right_eye_sight ** 2).sum(-1) ** 0.5).mean(), 0)
+        result_dict['strabismus'] = round((((right_eye_sight - left_eye_sight) ** 2).sum(-1)**0.5).mean(), 0)
+        # Lead eye and strabismus
+        if result_dict['left_sight_offset'] > result_dict['right_sight_offset']:
+            result_dict['lead_eye'] = 'right'
+        elif result_dict['left_sight_offset'] < result_dict['right_sight_offset']:
+            result_dict['lead_eye'] = 'left'
+        else:
+            result_dict['lead_eye'] = 'both'
+        return result_dict
+
+    def get_pupils_to_draw(self, info_storage: List, result_dict: Dict) -> Dict:
+        left_pupil = info_storage[-1]['processed_eyes'][-1]['left']['flickless_pupil'] \
+            if self.pipeline_version == '1' else info_storage[-1]['processed_eyes'][-1]['left']['init_pupil']
+        left_pupil = F.interpolate(torch.tensor(left_pupil[None, None, :, :]).float(),
+                                   size=(256, 256), mode='bilinear')[0][0].numpy().astype(np.uint8)
+        right_pupil = info_storage[-1]['processed_eyes'][-1]['right']['flickless_pupil'] \
+            if self.pipeline_version == '1' else info_storage[-1]['processed_eyes'][-1]['right']['init_pupil']
+        right_pupil = F.interpolate(torch.tensor(right_pupil[None, None, :, :]).float(),
+                                    size=(256, 256), mode='bilinear')[0][0].numpy().astype(np.uint8)
+        result_dict['left_pupil'] = left_pupil
+        result_dict['right_pupil'] = right_pupil
+        return result_dict
+
+    def get_distances(self, result_dict: Dict) -> Dict:
+        result_dict['left_eye_d'] = round(result_dict['left_eye_d'] * self.pix2mm / self.pd_step) * self.pd_step
+        result_dict['right_eye_d'] = round(result_dict['right_eye_d'] * self.pix2mm / self.pd_step) * self.pd_step
+        result_dict['interocular_dist'] = round(round((result_dict['interocular_dist'] * self.pix2mm) /
+                                                self.pd_step) * self.pd_step, 2)
+        result_dict['eye_positions'] = self.data_collector.collect_data['eye_positions'][0]
+        return result_dict
 
     def process_image(self, img: np.ndarray, num_frame: int=0) -> dict:
 
@@ -368,16 +501,11 @@ class EyeAnalyzer:
     def process_array(self, img_array):
         self.flush()
         result_dict = {'error_msg': -1}
-
         img_array = img_array[1:, :, :] if len(img_array) == 41 else img_array
         assert len(img_array) == self.num_imgs, f'NDArray should have {self.num_imgs} elements'
         tmp = []
-        if self.fast:
-            div = 1
-        else:
-            div = 4
-        detection_result = {'result': 'Empty array!'}
-        for img_num in range(0, self.num_imgs, div):
+
+        for img_num in range(0, self.num_imgs, 1 if self.fast else 4):
             detection_result = self.process_image(img_array[img_num], num_frame=img_num)
             if not isinstance(detection_result['result'], str):
                 tmp.append([img_num] + detection_result['result'])
@@ -386,143 +514,19 @@ class EyeAnalyzer:
         if len(tmp) == 0:
             return {'error_msg': self.errors.error_priority_dct[1]['error_code']}
 
-
-        part_collections = self.pack2tries(tmp, use_fast=self.fast, img_array=img_array)
+        part_collections = self.pack2tries(tmp, use_fast=self.fast, img_array=img_array)  # TODO refactor next
         info_storage, out_lst = self.calculate_refraction(part_collections, img_array)
+        if out_lst == 'error':
+            return {'error_msg': self.errors.error_priority_dct[1]['error_code']}
 
-        left_pupil = info_storage[-1]['processed_eyes'][-1]['left']['flickless_pupil'] \
-            if self.pipeline_version == '1' else info_storage[-1]['processed_eyes'][-1]['left']['init_pupil']
-        left_pupil = F.interpolate(torch.tensor(left_pupil[None, None, :, :]).float(),
-                                   size=(256, 256), mode='bilinear')[0][0].numpy().astype(np.uint8)
-        right_pupil = info_storage[-1]['processed_eyes'][-1]['right']['flickless_pupil'] \
-            if self.pipeline_version == '1' else info_storage[-1]['processed_eyes'][-1]['right']['init_pupil']
-        right_pupil = F.interpolate(torch.tensor(right_pupil[None, None, :, :]).float(),
-                                    size=(256, 256), mode='bilinear')[0][0].numpy().astype(np.uint8)
-        result_dict['left_pupil'] = left_pupil
-        result_dict['right_pupil'] = right_pupil
+        result_dict['valid_len'] = len(out_lst[0][0])
+        result_dict = self.get_pupils_to_draw(info_storage, result_dict)
+        result_dict = self.eye_sight_processing(info_storage, result_dict)
+        result_dict = self.ref_array_processing(out_lst, result_dict)
+        result_dict.update(self.data_collector.upload())  # get mean of values
+        result_dict = self.get_distances(result_dict)
 
-
-
-        left_skew = [d1['left']['flick_pos_rel'] for d in info_storage for d1 in d['processed_eyes']]
-        right_skew = [d1['right']['flick_pos_rel'] for d in info_storage for d1 in d['processed_eyes']]
-        result_dict['left_skew'] = left_skew
-        result_dict['right_skew'] = right_skew
-
-        left = out_lst[0][0][out_lst[0][2] == 0].mean(0)
-        right = out_lst[0][0][out_lst[0][2] == 1].mean(0)
-        left_std = out_lst[0][0][out_lst[0][2] == 0].std(0)
-        right_std = out_lst[0][0][out_lst[0][2] == 1].std(0)
-        result_dict['sph_left'] = self.reverse * round(left[0] / 0.25) * 0.25
-        result_dict['cyl_left'] = self.reverse * round(left[1] / 0.25) * 0.25
-        result_dict['angle_left'] = round(left[2] / 6) * 6
-        result_dict['sph_right'] = self.reverse * round(right[0] / 0.25) * 0.25
-        result_dict['cyl_right'] = self.reverse * round(right[1] / 0.25) * 0.25
-        result_dict['angle_right'] = round(right[2] / 6) * 6
-
-        result_dict.update(self.data_collector.upload())
-        result_dict['left_eye_d'] = round(result_dict['left_eye_d'] * self.pix2mm / self.pd_step) * self.pd_step
-        result_dict['right_eye_d'] = round(result_dict['right_eye_d'] * self.pix2mm / self.pd_step) * self.pd_step
-        result_dict['interocular_dist'] = round(round((result_dict['interocular_dist'] * self.pix2mm) /
-                                                self.pd_step) * self.pd_step, 2)
-        result_dict['eye_positions'] = self.data_collector.collect_data['eye_positions'][0]
-
-        # Sharpness test
-        sharp_range = self.errors.error_priority_dct[2]['range']
-        if (not (sharp_range[0] < result_dict['left_sharpness'] <= sharp_range[1]) or
-                not (sharp_range[0] < result_dict['left_sharpness'] <= sharp_range[1])):
-            result_dict['sph_left'] = 'nan'
-            result_dict['cyl_left'] = 'nan'
-            result_dict['angle_left'] = 'nan'
-            result_dict['sph_right'] = 'nan'
-            result_dict['cyl_right'] = 'nan'
-            result_dict['angle_right'] = 'nan'
-            result_dict['error_msg'] = self.errors.error_priority_dct[2]['error_code']
-            return result_dict
-
-        # Eye fixation test
-        left_eye_sight = np.array(result_dict['left_skew'])
-        right_eye_sight = np.array(result_dict['right_skew'])
-        result_dict['left_sight_offset'] = round(((left_eye_sight**2).sum(-1)**0.5).mean(), 0)
-        result_dict['right_sight_offset'] =  round(((right_eye_sight ** 2).sum(-1) ** 0.5).mean(), 0)
-        eyefix_range = self.errors.error_priority_dct[3]['range']
-        if (not (eyefix_range[0] <= result_dict['left_sight_offset'] <= eyefix_range[1]) and
-                not (eyefix_range[0] <= result_dict['right_sight_offset'] <= eyefix_range[1])):
-            result_dict['sph_left'] = 'nan'
-            result_dict['cyl_left'] = 'nan'
-            result_dict['angle_left'] = 'nan'
-            result_dict['sph_right'] = 'nan'
-            result_dict['cyl_right'] = 'nan'
-            result_dict['angle_right'] = 'nan'
-            result_dict['error_msg'] = self.errors.error_priority_dct[3]['error_code']
-            return result_dict
-
-        # Lead eye and strabismus
-        result_dict['strabismus'] = round((((right_eye_sight - left_eye_sight) ** 2).sum(-1)**0.5).mean(), 0)
-        if result_dict['left_sight_offset'] > result_dict['right_sight_offset']:
-            result_dict['lead_eye'] = 'right'
-        elif result_dict['left_sight_offset'] < result_dict['right_sight_offset']:
-            result_dict['lead_eye'] = 'left'
-        else:
-            result_dict['lead_eye'] = 'both'
-
-        # Eye reflex
-        reflex_int_range = self.errors.error_priority_dct[4]['range']
-        if (not (reflex_int_range[0] < result_dict['left_flick_intensity'] <= reflex_int_range[1]) or
-                not (reflex_int_range[0] < result_dict['right_flick_intensity'] <= reflex_int_range[1])):
-            result_dict['sph_left'] = 'nan'
-            result_dict['cyl_left'] = 'nan'
-            result_dict['angle_left'] = 'nan'
-            result_dict['sph_right'] = 'nan'
-            result_dict['cyl_right'] = 'nan'
-            result_dict['angle_right'] = 'nan'
-            result_dict['error_msg'] = self.errors.error_priority_dct[4]['error_code']
-            return result_dict
-        # Pupil small
-        pupil_min_d = self.errors.error_priority_dct[5]['range']
-        if (not (pupil_min_d[0] < result_dict['right_eye_d'] <= pupil_min_d[1]) or
-                not (pupil_min_d[0] < result_dict['left_eye_d'] <= pupil_min_d[1])):
-            result_dict['error_msg'] = self.errors.error_priority_dct[5]['error_code']
-            return result_dict
-        # Pupil big
-        pupil_max_d = self.errors.error_priority_dct[6]['range']
-        if (not (pupil_max_d[0] < result_dict['right_eye_d'] <= pupil_max_d[1]) or
-                not (pupil_max_d[0] < result_dict['left_eye_d'] <= pupil_max_d[1])):
-            result_dict['error_msg'] = self.errors.error_priority_dct[6]['error_code']
-            return result_dict
-        # Eye sight dispersion error
-        eye_sight_std = self.errors.error_priority_dct[11]['std']
-        if (any(np.array(result_dict['left_skew']).std(0) > eye_sight_std) or
-                any(np.array(result_dict['right_skew']).std(0) > eye_sight_std)):
-            result_dict['sph_left'] = 'nan'
-            result_dict['cyl_left'] = 'nan'
-            result_dict['angle_left'] = 'nan'
-            result_dict['sph_right'] = 'nan'
-            result_dict['cyl_right'] = 'nan'
-            result_dict['angle_right'] = 'nan'
-            result_dict['error_msg'] = self.errors.error_priority_dct[11]['error_code']
-            return result_dict
-        # Cyl and sph std err
-        ref_std = self.errors.error_priority_dct[12]['std']
-        if (any(left_std[:2] > ref_std) or any(right_std[:2] > ref_std)):
-            result_dict['sph_left'] = 'nan'
-            result_dict['cyl_left'] = 'nan'
-            result_dict['angle_left'] = 'nan'
-            result_dict['sph_right'] = 'nan'
-            result_dict['cyl_right'] = 'nan'
-            result_dict['angle_right'] = 'nan'
-            result_dict['error_msg'] = self.errors.error_priority_dct[12]['error_code']
-            return result_dict
-        # Small support
-        min_support = self.errors.error_priority_dct[13]['min_ratio'] * 10
-        if min_support > len(out_lst[0][0]):
-            result_dict['sph_left'] = 'nan'
-            result_dict['cyl_left'] = 'nan'
-            result_dict['angle_left'] = 'nan'
-            result_dict['sph_right'] = 'nan'
-            result_dict['cyl_right'] = 'nan'
-            result_dict['angle_right'] = 'nan'
-            result_dict['error_msg'] = self.errors.error_priority_dct[12]['error_code']
-            return result_dict
+        result_dict = self.errors.post_check_list(result_dict)
         return result_dict
 
 
