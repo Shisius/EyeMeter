@@ -16,4 +16,5 @@ _deps
 *.pt
 *.pth
 *.idea
+*.rknn
 /test/
