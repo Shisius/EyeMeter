@@ -122,7 +122,7 @@ class UdsUniCommAI:
     def stream_processing(self):
         try:
             if self.stream_settings.pixel_bits == 8:
-                data = np.ndarray([1, self.stream_settings.frame_height, self.stream_settings.frame_width], 
+                data = np.ndarray([self.stream_settings.frame_height, self.stream_settings.frame_width], 
                                   dtype=np.uint8, 
                                   buffer=self.shframe.buf[self.shared_frame.id*self.shared_frame.size:(self.shared_frame.id+1)*self.shared_frame.size])
                 out_dict = self.analyzer.process_image(data)
