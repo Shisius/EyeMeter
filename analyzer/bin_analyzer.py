@@ -204,9 +204,9 @@ class EyeAnalyzer:
         if backend_type == 'rknn':
             from rknn_pupil_detection import PupilDetectRKNN
             self.pd = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path), conf=conf, iou=0.5, imgsz=640)
-            self.pd_320 = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path_320), conf=conf, iou=0.5, imgsz=320)
+            # self.pd_320 = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path_320), conf=conf, iou=0.5, imgsz=320)
             # self.pd_240 = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path_240), conf=conf, iou=0.5, imgsz=240)
-            # self.pd_160 = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path_160), conf=conf, iou=0.5, imgsz=160)
+            self.pd_160 = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path_160), conf=conf, iou=0.5, imgsz=160)
         elif backend_type == 'onnx':
             from onnx_pupil_detection import PupilDetectONNX
             self.pd = PupilDetectONNX(path_to_onnx = self.adj_os('C:\\Users\\tomil\Downloads\Telegram Desktop'
