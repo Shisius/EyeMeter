@@ -125,7 +125,7 @@ class UdsUniCommAI:
                 data = np.ndarray([self.stream_settings.frame_height, self.stream_settings.frame_width], 
                                   dtype=np.uint8, 
                                   buffer=self.shframe.buf[self.shared_frame.id*self.shared_frame.size:(self.shared_frame.id+1)*self.shared_frame.size])
-                out_dict = self.analyzer.process_image(data, img_sz=240)
+                out_dict = self.analyzer.process_image(data, img_sz=320)
                 if 'right_eye_d' in out_dict.keys():
                     self.stream_result = StreamResult(self.shared_frame.id, None, out_dict['left_sharpness'], out_dict['right_sharpness'])
                     self.stream_result.add_circle(out_dict['eye_positions']['left_x'], out_dict['eye_positions']['left_y'], out_dict['eye_positions']['left_r'],
