@@ -466,7 +466,7 @@ class EyeAnalyzer:
                                                        save=False, imgsz=320, conf=self.pd.conf)
                 elif img_sz == 240:
                     result = self.pd_240.model.predict([img[:, :, None].repeat(3, axis=-1)],
-                                                       save=False, imgsz=240, conf=self.pd.conf)
+                                                       save=False, imgsz=256, conf=self.pd.conf)
                 elif img_sz == 160:
                     result = self.pd_160.model.predict([img[:, :, None].repeat(3, axis=-1)],
                                                        save=False, imgsz=160, conf=self.pd.conf)
