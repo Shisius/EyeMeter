@@ -128,10 +128,12 @@ class UdsUniCommAI:
                 out_dict = self.analyzer.process_image(data, img_sz=320)
                 if 'right_eye_d' in out_dict.keys():
                     self.stream_result = StreamResult(self.shared_frame.id, None, out_dict['left_sharpness'], out_dict['right_sharpness'])
-                    self.meas_result.add_circle(out_dict['eye_positions']['left_x'], out_dict['eye_positions']['left_y'], out_dict['eye_positions']['left_r'],
+                    self.stream_result.add_circle(out_dict['eye_positions']['left_x'], out_dict['eye_positions']['left_y'], out_dict['eye_positions']['left_r'],
                         out_dict['eye_positions']['right_x'], out_dict['eye_positions']['right_y'], out_dict['eye_positions']['right_r'])
+                    print("AI stream result:", out_dict['left_sharpness'], out_dict['eye_positions']['left_x'])
                 else:
                     self.stream_result = StreamResult(self.shared_frame.id, out_dict['error_msg'], 0, 0)
+                    print("AI stream result:", out_dict['error_msg'])
                 resmsg = self.stream_result.pack()
                 msg = struct.pack('4B', UDSUNI_PROTO_PTTS4, UDSUNI_TITLE_FRAME_PROCESSED, UDSUNI_TYPE_STREAM_RESULT, len(resmsg))
                 msg += resmsg

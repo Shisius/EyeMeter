@@ -34,6 +34,7 @@ inline unsigned char get_size_by_code(unsigned char code)
 	case UDSUNI_TYPE_STREAM_SETTINGS : return sizeof(StreamSettings);
 	case UDSUNI_TYPE_MEASURE_SETTINGS : return sizeof(MeasureSettings);
 	case UDSUNI_TYPE_MEASURE_RESULT : return sizeof(AIEyeMeasResult);
+	case UDSUNI_TYPE_STREAM_RESULT : return sizeof(AIStreamResult);
 	}
 
 	return 0;
