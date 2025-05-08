@@ -190,6 +190,7 @@ class EyeAnalyzer:
                  ref_weights_path='.\\weights\\weights_common.pt',
                  load_model_path='.\\weights\\yolo_eye.pt',
                  rknn_model_path='.\\weights\\yolov8_seg.rknn',
+                 rknn_model_path_320='.\\weights\\yolov8_seg_320.rknn',
                  verbose=False, reverse=1, conf=0.4, backend_type='rknn', pipeline_version='2'):
         if pipeline_version =='1':
             assert reverse==-1, 'Reverse was abnormal previously'
@@ -201,6 +202,7 @@ class EyeAnalyzer:
         if backend_type == 'rknn':
             from rknn_pupil_detection import PupilDetectRKNN
             self.pd = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path), conf=conf, iou=0.5, imgsz=640)
+            self.pd_320 = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path_320), conf=conf, iou=0.5, imgsz=320)
         elif backend_type == 'onnx':
             from onnx_pupil_detection import PupilDetectONNX
             self.pd = PupilDetectONNX(path_to_onnx = self.adj_os('C:\\Users\\tomil\Downloads\Telegram Desktop'
@@ -455,8 +457,12 @@ class EyeAnalyzer:
 
         with torch.jit.optimized_execution(False):
             with torch.inference_mode():
-                result = self.pd.model.predict([img[:, :, None].repeat(3, axis=-1)],
-                                               save=False, imgsz=min(self.pd.imgsz, img_sz), conf=self.pd.conf)
+                if img_sz == 320:
+                    result = self.pd_320.model.predict([img[:, :, None].repeat(3, axis=-1)],
+                                                   save=False, imgsz=320, conf=self.pd.conf)
+                else:
+                    result = self.pd.model.predict([img[:, :, None].repeat(3, axis=-1)],
+                                                   save=False, imgsz=min(self.pd.imgsz, img_sz), conf=self.pd.conf)
                 if self.verbose:
                     fig, ax = plt.subplots()
                     ax.imshow(result[-1].orig_img[:, :,])
