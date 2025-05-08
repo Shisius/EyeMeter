@@ -24,7 +24,7 @@ class RKNNModel:
         self.imgsz = imgsz
         self.iou = iou
 
-    def predict(self, image, save=False, imgsz=640, conf=0.5):
+    def predict(self, image, save=False, imgsz=640, conf=0.5, iou=0.5):
         image = image[-1] if isinstance(image, list) else image
         # data = F.interpolate(torch.tensor(image.astype(np.float32)).permute(2, 0, 1).unsqueeze(0),
         #                      scale_factor=640 / 1936, mode='bilinear')
@@ -33,7 +33,7 @@ class RKNNModel:
                                        auto=False).astype(np.float32)).permute(2, 0, 1).unsqueeze(0).numpy()
         outputs = self.rknn_model.inference(inputs=[data], data_format='nchw')
         inp2 = (data,) + tuple(outputs)
-        out = onnx_yolo_pp(inp2, conf=conf if conf is not None else self.conf, iou=self.iou,
+        out = onnx_yolo_pp(inp2, conf=conf if conf is not None else self.conf, iou=iou if iou is not None else self.iou,
                            orig_img=[image])
         return out
 
