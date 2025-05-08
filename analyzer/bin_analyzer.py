@@ -18,12 +18,12 @@ from net_sharp import PupilSharp
 
 
 def measurements_invalid(dct):
-    dct['sph_left'] = 'nan'
-    dct['cyl_left'] = 'nan'
-    dct['angle_left'] = 'nan'
-    dct['sph_right'] = 'nan'
-    dct['cyl_right'] = 'nan'
-    dct['angle_right'] = 'nan'
+    dct['sph_left'] = float('nan')
+    dct['cyl_left'] = float('nan')
+    dct['angle_left'] = float('nan')
+    dct['sph_right'] = float('nan')
+    dct['cyl_right'] = float('nan')
+    dct['angle_right'] = float('nan')
     return dct
 
 class ErrorsEyeMeter:
