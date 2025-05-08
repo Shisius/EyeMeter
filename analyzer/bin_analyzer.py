@@ -205,8 +205,8 @@ class EyeAnalyzer:
             from rknn_pupil_detection import PupilDetectRKNN
             self.pd = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path), conf=conf, iou=0.5, imgsz=640)
             # self.pd_320 = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path_320), conf=conf, iou=0.5, imgsz=320)
-            # self.pd_240 = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path_240), conf=conf, iou=0.5, imgsz=240)
-            self.pd_160 = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path_160), conf=conf, iou=0.5, imgsz=160)
+            self.pd_240 = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path_240), conf=conf, iou=0.5, imgsz=240)
+            # self.pd_160 = PupilDetectRKNN(rknn_model=self.adj_os(rknn_model_path_160), conf=conf, iou=0.5, imgsz=160)
         elif backend_type == 'onnx':
             from onnx_pupil_detection import PupilDetectONNX
             self.pd = PupilDetectONNX(path_to_onnx = self.adj_os('C:\\Users\\tomil\Downloads\Telegram Desktop'
@@ -466,7 +466,7 @@ class EyeAnalyzer:
                                                        save=False, imgsz=320, conf=self.pd.conf)
                 elif img_sz == 240:
                     result = self.pd_240.model.predict([img[:, :, None].repeat(3, axis=-1)],
-                                                       save=False, imgsz=256, conf=self.pd.conf)
+                                                       save=False, imgsz=240, conf=self.pd.conf)
                 elif img_sz == 160:
                     result = self.pd_160.model.predict([img[:, :, None].repeat(3, axis=-1)],
                                                        save=False, imgsz=160, conf=self.pd.conf)
