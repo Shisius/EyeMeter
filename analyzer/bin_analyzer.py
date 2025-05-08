@@ -451,12 +451,12 @@ class EyeAnalyzer:
         result_dict['eye_positions'] = self.data_collector.collect_data['eye_positions'][0]
         return result_dict
 
-    def process_image(self, img: np.ndarray, num_frame: int=0) -> dict:
+    def process_image(self, img: np.ndarray, num_frame: int=0, img_sz: int = 640) -> dict:
 
         with torch.jit.optimized_execution(False):
             with torch.inference_mode():
                 result = self.pd.model.predict([img[:, :, None].repeat(3, axis=-1)],
-                                               save=False, imgsz=self.pd.imgsz, conf=self.pd.conf)
+                                               save=False, imgsz=min(self.pd.imgsz, img_sz), conf=self.pd.conf)
                 if self.verbose:
                     fig, ax = plt.subplots()
                     ax.imshow(result[-1].orig_img[:, :,])

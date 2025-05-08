@@ -29,7 +29,8 @@ class RKNNModel:
         # data = F.interpolate(torch.tensor(image.astype(np.float32)).permute(2, 0, 1).unsqueeze(0),
         #                      scale_factor=640 / 1936, mode='bilinear')
         # data = torch.cat([140*torch.ones(1, 3, 118, 640), data, 140*torch.ones(1, 3, 121, 640),], dim=2).numpy()
-        data = torch.tensor(letter_box(image, auto=False).astype(np.float32)).permute(2, 0, 1).unsqueeze(0).numpy()
+        data = torch.tensor(letter_box(image,  new_shape=(imgsz, imgsz),
+                                       auto=False).astype(np.float32)).permute(2, 0, 1).unsqueeze(0).numpy()
         outputs = self.rknn_model.inference(inputs=[data], data_format='nchw')
         inp2 = (data,) + tuple(outputs)
         out = onnx_yolo_pp(inp2, conf=conf if conf is not None else self.conf, iou=self.iou,
