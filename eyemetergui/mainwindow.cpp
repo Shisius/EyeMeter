@@ -200,6 +200,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     QString str_labelStyle_pic = QString("border-style: none ; color: %1").arg(str_dark_color_label);
     QString str_labelStyle_graphTitle = QString("border-style: none ;"
+                                                "padding: 0px 0px;"
                                               "font: %1;"
                                               "color: %2")
         .arg(str_fontSize_px_graphTitle)
@@ -465,6 +466,9 @@ qDebug() << Q_FUNC_INFO <<1;
     d_topToolbar->setMovable(false);
 /*SIZE*/
     QSize screenSize = QGuiApplication::primaryScreen()->size();
+#ifdef TEST_snapshot
+    screenSize = QSize(screen_w, screen_h);
+#endif
     setBaseSize(screenSize);
     setFixedSize(screenSize);
     setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
@@ -563,6 +567,7 @@ qDebug() << Q_FUNC_INFO <<1;
     l_id->setStyleSheet(str_labelStyle);
     l_id->setFont( font_label);
     d_le_id = new QLineEdit;
+    d_le_id->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Minimum);
     layout_patientdata->addWidget(d_le_id, 2,1);
     //d_le_id->setContentsMargins(marg_lineedit);
     d_le_id->setPlaceholderText(tr("Введите ID"));
@@ -641,6 +646,7 @@ qDebug() << Q_FUNC_INFO <<1;
     l_sex->setStyleSheet(str_labelStyle);
     layout_patientdata->addWidget(l_sex,3,0);
     QFrame *frame_sex = new QFrame;
+    frame_sex->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Minimum);
     //frame_sex->setStyleSheet(str_lineeditStyle);
     frame_sex->setStyleSheet(str_frame_sexStyle);
     d_female = new QRadioButton(tr("Женский"));
@@ -906,17 +912,17 @@ qDebug() << Q_FUNC_INFO <<1;
     layout_digitsDataResults->setAlignment(Qt::AlignCenter);
 
     QHBoxLayout *layout_fixLeft = new QHBoxLayout;
-    layout_fixLeft->setAlignment(Qt::AlignHCenter);
+    //layout_fixLeft->setAlignment(Qt::AlignHCenter);
     QLabel *l_fixLeft = new QLabel(tr("OS"));
-    l_fixLeft->setAlignment(Qt::AlignHCenter);
+    l_fixLeft->setAlignment(Qt::AlignHCenter|Qt::AlignTop);
     l_fixLeft->setStyleSheet(str_labelStyle_graphTitle);
 
     layout_fixLeft->addWidget(d_l_pic_FixLeft);
     layout_fixLeft->addWidget(l_fixLeft);
     QHBoxLayout *layout_fixRight = new QHBoxLayout;
-    layout_fixRight->setAlignment(Qt::AlignHCenter);
+    //layout_fixRight->setAlignment(Qt::AlignHCenter);
     QLabel *l_fixRight = new QLabel(tr("OD"));
-    l_fixRight->setAlignment(Qt::AlignHCenter);
+    l_fixRight->setAlignment(Qt::AlignHCenter|Qt::AlignTop);
     l_fixRight->setStyleSheet(str_labelStyle_graphTitle);
     layout_fixRight->addWidget(l_fixRight);
     layout_fixRight->addWidget(d_l_pic_FixRight);
@@ -989,6 +995,7 @@ qDebug() << Q_FUNC_INFO <<1;
     layout_eyesResults->addWidget(d_l_leftEye);
     layout_pupils->addLayout(layout_eyesResults);
     d_l_extrametrics = new QLabel(STR_extrametrics);
+    d_l_extrametrics->setStyleSheet(str_lineeditStyle);
     layout_pupils->addWidget(d_l_extrametrics);
     //d_l_strabismus = new QLabel(STR_strabismus);
     //layout_pupils->addWidget(d_l_strabismus);
@@ -1529,14 +1536,14 @@ screenHeight = screen_h;
            /*.scaled(d_eyesLabelSize,Qt::KeepAspectRatio)*/); //NEED TO SCALE???
     qDebug() << "d_l_eyes->size()" << d_l_eyes->size();
     //d_l_snapshot.adjustSize();
-    std::vector<EyeSkewCoords> leftSkew(5);
-    std::vector<EyeSkewCoords> rightSkew(5);
+    std::vector<EyeSkewCoords> leftSkew(40);
+    std::vector<EyeSkewCoords> rightSkew(40);
 
-    for (size_t i = 0; i < 5; i++) {
-       leftSkew[i].x = i*5;
-       leftSkew[i].y = 0;
-       rightSkew[i].x = i*2;
-       rightSkew[i].y = 10;
+    for (size_t i = 0; i < 40; i++) {
+       leftSkew[i].x = QRandomGenerator::global()->bounded(5.);
+       leftSkew[i].y = QRandomGenerator::global()->bounded(5.);;
+       rightSkew[i].x = QRandomGenerator::global()->bounded(5.);;
+       rightSkew[i].y = QRandomGenerator::global()->bounded(5.);;
     }
     d_l_pic_FixLeft->setFixedSize(d_pic_fixGrid.width(), d_pic_fixGrid.height());
     d_l_pic_FixRight->setFixedSize(d_pic_fixGrid.width(), d_pic_fixGrid.height());
@@ -1544,14 +1551,14 @@ screenHeight = screen_h;
     d_l_pic_FixRight->setPicture(fixation_result(d_pic_fixGrid, rightSkew, str_color_graphDot));
 
     AIEyeMeasResult measResult;
-    measResult.left.sphere = 1.3;
-    measResult.left.cylinder = 2.3;
-    measResult.left.angle = 3.3;
-    measResult.left.diameter = 4.3;
-    measResult.right.sphere = 5.3;
-    measResult.right.cylinder = 5.3;
-    measResult.right.angle = 6.3;
-    measResult.right.diameter = 7.3;
+    measResult.left.sphere = -1;
+    measResult.left.cylinder = -0.5;
+    measResult.left.angle = 114;
+    measResult.left.diameter = 4.8;
+    measResult.right.sphere = -0.25;
+    measResult.right.cylinder = -0.5;
+    measResult.right.angle = 6;
+    measResult.right.diameter = 5;
     measResult.error_word = 64;
     measResult.left_sharpness = 1;
     measResult.right_sharpness = 2;
@@ -2044,8 +2051,10 @@ QPicture MainWindow::fixation_grid(int side, QColor grid)
 //    painter.drawLine(0, side/2., side, side/2.);
 //    painter.drawLine(0, 0, side, side);
 //    painter.drawLine(0, side, side, 0);
-    painter.drawEllipse(QPointF(0, 0), side/6., side/6.);
-    painter.drawEllipse(QPointF(0, 0), side/3., side/3.);
+//    painter.drawEllipse(QPointF(0, 0), side/6., side/6.);
+//    painter.drawEllipse(QPointF(0, 0), side/3., side/3.);
+    painter.drawEllipse(QPointF(0, 0), side/5., side/5.);
+    painter.drawEllipse(QPointF(0, 0), side/2.5, side/2.5);
     //painter.drawRect(0,0,side-1,side-1);
     painter.drawLine(-1*side/2.,-1*side/2., side/2., side/2.);
     painter.drawLine(0, -1*side/2., 0, side/2.);
@@ -2057,7 +2066,7 @@ QPicture MainWindow::fixation_grid(int side, QColor grid)
     painter.setPen(QPen(grid, 3));
     //painter.setBrush(QBrush(bgColor));
     QFont font;
-    font.setPixelSize(12);
+    font.setPixelSize(16);
     painter.setFont(font);
     double textOffset = 2.;
 
@@ -2066,7 +2075,8 @@ QPicture MainWindow::fixation_grid(int side, QColor grid)
     {
         QStaticText stext(QString::number(k*10));
         QSizeF textSize = stext.size();
-        QPointF topLeftPosition(textOffset, side/6. * k + textOffset);
+        //QPointF topLeftPosition(textOffset, side/6. * k + textOffset);
+        QPointF topLeftPosition(textOffset, side/5. * k + textOffset);
         QRectF textBgRect(topLeftPosition,textSize);
         //painter.setPen(Qt::transparent);
         //painter.drawRect(textBgRect);
@@ -2086,7 +2096,8 @@ QPicture MainWindow::fixation_result(const QPicture &grid, std::vector<EyeSkewCo
     painter.drawPicture(0,0, grid);
     size_t s = skew_vec.size();
     QPointF left_arr[s];
-    float k = grid.height()/60.;
+    //float k = grid.height()/60.;
+    float k = grid.height()/50.;
     for (size_t i = 0; i < s; i++) {
         left_arr[i] = QPointF(skew_vec.at(i).x *k, skew_vec.at(i).y *k);
     }
