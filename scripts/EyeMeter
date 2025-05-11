@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+killall eyemetergui
+cd ~/EyeMeter/analyzer/
+python3 eye_analyzerd.py stop
+echo "stop daemon"
+~/EyeMeter/eseircam/daemon/TargetBuild/tmp/esecamd -x
+sleep 0.1
+killall esecamd
+rm /tmp/esecamd.pid
+sleep 0.1
+echo "start daemon"
+~/EyeMeter/eseircam/daemon/TargetBuild/tmp/esecamd -d
+sleep 0.1
+echo "start analyzer"
+#cd ~/EyeMeter/analyzer/
+#python3 eye_analyzerd.py stop
+#sleep 1
+python3 eye_analyzerd.py start
+#sleep 1
+cd ~/EyeMeter/build-eyemetergui-Desktop-Release/
+echo "start gui"
+./eyemetergui
+
+
