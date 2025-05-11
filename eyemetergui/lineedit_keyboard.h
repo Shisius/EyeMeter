@@ -23,7 +23,7 @@ private:
     int _lastDiff = 0;
     int offset = 40;
 private slots:
-    //void slot_textEdited(const QString &text);
+    void slot_editingFinished();
 };
 
 #endif // LINEEDIT_KEYBOARD_H

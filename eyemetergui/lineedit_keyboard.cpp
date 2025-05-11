@@ -9,6 +9,7 @@ LineEdit_Keyboard::LineEdit_Keyboard(QWidget *parent) :/*QLineEdit QPlainTextEdi
 //    d_l_duplicate->hide();
     //qDebug() << connect(this, SIGNAL(textEdited(const QString &)), SLOT(slot_textEdited(const QString &)));
     setInputMethodHints(inputMethodHints()/* | Qt::InputMethodHint::ImhDigitsOnly*/);
+    //qDebug() << "editingFinished connect" <<connect(()this, SIGNAL(editingFinished()), SLOT(slot_editingFinished()));
 
 }
 
@@ -62,8 +63,27 @@ bool LineEdit_Keyboard::event(QEvent* e) {
     return /*QLineEdit QPlainTextEdit*/QTextEdit::event(e);
 }
 
-//void LineEdit_Keyboard::slot_textEdited(const QString &text)
-//{
-//    qDebug() << Q_FUNC_INFO;
-//    d_l_duplicate->setText(text);
-//}
+void LineEdit_Keyboard::slot_editingFinished()
+{
+    qDebug() << Q_FUNC_INFO;
+    const auto keyboard_rect = QGuiApplication::inputMethod()->keyboardRectangle();
+    const auto keyboard_visible = QGuiApplication::inputMethod()->isVisible();
+    const auto global_y = QWidget::mapToGlobal(rect().topLeft()).y() + height();
+    const auto k_global_y = keyboard_rect.topLeft().y() - offset;
+    const auto diff = k_global_y - global_y;
+    const auto need_to_move = diff < 0;
+
+    /* roll back */
+    if (/*!keyboard_visible &&*/ _moved) {
+        qDebug() << Q_FUNC_INFO << "roll back";
+        _moved = false;
+        const auto g = parentWidget()->frameGeometry();
+        parentWidget()->move(g.x(), g.y() + qAbs(_lastDiff));
+        qDebug() << "g.x()" << g.x();
+        qDebug() << "g.y()" << g.y();
+        qDebug() << "qAbs(_lastDiff)" << qAbs(_lastDiff);
+        qDebug() << "g.y() + qAbs(_lastDiff)" << g.y() + qAbs(_lastDiff);
+        //d_le_duplicate->hide();
+        qDebug() << Q_FUNC_INFO << "roll back end";
+    }
+}

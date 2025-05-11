@@ -14,8 +14,8 @@ enum SHOT_BUTTON
 class ShotButtons : public QWidget
 {
     Q_OBJECT
-    static constexpr uint bigSide = 36;
-    static constexpr uint midSide = 24;
+    static constexpr uint bigSide = 52;
+    static constexpr uint midSide = 40;
     static constexpr uint offset = 20;
 
     QPushButton *d_but_shot;
