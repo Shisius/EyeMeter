@@ -210,6 +210,17 @@ MainWindow::MainWindow(QWidget *parent)
                                                   "color: %2")
             .arg(str_fontSize_px_resultHeader)
             .arg(str_dark_color_label);
+    QString str_labelStyle_resultHeader_PD = QString(//"border-style: none ;"
+                                                     "padding: 0px 5px;"
+                                                     "border-right-width: 3px;"
+                                                     "border-right-color: %2;"
+                                                     "border-right-style: solid;"
+                                                     "border-top-right-radius: 0px;"
+                                                     "border-bottom-right-radius: 0px;" /* just a single line */
+                                                  "font: %1;"
+                                                  "color: %2")
+            .arg(str_fontSize_px_resultHeader)
+            .arg(str_dark_color_label);
     QString str_labelStyle_resultData = QString("border-style: none ;"
                                                 "font: %1; "
                                                 "color: %2")
@@ -854,7 +865,7 @@ qDebug() << Q_FUNC_INFO <<1;
     layout_digitsDataResults->addWidget(line2_res);
     QHBoxLayout *layout_a = new QHBoxLayout;
     //QLabel *l_refraction = new QLabel(tr("Рефракция, dpt"));
-    QLabel *l_a = new QLabel(tr("A\n[º]"));
+    QLabel *l_a = new QLabel(tr("Ax\n[º]"));
     l_a->setStyleSheet(str_labelStyle_resultHeader);
     l_a->setAlignment(Qt::AlignHCenter);
     d_l_aLeft = new QLabel;
@@ -891,7 +902,7 @@ qDebug() << Q_FUNC_INFO <<1;
     QLabel *l_strabismus = new QLabel(tr("ASY\n[º]"));
     l_interocular->setAlignment(Qt::AlignHCenter);//(Qt::AlignRight);
     l_strabismus->setAlignment(Qt::AlignHCenter);//(Qt::AlignLeft);
-    l_interocular->setStyleSheet(str_labelStyle_resultHeader);
+    l_interocular->setStyleSheet(str_labelStyle_resultHeader_PD);
     l_strabismus->setStyleSheet(str_labelStyle_resultHeader);
     d_l_interocular = new QLabel;
     d_l_strabismus = new QLabel;
