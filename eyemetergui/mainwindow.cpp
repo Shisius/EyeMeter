@@ -1072,8 +1072,18 @@ qDebug() << Q_FUNC_INFO <<1;
     //d_frame_album->setLayout(layout_album);
     d_measReviewButs = new ImageButtons(d_l_photosViewer);
     //d_measReviewButs->setVisible(false);
-    d_measReviewButs->hide(true);
+    //d_measReviewButs->hide(true);
     //d_measReviewButs->hide(false);
+    //if(d_measReviewButs != nullptr)
+    //{
+    //d_measReviewButs->resize(d_l_photosViewer->width(),d_l_photosViewer->height());
+        //int screenWidth = QGuiApplication::primaryScreen()->size().width();
+        //int screenHeight = QGuiApplication::primaryScreen()->size().height();
+//#ifdef TEST_snapshot
+//    screenWidth = screen_w;
+//    screenHeight = screen_h;
+//#endif
+        d_measReviewButs->resize(screenWidth,screenHeight-TOOLBARICON_HEIGHT);
     connect(d_measReviewButs, SIGNAL(showMeasImg_clicked(uint)), SLOT(slot_showMeasImg(uint)));
 
 
@@ -1320,19 +1330,19 @@ void MainWindow::slot_setWin(int id)
         break;
     case static_cast<int>(stackedWidget_main::ALBUM):
     {
-        if(d_measReviewButs != nullptr)
-        {
-        //d_measReviewButs->resize(d_l_photosViewer->width(),d_l_photosViewer->height());
-            int screenWidth = QGuiApplication::primaryScreen()->size().width();
-            int screenHeight = QGuiApplication::primaryScreen()->size().height();
-    #ifdef TEST_snapshot
-        screenWidth = screen_w;
-        screenHeight = screen_h;
-    #endif
-            d_measReviewButs->resize(screenWidth,screenHeight-TOOLBARICON_HEIGHT);
-            d_measReviewButs->hide(false);
+//        if(d_measReviewButs != nullptr)
+//        {
+//        //d_measReviewButs->resize(d_l_photosViewer->width(),d_l_photosViewer->height());
+//            int screenWidth = QGuiApplication::primaryScreen()->size().width();
+//            int screenHeight = QGuiApplication::primaryScreen()->size().height();
+//    #ifdef TEST_snapshot
+//        screenWidth = screen_w;
+//        screenHeight = screen_h;
+//    #endif
+//            d_measReviewButs->resize(screenWidth,screenHeight-TOOLBARICON_HEIGHT);
+            //d_measReviewButs->hide(false);
 
-        }
+//        }
     }
         break;
 
@@ -1645,11 +1655,11 @@ void MainWindow::slot_measure()
 //    d_file_measure.setFileName(file_measure_str);
     d_vec_snapshots.clear();
     //d_vec_snapshots.reserve(CONST_MEASURE_SHOTS_COUNT);
-    if(d_measReviewButs != nullptr)
-    {
-        d_measReviewButs->hide(true);
+    //if(d_measReviewButs != nullptr)
+    //{
+    //    d_measReviewButs->hide(true);
         //d_measReviewButs->resize(d_l_snapshot.width(),d_l_snapshot.height());
-    }
+    //}
     d_isMeasurStarted = false;
     /*Clear results*/
     clearResults();
@@ -1658,7 +1668,7 @@ void MainWindow::slot_measure()
 void MainWindow::slot_showMeasImg(uint num)
 {
     qDebug() << Q_FUNC_INFO;
-    if(d_vec_snapshots.size()>static_cast<int>(num))
+    if(d_vec_snapshots.size() > static_cast<int>(num))
     {
         //QPixmap pix = image( d_vec_snapshots.at(num)/*, d_l_snapshot.size()*/).scaled(d_l_photosViewer->size(), Qt::KeepAspectRatio, Qt::FastTransformation);
 
@@ -1831,9 +1841,10 @@ void MainWindow::slot_readUds(UdsUniPack pack)
         measFinished(tr("СНЯТО"));
         if(d_measReviewButs != nullptr)
         {            
-            d_measReviewButs->hide(false);
-            d_measReviewButs->setImageCount(d_vec_snapshots.size());
-            slot_showMeasImg(0);
+            //d_measReviewButs->hide(false);
+            uint imgNum = 0;
+            d_measReviewButs->setImageCount(d_vec_snapshots.size(),imgNum);
+            slot_showMeasImg(imgNum);
 //            if(d_vec_snapshots.size()>0)
 //            {
 //                QPixmap pix = image( d_vec_snapshots.at(0)/*, d_l_snapshot.size()*/).scaled(d_l_photosViewer->size(), Qt::KeepAspectRatio, Qt::FastTransformation);

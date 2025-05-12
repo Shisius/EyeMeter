@@ -20,7 +20,7 @@ public:
     void hide(bool);
     void resize(int w, int h);
     //void setButtons(uint imageCount);
-    void setImageCount(uint imageCount);
+    void setImageCount(uint imageCount, uint imageNum = 0);
     void setHotKeys(QString prevPB,
                     QString rightPB);
 signals:
