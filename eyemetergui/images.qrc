@@ -18,5 +18,6 @@
         <file>img/calendar_pressed.svg</file>
         <file>img/angle-left_disabled.svg</file>
         <file>img/angle-right_disabled.svg</file>
+        <file>img/lightbulb-off_disabled.svg</file>
     </qresource>
 </RCC>

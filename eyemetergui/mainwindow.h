@@ -16,8 +16,8 @@
 //#include <QLineEdit>
 //#include <QtVirtualKeyboard>
 #ifdef TEST_snapshot
-const int screen_w = 629;
-const int screen_h = 401;
+const int screen_w = 1280;//629;
+const int screen_h = 800;//401;
 #endif
 
 class MainWindow : public QMainWindow
@@ -33,12 +33,13 @@ class MainWindow : public QMainWindow
     const QString STR_MOSTLIGHT_COLOR = "#fffefe";
     const QString STR_LIGHT_COLOR2 = "#FFF2DB";//"#dddde2";
 
-    const QString STR_TITLE = "АЙБОЛИТчекс";//"Let you see new horizons";
+    const QString STR_TITLE = " "; //"АЙБОЛИТчекс";//"Let you see new horizons";
     const QString STR_error = "error";
     const QString STR_extrametrics = "lsharp, rsharp, lflisk, rflick";
     const QString STR_strabismus = "strabismus";
-    const int TOOLBARICON_WIDTH = 30;
-    const int TOOLBARICON_HEIGHT = 24;
+    const int TOOLBARICON_WIDTH = 60;
+    const int TOOLBARICON_HEIGHT = 40;
+    const int PB_HEIGHT = 60;
 
     QString str_color_graphDot = STR_WARM_MOSTDARK_COLOR;
 
@@ -47,15 +48,15 @@ class MainWindow : public QMainWindow
     //enum class tabWidget
     enum class stackedWidget_main
     {
-        PATIENT,
-        CARD, //patient card
+        PATIENT, //patient card
+        RESULTS,
         ALBUM, //album with shots
         PUPILS,//technological        
         MEAS //measure screen
 
     };
     QFrame *d_frame_patient;
-    QFrame *d_frame_card;
+    QFrame *d_frame_results;
     QFrame *d_frame_pupils;
     QFrame *d_frame_album;
     QFrame *d_frame_meas;
@@ -85,15 +86,25 @@ class MainWindow : public QMainWindow
     QLabel *d_l_eyes;
     bool d_isEyesLabelSizeFixed = false;
     QSize d_eyesLabelSize;
-    QLabel *d_l_refractionLeft;
-    QLabel *d_l_refractionRight;    
-    QLabel *d_l_interocularRes;
+    //QLabel *d_l_refractionLeft;
+    //QLabel *d_l_refractionRight;
+    QLabel *d_l_sphLeft;
+    QLabel *d_l_sphRight;
+    QLabel *d_l_cylLeft;
+    QLabel *d_l_cylRight;
+    QLabel *d_l_aLeft;
+    QLabel *d_l_aRight;
+    QLabel *d_l_diameterLeft;
+    QLabel *d_l_diameterRight;
+    QLabel *d_l_interocular;
+    QLabel *d_l_strabismus;
     QLabel *d_l_pic_FixLeft;
     QLabel *d_l_pic_FixRight;
     QPicture d_pic_fixGrid;
     QLabel *d_l_error;
+    QPushButton *d_pb_reshot;
     QLabel *d_l_extrametrics;
-    QLabel *d_l_strabismus;
+
     //QPushButton *d_pb_shot;
 
     void setStyle2list(const QList<QLabel*> & list, const QString &style = "", Qt::Alignment = Qt::AlignLeft, const QFont &f = QFont());
