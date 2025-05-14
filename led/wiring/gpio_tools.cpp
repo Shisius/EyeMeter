@@ -28,6 +28,7 @@ int SysPwm::get_sys_number()
 
 int SysPwm::setup()
 {
+#ifndef SYSPWM_DUMMY
 	if (get_sys_number() < 0) return -1;
 	std::string filename = "/sys/class/pwm/pwmchip" + std::to_string(d_sys_pwm_num) + "/pwm0/duty_cycle";
 	d_duty_fd = open(filename.c_str(), O_RDWR);
@@ -35,12 +36,14 @@ int SysPwm::setup()
 		printf("SysPwm: open file %s failed\n", filename.c_str());
 		return -1;
 	}
-
+#endif
 	return 0;
+
 }
 
 int SysPwm::set_duty(float duty)
 {
+#ifndef SYSPWM_DUMMY
 	if (duty < 0 || duty > 1.0) {
 		printf("SysPwm:: wrong duty %f\n", duty);
 		return -1;
@@ -52,5 +55,6 @@ int SysPwm::set_duty(float duty)
 		printf("SysPwm:: write failed with result = %ld\n", result);
 		return -1;
 	}
+#endif
 	return 0;
 }
