@@ -80,10 +80,11 @@ void ImageButtons::hide(bool visible)
 
 }
 
-void ImageButtons::setImageCount(uint imageCount)
+void ImageButtons::setImageCount(uint imageCount, uint imageNum)
 {
-    qDebug()<<Q_FUNC_INFO << imageCount;
-    d_imageNum = imageCount;
+    qDebug()<<Q_FUNC_INFO << imageCount;    
+    if(imageNum > imageCount) imageNum = imageCount;
+    d_imageNum = imageNum;
     d_imageCount = imageCount;
 #ifndef TEST_snapshot
 
@@ -114,10 +115,27 @@ void ImageButtons::setImageCount(uint imageCount)
             qDebug()<<Q_FUNC_INFO << "imageCount >= 2 end";
         }
     }
-    //d_but_prev->setEnabled(true);
-    //d_but_next->setDisabled(true);
-    d_but_prev->setDisabled(true);
-    d_but_next->setEnabled(true);
+    if(d_imageNum == 0)
+    {
+        d_but_prev->setDisabled(true);
+        d_but_next->setEnabled(true);
+    }
+    else
+    {
+        if(d_imageNum == d_imageCount-1)
+        {
+            d_but_prev->setEnabled(true);
+            d_but_next->setDisabled(true);
+        }
+        else
+        {
+            d_but_prev->setEnabled(true);
+            d_but_next->setEnabled(true);
+        }
+    }
+    //
+    //
+
 
     qDebug()<<Q_FUNC_INFO << "end";
 }
@@ -170,7 +188,8 @@ void ImageButtons::slot_imageNext()
     d_imageNum++;
     if(d_imageNum == d_imageCount-1)
         d_but_next->setDisabled(true);
-    if(d_imageNum < d_imageCount-1)
+    //if(d_imageNum < d_imageCount-1)
+    if(d_imageNum > 0)
         d_but_prev->setEnabled(true);
     qDebug()<<Q_FUNC_INFO << "end";
     emit showMeasImg_clicked(d_imageNum);

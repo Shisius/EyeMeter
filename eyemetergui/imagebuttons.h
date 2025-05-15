@@ -6,7 +6,7 @@
 class ImageButtons: public QWidget
 {
     Q_OBJECT
-    static constexpr uint longSide = 32;
+    static constexpr uint longSide = 52;
     static constexpr uint shortSide = longSide;
     QPushButton *d_but_prev;
     QPushButton *d_but_next;
@@ -20,7 +20,7 @@ public:
     void hide(bool);
     void resize(int w, int h);
     //void setButtons(uint imageCount);
-    void setImageCount(uint imageCount);
+    void setImageCount(uint imageCount, uint imageNum = 0);
     void setHotKeys(QString prevPB,
                     QString rightPB);
 signals:

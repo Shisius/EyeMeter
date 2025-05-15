@@ -74,7 +74,7 @@ ShotButtons::ShotButtons(QWidget *parent)
 
     d_but_light->setIconSize(QSize(midSide, midSide));
     connect(d_but_light, SIGNAL(clicked()), SLOT(slot_light()));
-
+    d_but_light->setDisabled(true);
     //resize(parent->width(), parent->height());
 //    d_but_prev->setStyleSheet(" color: white;"
 //                  "background-color: #27a9e3;"
@@ -118,7 +118,8 @@ void ShotButtons::setLightOn(bool on)
     }
     else
     {
-        d_but_light->setStyleSheet(//"background-color: #414447;"
+        d_but_light->setStyleSheet("QPushButton { "
+                                //"background-color: #414447;"
                                   "border-image: url(:/img/lightbulb-off.svg) ;"
                                    "background: none;"
                                  // "border-radius: 10px;"
@@ -126,7 +127,11 @@ void ShotButtons::setLightOn(bool on)
                                   "border-bottom: transparent;"
                                   "border-right: transparent;"
                                   "border-left: transparent;"
+                                  "}"
                                   //"border-margin: 20 20 20 20;"
+                                   "QPushButton::disabled { "
+                                   "border-image: url(:/img/lightbulb-off_disabled.svg) ;"
+                                   "}"
                                   );
     }
 }

@@ -48,10 +48,14 @@ def rebuild_90():
 	cmd = '/bin/bash build_90hz.sh'
 	runcmd(cmd, os.getcwd() + '/../eseircam/daemon/TargetBuild/')
 
+def rebuild_noesp():
+	cmd = '/bin/bash build_noesp.sh'
+	runcmd(cmd, os.getcwd() + '/../eseircam/daemon/TargetBuild/')
+
 if __name__ == "__main__":
 	root = Tk()
 	root.title('Updater')
-	frame = Frame(root, width=400, height=350)
+	frame = Frame(root, width=400, height=300)
 	frame.grid(row=0, column=0)
 	text = Text(frame, bg='#444444', width=100)
 	text.grid(row=0,column=0)
@@ -65,5 +69,7 @@ if __name__ == "__main__":
 	but_flash.grid(row=4,column=0)
 	but_rebuild_90 = Button(height=BUTTON_H, width=BUTTON_W, text='rebuild_90', font=BUTTON_F, command=rebuild_90)
 	but_rebuild_90.grid(row=5,column=0)
+	but_rebuild_noesp = Button(height=BUTTON_H, width=BUTTON_W, text='rebuild_noesp', font=BUTTON_F, command=rebuild_noesp)
+	but_rebuild_noesp.grid(row=6,column=0)
 
 	root.mainloop()

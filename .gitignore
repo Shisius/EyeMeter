@@ -17,4 +17,5 @@ _deps
 *.pth
 *.idea
 *.rknn
+*.onnx
 /test/
