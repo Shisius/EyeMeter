@@ -132,7 +132,8 @@ class AEDDataset(Dataset):
                         self.all_data.append({'processed_eyes': [{eye: d1[eye]} for d1 in d['processed_eyes']],
                                               'metadata': d['metadata'],
                                               'subset': d['subset'],
-                                              'eye': eye})
+                                              'eye': eye,
+                                              'eye_roll': self.get_eye_roll(d)})
         self.eye2idx = {'left': 0, 'right': 1}
         self.angle2idx = {0: 0, 60: 1, 120: 2, 180: 3, 240: 4, 300: 5}
         self.transform = transform
@@ -149,6 +150,15 @@ class AEDDataset(Dataset):
 
     def __len__(self):
         return len(self.all_data)
+
+    @staticmethod
+    def get_eye_roll(d):
+        left_pos = (d['metadata']['start_mask_left'] + d['metadata']['end_mask_left'])/2
+        right_pos = (d['metadata']['start_mask_right'] + d['metadata']['end_mask_right']) / 2
+        diffs = left_pos - right_pos
+        ang = np.arctan2((diffs[1] + diffs[3]).detach().cpu().numpy() / 2,
+                         (diffs[0] + diffs[0]).detach().cpu().numpy() / 2) / np.pi * 180
+        return ang
 
     @staticmethod
     def collate(batch):

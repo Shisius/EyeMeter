@@ -238,7 +238,7 @@ class EyeAnalyzer:
             ref_weights_path = ref_weights_path.replace('weights_common', 'weight_best_AED')
             self.ref_net.load_state_dict(torch.load(self.adj_os(ref_weights_path)))
         self.ref_net.eval()
-        self.fast = True
+        self.use_every_frame = True
 
     def flush(self):
         self.data_collector.flush()
@@ -389,13 +389,15 @@ class EyeAnalyzer:
             if len(val_dataset) == 0:
                 return info_storage, 'error'
             dataloader = DataLoader(val_dataset, batch_size=128, shuffle=False, collate_fn=RefDataset.collate)
+            head_rot_angle = np.array([d['eye_roll'] for d in dataloader.dataset.all_data]).mean()
             out_lst = []
             for image, mask, rot, eye in tqdm(dataloader, total=len(dataloader)):
                 with torch.no_grad():
-                    out_lst.append([self.ref_net(image, rot, eye, mask).detach().cpu().numpy(),
-                                    rot, eye])
+                    result = self.ref_net(image, rot, eye, mask).detach().cpu().numpy()
+                    result[:, 2] += head_rot_angle  # head angle compensation
+                    out_lst.append([result, rot, eye])
 
-        return info_storage, out_lst
+        return info_storage, out_lst,
 
     def get_pupils(self, img: np.ndarray, metadata: List) -> Tuple:
         pupil_position = metadata[0].round().int().detach().cpu().numpy()
@@ -521,7 +523,8 @@ class EyeAnalyzer:
         assert len(img_array) == self.num_imgs, f'NDArray should have {self.num_imgs} elements'
         tmp = []
 
-        for img_num in range(0, self.num_imgs, 1 if self.fast else 4):
+        for img_num in range(0, self.num_imgs, 1 if self.use_every_frame else 4):
+            # TODO do it in batch
             detection_result = self.process_image(img_array[img_num], num_frame=img_num)
             if not isinstance(detection_result['result'], str):
                 tmp.append([img_num] + detection_result['result'])
@@ -530,7 +533,7 @@ class EyeAnalyzer:
         if len(tmp) == 0:
             return {'error_msg': self.errors.error_priority_dct[1]['error_code']}
 
-        part_collections = self.pack2tries(tmp, use_fast=self.fast, img_array=img_array)  # TODO refactor next
+        part_collections = self.pack2tries(tmp, use_fast=self.use_every_frame, img_array=img_array)  # TODO refactor next
         info_storage, out_lst = self.calculate_refraction(part_collections, img_array)
         if out_lst == 'error':
             return {'error_msg': self.errors.error_priority_dct[1]['error_code']}
@@ -551,7 +554,7 @@ if __name__ == '__main__':
     if 'Linux' in platform.system():
         fname = '/home/eye/Pictures/620_1_2024_06_12_16_02_42.bin'
     else:
-        fname = 'D:\Projects\eye_blinks\data_25\\04\\_2025_04_28_21_42_50.bin'
+        fname = 'E:\Eye_full_dataset\\2025\\05\\25_05_02\\6739_2025_05_01_14_59_58.bin'
     # fname = '777_2024_06_12_20_34_55.bin'
 
     with open(fname, 'rb') as f:
